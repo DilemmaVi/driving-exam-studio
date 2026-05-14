@@ -23,10 +23,18 @@ jobs:
       - name: Build Next.js
         run: npm run build
 
+      - name: Download Node.js portable for bundling
+        shell: pwsh
+        run: |
+          $nodeVersion = "v20.18.3"
+          $url = "https://nodejs.org/dist/$nodeVersion/node-$nodeVersion-win-x64.zip"
+          Invoke-WebRequest -Uri $url -OutFile node.zip
+          Expand-Archive node.zip -DestinationPath node-extract
+          New-Item -ItemType Directory -Force -Path resources/node
+          Copy-Item "node-extract/node-$nodeVersion-win-x64/node.exe" "resources/node/node.exe"
+
       - name: Build Electron app
-        run: npx electron-builder --win
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --win --publish never
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

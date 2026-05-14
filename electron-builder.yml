@@ -2,6 +2,7 @@ appId: com.driving-exam-studio.app
 productName: "驾考视频工作室"
 directories:
   output: dist-electron
+npmRebuild: false
 files:
   - "electron/**/*"
 extraResources:
@@ -21,6 +22,8 @@ extraResources:
       - "render-video.ts"
   - from: "src/remotion"
     to: "standalone/src/remotion"
+  - from: "resources/node"
+    to: "node"
 win:
   target:
     - nsis

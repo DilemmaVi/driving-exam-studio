@@ -1,7 +1,7 @@
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
 const fs = require("fs");
-const { fork } = require("child_process");
+const { spawn } = require("child_process");
 
 let mainWindow = null;
 let serverProcess = null;
@@ -38,23 +38,31 @@ function setupPaths() {
 
 function getResourcesPath() {
   if (app.isPackaged) {
-    return path.join(process.resourcesPath);
+    return process.resourcesPath;
   }
   return path.join(__dirname, "..");
+}
+
+function getNodePath() {
+  if (app.isPackaged) {
+    // Bundled node.exe in resources
+    return path.join(process.resourcesPath, "node", "node.exe");
+  }
+  return "node";
 }
 
 function getServerPath() {
   if (app.isPackaged) {
     return path.join(process.resourcesPath, "standalone", "server.js");
   }
-  // Dev mode: use next dev
   return null;
 }
 
 function startServer() {
   const serverPath = getServerPath();
-  if (!serverPath) return; // dev mode uses separate next dev
+  if (!serverPath) return;
 
+  const nodePath = getNodePath();
   const env = {
     ...process.env,
     PORT: String(PORT),
@@ -62,12 +70,16 @@ function startServer() {
     NODE_ENV: "production",
   };
 
-  serverProcess = fork(serverPath, [], { env, silent: true });
+  serverProcess = spawn(nodePath, [serverPath], {
+    env,
+    stdio: ["ignore", "pipe", "pipe"],
+    cwd: path.dirname(serverPath),
+  });
 
-  serverProcess.stdout?.on("data", (data) => {
+  serverProcess.stdout.on("data", (data) => {
     console.log("[server]", data.toString());
   });
-  serverProcess.stderr?.on("data", (data) => {
+  serverProcess.stderr.on("data", (data) => {
     console.error("[server]", data.toString());
   });
 }
@@ -89,13 +101,13 @@ function createWindow() {
   mainWindow.on("closed", () => { mainWindow = null; });
 }
 
-function waitForServer(retries = 30) {
+function waitForServer(retries = 60) {
   return new Promise((resolve, reject) => {
     const http = require("http");
     let attempts = 0;
     const check = () => {
       attempts++;
-      const req = http.get(`http://localhost:${PORT}`, (res) => {
+      const req = http.get(`http://localhost:${PORT}`, () => {
         resolve(true);
       });
       req.on("error", () => {
