@@ -1,0 +1,137 @@
+import { bundle } from "@remotion/bundler";
+import { renderMedia, selectComposition } from "@remotion/renderer";
+import path from "path";
+import fs from "fs";
+import http from "http";
+import mime from "mime";
+
+const args = process.argv.slice(2);
+const propsFile = args[0];
+const outputPath = args[1];
+
+if (!propsFile || !outputPath) {
+  console.error("Usage: render-video.ts <props.json> <output.mp4>");
+  process.exit(1);
+}
+
+const PROJECT_ROOT = path.join(__dirname, "..");
+const PUBLIC_DIR = path.join(PROJECT_ROOT, "public");
+const PUBLIC_AUDIO_DIR = process.env.AUDIO_DIR || path.join(PUBLIC_DIR, "audio");
+
+function createAudioServer(port: number): Promise<http.Server> {
+  return new Promise((resolve) => {
+    const server = http.createServer((req, res) => {
+      const urlPath = req.url || "/";
+      let filePath: string;
+
+      if (urlPath.startsWith("/audio")) {
+        const audioPath = urlPath.replace(/^\/audio/, "") || "";
+        filePath = path.join(PUBLIC_AUDIO_DIR, audioPath === "/" ? "" : audioPath);
+      } else {
+        filePath = path.join(PUBLIC_DIR, urlPath);
+      }
+
+      if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+        res.setHeader("Content-Type", mime.getType(filePath) || "application/octet-stream");
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        fs.createReadStream(filePath).pipe(res);
+      } else {
+        res.writeHead(404);
+        res.end("Not found");
+      }
+    });
+    server.listen(port, "127.0.0.1", () => resolve(server));
+  });
+}
+
+async function main() {
+  const AUDIO_SERVER_URL = "http://127.0.0.1:3033";
+
+  console.log(JSON.stringify({ type: "status", phase: "bundling", message: "正在打包 Remotion 项目..." }));
+
+  const entryPoint = path.join(__dirname, "..", "src", "remotion", "index.ts");
+
+  const bundleLocation = await bundle({
+    entryPoint,
+    onProgress: (progress: number) => {
+      console.log(JSON.stringify({ type: "progress", phase: "bundling", progress: Math.min(100, Math.round(progress / 100)) }));
+    },
+  });
+
+  console.log(JSON.stringify({ type: "status", phase: "composition", message: "正在解析视频参数..." }));
+
+  const inputProps = JSON.parse(fs.readFileSync(propsFile, "utf-8"));
+
+  // Inject audio server URL into each entry's audio base
+  const propsWithAudioUrl = {
+    ...inputProps,
+    audioServerUrl: AUDIO_SERVER_URL,
+    entries: inputProps.entries.map((entry: { question: { id: number } }) => ({
+      ...entry,
+      audioServerUrl: AUDIO_SERVER_URL,
+    })),
+  };
+
+  const composition = await selectComposition({
+    serveUrl: bundleLocation,
+    id: "DynamicExam",
+    inputProps: propsWithAudioUrl,
+  });
+
+  console.log(JSON.stringify({
+    type: "info",
+    totalFrames: composition.durationInFrames,
+    fps: composition.fps,
+    width: composition.width,
+    height: composition.height,
+    durationSec: Math.round(composition.durationInFrames / composition.fps),
+  }));
+
+  // Start audio server
+  console.log(JSON.stringify({ type: "status", phase: "server", message: "启动音频服务器..." }));
+  const audioServer = await createAudioServer(3033);
+  console.log(JSON.stringify({ type: "status", phase: "server", message: "音频服务器已启动" }));
+
+  console.log(JSON.stringify({ type: "status", phase: "rendering", message: "正在渲染视频..." }));
+
+  try {
+    await renderMedia({
+      composition,
+      serveUrl: bundleLocation,
+      codec: "h264",
+      outputLocation: outputPath,
+      inputProps: propsWithAudioUrl,
+      timeoutInMilliseconds: 120000,
+      onProgress: ({ progress, renderedFrames, renderedDoneIn, encodedDoneIn }: {
+        progress: number;
+        renderedFrames: number;
+        renderedDoneIn: number | null;
+        encodedDoneIn: number | null;
+      }) => {
+        console.log(JSON.stringify({
+          type: "progress",
+          phase: "rendering",
+          progress: Math.round(progress * 100),
+          renderedFrames,
+          totalFrames: composition.durationInFrames,
+          renderedDoneIn,
+          encodedDoneIn,
+        }));
+      },
+    });
+  } finally {
+    audioServer.close();
+  }
+
+  const stat = fs.statSync(outputPath);
+  console.log(JSON.stringify({
+    type: "done",
+    outputPath,
+    fileSizeMB: (stat.size / 1024 / 1024).toFixed(1),
+  }));
+}
+
+main().catch((e) => {
+  console.log(JSON.stringify({ type: "error", message: String(e) }));
+  process.exit(1);
+});

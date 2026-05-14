@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# app data
+/data/*.db
+/data/*.db-shm
+/data/*.db-wal
+/data/settings.json
+/output/
+/public/audio/*.wav
+/dist-electron/

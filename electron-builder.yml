@@ -1,0 +1,32 @@
+appId: com.driving-exam-studio.app
+productName: "驾考视频工作室"
+directories:
+  output: dist-electron
+files:
+  - "electron/**/*"
+extraResources:
+  - from: ".next/standalone"
+    to: "standalone"
+  - from: ".next/static"
+    to: "standalone/.next/static"
+  - from: "public"
+    to: "standalone/public"
+  - from: "data"
+    to: "data"
+    filter:
+      - "exam.db"
+  - from: "scripts"
+    to: "standalone/scripts"
+    filter:
+      - "render-video.ts"
+  - from: "src/remotion"
+    to: "standalone/src/remotion"
+win:
+  target:
+    - nsis
+  icon: "public/logo.png"
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+asar: false
