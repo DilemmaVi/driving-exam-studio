@@ -6,24 +6,14 @@ npmRebuild: false
 files:
   - "electron/**/*"
 extraResources:
-  - from: ".next/standalone"
+  - from: "packed-standalone"
     to: "standalone"
     filter:
       - "**/*"
-  - from: ".next/static"
-    to: "standalone/.next/static"
-  - from: "public"
-    to: "standalone/public"
   - from: "data"
     to: "data"
     filter:
       - "exam.db"
-  - from: "scripts"
-    to: "standalone/scripts"
-    filter:
-      - "render-video.ts"
-  - from: "src/remotion"
-    to: "standalone/src/remotion"
   - from: "resources/node"
     to: "node"
 win:

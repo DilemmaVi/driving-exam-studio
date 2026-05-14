@@ -33,16 +33,24 @@ jobs:
           New-Item -ItemType Directory -Force -Path resources/node
           Copy-Item "node-extract/node-$nodeVersion-win-x64/node.exe" "resources/node/node.exe"
 
-      - name: Verify standalone output
+      - name: Prepare standalone package
         shell: pwsh
         run: |
-          Write-Host "=== .next/standalone contents ==="
-          Get-ChildItem .next/standalone -Depth 0
-          Write-Host "=== .next/standalone/node_modules exists ==="
-          Test-Path .next/standalone/node_modules
-          if (Test-Path .next/standalone/node_modules) {
-            Get-ChildItem .next/standalone/node_modules -Depth 0 | Select-Object -First 20
-          }
+          # Copy standalone (includes node_modules with 'next' etc.)
+          Copy-Item -Recurse .next/standalone packed-standalone
+          # Copy static assets into standalone
+          Copy-Item -Recurse .next/static packed-standalone/.next/static
+          # Copy public assets
+          Copy-Item -Recurse public packed-standalone/public
+          # Copy scripts and remotion source
+          Copy-Item -Recurse scripts packed-standalone/scripts
+          New-Item -ItemType Directory -Force -Path packed-standalone/src
+          Copy-Item -Recurse src/remotion packed-standalone/src/remotion
+          # Verify
+          Write-Host "=== packed-standalone contents ==="
+          Get-ChildItem packed-standalone -Depth 0
+          Write-Host "=== node_modules exists ==="
+          Test-Path packed-standalone/node_modules
 
       - name: Build Electron app
         run: npx electron-builder --win --publish never
