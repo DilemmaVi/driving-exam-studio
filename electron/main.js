@@ -101,6 +101,7 @@ function startServer() {
     PORT: String(PORT),
     HOSTNAME: "localhost",
     NODE_ENV: "production",
+    NODE_PATH: path.join(path.dirname(serverPath), "node_deps"),
   };
 
   serverProcess = spawn(nodePath, [serverPath], {
