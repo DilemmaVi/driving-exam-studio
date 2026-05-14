@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const { spawn } = require("child_process");
@@ -7,12 +7,26 @@ let mainWindow = null;
 let serverProcess = null;
 const PORT = 3456;
 
+// Log to file in userData for debugging
+let logFile = null;
+function log(msg) {
+  const line = `[${new Date().toISOString()}] ${msg}\n`;
+  console.log(msg);
+  if (logFile) fs.appendFileSync(logFile, line);
+}
+
 function getUserDataPath() {
   return app.getPath("userData");
 }
 
 function setupPaths() {
   const userData = getUserDataPath();
+  logFile = path.join(userData, "app.log");
+  // Clear old log
+  fs.writeFileSync(logFile, "");
+  log(`userData: ${userData}`);
+  log(`resourcesPath: ${app.isPackaged ? process.resourcesPath : "dev"}`);
+
   const audioDir = path.join(userData, "audio");
   const outputDir = path.join(userData, "output");
   const dataDir = path.join(userData, "data");
@@ -25,6 +39,7 @@ function setupPaths() {
   const dbDest = path.join(dataDir, "exam.db");
   if (!fs.existsSync(dbDest)) {
     const dbSource = path.join(getResourcesPath(), "data", "exam.db");
+    log(`Copying DB from ${dbSource} to ${dbDest}, exists: ${fs.existsSync(dbSource)}`);
     if (fs.existsSync(dbSource)) {
       fs.copyFileSync(dbSource, dbDest);
     }
@@ -34,6 +49,9 @@ function setupPaths() {
   process.env.AUDIO_DIR = audioDir;
   process.env.OUTPUT_DIR = outputDir;
   process.env.PORT = String(PORT);
+  log(`DB_PATH: ${dbDest}`);
+  log(`AUDIO_DIR: ${audioDir}`);
+  log(`OUTPUT_DIR: ${outputDir}`);
 }
 
 function getResourcesPath() {
@@ -45,7 +63,6 @@ function getResourcesPath() {
 
 function getNodePath() {
   if (app.isPackaged) {
-    // Bundled node.exe in resources
     return path.join(process.resourcesPath, "node", "node.exe");
   }
   return "node";
@@ -63,6 +80,22 @@ function startServer() {
   if (!serverPath) return;
 
   const nodePath = getNodePath();
+  log(`nodePath: ${nodePath}, exists: ${fs.existsSync(nodePath)}`);
+  log(`serverPath: ${serverPath}, exists: ${fs.existsSync(serverPath)}`);
+
+  // List resources dir to debug
+  try {
+    const resDir = getResourcesPath();
+    const items = fs.readdirSync(resDir);
+    log(`resources dir contents: ${items.join(", ")}`);
+    if (fs.existsSync(path.join(resDir, "standalone"))) {
+      const standaloneItems = fs.readdirSync(path.join(resDir, "standalone"));
+      log(`standalone dir contents: ${standaloneItems.slice(0, 20).join(", ")}`);
+    }
+  } catch (e) {
+    log(`Error listing resources: ${e.message}`);
+  }
+
   const env = {
     ...process.env,
     PORT: String(PORT),
@@ -77,10 +110,16 @@ function startServer() {
   });
 
   serverProcess.stdout.on("data", (data) => {
-    console.log("[server]", data.toString());
+    log(`[server:out] ${data.toString().trim()}`);
   });
   serverProcess.stderr.on("data", (data) => {
-    console.error("[server]", data.toString());
+    log(`[server:err] ${data.toString().trim()}`);
+  });
+  serverProcess.on("error", (err) => {
+    log(`[server:error] ${err.message}`);
+  });
+  serverProcess.on("exit", (code) => {
+    log(`[server:exit] code=${code}`);
   });
 }
 
@@ -108,11 +147,16 @@ function waitForServer(retries = 60) {
     const check = () => {
       attempts++;
       const req = http.get(`http://localhost:${PORT}`, () => {
+        log(`Server ready after ${attempts} attempts`);
         resolve(true);
       });
       req.on("error", () => {
-        if (attempts >= retries) reject(new Error("Server failed to start"));
-        else setTimeout(check, 500);
+        if (attempts >= retries) {
+          log(`Server failed to start after ${retries} attempts`);
+          reject(new Error("Server failed to start"));
+        } else {
+          setTimeout(check, 500);
+        }
       });
       req.end();
     };
@@ -121,14 +165,23 @@ function waitForServer(retries = 60) {
 }
 
 app.whenReady().then(async () => {
-  setupPaths();
+  try {
+    setupPaths();
 
-  if (app.isPackaged) {
-    startServer();
-    await waitForServer();
+    if (app.isPackaged) {
+      startServer();
+      await waitForServer();
+    }
+
+    createWindow();
+  } catch (err) {
+    log(`FATAL: ${err.message}\n${err.stack}`);
+    dialog.showErrorBox(
+      "启动失败",
+      `${err.message}\n\n日志文件: ${logFile}\n\n请将日志文件发送给开发者排查问题。`
+    );
+    app.quit();
   }
-
-  createWindow();
 });
 
 app.on("window-all-closed", () => {
