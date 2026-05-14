@@ -8,6 +8,8 @@ files:
 extraResources:
   - from: ".next/standalone"
     to: "standalone"
+    filter:
+      - "**/*"
   - from: ".next/static"
     to: "standalone/.next/static"
   - from: "public"

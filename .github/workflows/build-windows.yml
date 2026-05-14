@@ -33,6 +33,17 @@ jobs:
           New-Item -ItemType Directory -Force -Path resources/node
           Copy-Item "node-extract/node-$nodeVersion-win-x64/node.exe" "resources/node/node.exe"
 
+      - name: Verify standalone output
+        shell: pwsh
+        run: |
+          Write-Host "=== .next/standalone contents ==="
+          Get-ChildItem .next/standalone -Depth 0
+          Write-Host "=== .next/standalone/node_modules exists ==="
+          Test-Path .next/standalone/node_modules
+          if (Test-Path .next/standalone/node_modules) {
+            Get-ChildItem .next/standalone/node_modules -Depth 0 | Select-Object -First 20
+          }
+
       - name: Build Electron app
         run: npx electron-builder --win --publish never
 
