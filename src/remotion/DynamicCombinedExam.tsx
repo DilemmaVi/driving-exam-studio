@@ -53,11 +53,17 @@ interface Props {
   pauseStart?: number;
   pauseEnd?: number;
   pauseBeforeTip?: number;
+  keywordFlashEnabled?: boolean;
+  underlineProgressEnabled?: boolean;
+  avatarEnabled?: boolean;
+  avatarSize?: number;
+  avatarPosition?: string;
 }
 
 export const DynamicCombinedExam: React.FC<Props> = ({
   entries, audioServerUrl = "", introTitle, introSubtitle, introCategory, outroText, outroSubtitle, tipOnly,
   showTransition, pauseStart, pauseEnd, pauseBeforeTip,
+  keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition,
 }) => {
   let currentFrame = 0;
   const sequences: React.ReactElement[] = [];
@@ -129,6 +135,11 @@ export const DynamicCombinedExam: React.FC<Props> = ({
           showTip={effectiveEntry.showTip}
           readOptions={effectiveEntry.readOptions}
           pauseBeforeTip={pauseBeforeTip}
+          keywordFlashEnabled={keywordFlashEnabled}
+          underlineProgressEnabled={underlineProgressEnabled}
+          avatarEnabled={avatarEnabled}
+          avatarSize={avatarSize}
+          avatarPosition={avatarPosition}
         />
       </Sequence>
     );

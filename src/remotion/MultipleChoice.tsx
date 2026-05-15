@@ -22,7 +22,13 @@ export const MultipleChoice: React.FC<{
   showOfficialExplanation?: boolean;
   showTip?: boolean;
   readOptions?: boolean;
-}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true }) => {
+  keywordFlashEnabled?: boolean;
+  underlineProgressEnabled?: boolean;
+  avatarEnabled?: boolean;
+  avatarSize?: number;
+  avatarPosition?: string;
+  pauseBeforeTip?: number;
+}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip }) => {
   const labels = ["A", "B", "C", "D"];
   const correctIndices = question.correctIndices || [question.correctIndex];
   const correctLabel = correctIndices.map(i => labels[i]).join("");
@@ -122,13 +128,15 @@ export const MultipleChoice: React.FC<{
         </div>
       </div>
 
-      <TeacherAvatar startFrame={T.questionStart} speaking hideFrame={T.explanationStart > 0 ? T.explanationStart : undefined} />
+      {avatarEnabled !== false && (
+        <TeacherAvatar startFrame={T.questionStart} speaking hideFrame={T.explanationStart > 0 ? T.explanationStart : undefined} size={avatarSize} position={avatarPosition as any} />
+      )}
 
       {showOfficialExplanation !== false && T.explanationEnd > T.explanationStart && (
-        <BottomPanel title="答题解析" titleColor={COLORS.correct} accentColor={COLORS.correct} borderColor={COLORS.correctBorder} content={explanationText} startFrame={T.explanationStart} endFrame={T.explanationEnd} readingDurationFrames={expFrames} />
+        <BottomPanel title="答题解析" titleColor={COLORS.correct} accentColor={COLORS.correct} borderColor={COLORS.correctBorder} content={explanationText} startFrame={T.explanationStart} endFrame={T.explanationEnd} readingDurationFrames={expFrames} underlineEnabled={underlineProgressEnabled} phase="explanation" originalQuestion={question.questionContent} originalOptions={question.options} originalKeywords={keywords} correctOptionIndices={correctIndices} />
       )}
       {showTip !== false && T.tipEnd > T.tipStart && (
-        <BottomPanel title="答题技巧" titleColor={COLORS.highlight} accentColor={COLORS.highlight} borderColor="rgba(252, 211, 77, 0.4)" content={question.tip} startFrame={T.tipStart} endFrame={T.tipEnd} readingDurationFrames={tFrames} keywords={keywords} />
+        <BottomPanel title="答题技巧" titleColor={COLORS.highlight} accentColor={COLORS.highlight} borderColor="rgba(252, 211, 77, 0.4)" content={question.tip} startFrame={T.tipStart} endFrame={T.tipEnd} readingDurationFrames={tFrames} keywords={keywords} underlineEnabled={underlineProgressEnabled} />
       )}
 
       <Sequence from={0}><Audio src={`${audioServerUrl}/audio/q${question.id}_question.wav`} /></Sequence>
