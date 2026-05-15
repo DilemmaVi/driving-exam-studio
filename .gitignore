@@ -49,3 +49,4 @@ next-env.d.ts
 /public/audio/*.wav
 /dist-electron/
 /resources/
+node_modules.zip
