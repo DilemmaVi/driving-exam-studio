@@ -19,7 +19,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@remotion/bundler": "^4.0.242",
     "@remotion/cli": "^4.0.242",
-    "@remotion/lottie": "^4.0.461",
+    "@remotion/lottie": "^4.0.242",
     "@remotion/player": "^4.0.242",
     "@remotion/renderer": "^4.0.242",
     "better-sqlite3": "^12.9.0",
