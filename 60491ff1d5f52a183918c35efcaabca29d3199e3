@@ -1,0 +1,23 @@
+src/components/SettingsModal.tsx
+  a0016bb7d214ca0a 36-43,53,92-105,135-142,169-176,302-309,408-469
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.14",
+  "base_commit_sha": "60491ff1d5f52a183918c35efcaabca29d3199e3",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 218,
+      "total_deletions": 2,
+      "accepted_lines": 3448,
+      "overriden_lines": 0
+    }
+  }
+}
