@@ -187,34 +187,6 @@ export const BottomPanel: React.FC<Props> = ({
             </span>
           </div>
 
-          {phase === "explanation" && originalQuestion && (
-            <div style={{
-              maxHeight: "35%",
-              overflow: "hidden",
-              fontSize: Math.round(FONT.size.question * 0.55),
-              lineHeight: 1.6,
-              marginBottom: SPACING.sm,
-              opacity: 0.8,
-              borderBottom: `1px solid ${COLORS.border}`,
-              paddingBottom: SPACING.xs,
-              color: COLORS.textSecondary,
-              fontFamily: FONT.main,
-            }}>
-              <div style={{ marginBottom: 6 }}>
-                {renderWithKeywordUnderline(originalQuestion, originalKeywords || [])}
-              </div>
-              {originalOptions?.map((opt, i) => (
-                <div key={i} style={{
-                  borderLeft: correctOptionIndices?.includes(i) ? "3px solid #22C55E" : "3px solid transparent",
-                  paddingLeft: 8,
-                  marginTop: 4,
-                  fontSize: Math.round(FONT.size.question * 0.5),
-                }}>
-                  {String.fromCharCode(65 + i)}. {opt.replace(/【/g, "").replace(/】/g, "")}
-                </div>
-              ))}
-            </div>
-          )}
 
           <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
             <div style={{
