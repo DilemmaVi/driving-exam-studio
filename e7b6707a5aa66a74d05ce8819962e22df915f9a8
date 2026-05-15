@@ -1,0 +1,23 @@
+src/remotion/DynamicCombinedExam.tsx
+  a0016bb7d214ca0a 52-55,60,75-84,96,131,148-157,161-170,172,174-177,180
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.14",
+  "base_commit_sha": "e7b6707a5aa66a74d05ce8819962e22df915f9a8",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 43,
+      "total_deletions": 4,
+      "accepted_lines": 3236,
+      "overriden_lines": 6
+    }
+  }
+}
