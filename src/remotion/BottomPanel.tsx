@@ -17,6 +17,11 @@ interface Props {
   keywords?: string[];
   panelHeight?: number;
   underlineEnabled?: boolean;
+  phase?: "question" | "answer" | "explanation" | "tip";
+  originalQuestion?: string;
+  originalOptions?: string[];
+  originalKeywords?: string[];
+  correctOptionIndices?: number[];
 }
 
 interface Segment {
@@ -45,10 +50,26 @@ function splitByKeywords(text: string, keywords: string[]): Segment[] {
   return segments;
 }
 
+function renderWithKeywordUnderline(text: string, keywords: string[]): React.ReactNode {
+  const cleanText = text.replace(/【/g, "").replace(/】/g, "");
+  if (!keywords.length) return <span>{cleanText}</span>;
+  const segments = splitByKeywords(cleanText, keywords);
+  return segments.map((seg, i) => (
+    <span key={i} style={seg.isKeyword ? {
+      textDecoration: "underline",
+      textDecorationColor: "#F59E0B",
+      textUnderlineOffset: "4px",
+      textDecorationThickness: "3px",
+      fontWeight: 700,
+    } : undefined}>{seg.text}</span>
+  ));
+}
+
 export const BottomPanel: React.FC<Props> = ({
   title, titleColor, accentColor, content, startFrame, endFrame, borderColor,
   readingDurationFrames, keywords, panelHeight: panelHeightProp,
-  underlineEnabled = true,
+  underlineEnabled = true, phase, originalQuestion, originalOptions,
+  originalKeywords, correctOptionIndices,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -164,6 +185,35 @@ export const BottomPanel: React.FC<Props> = ({
               {title}
             </span>
           </div>
+
+          {phase === "explanation" && originalQuestion && (
+            <div style={{
+              maxHeight: "35%",
+              overflow: "hidden",
+              fontSize: Math.round(FONT.size.question * 0.55),
+              lineHeight: 1.6,
+              marginBottom: SPACING.sm,
+              opacity: 0.8,
+              borderBottom: `1px solid ${COLORS.border}`,
+              paddingBottom: SPACING.xs,
+              color: COLORS.textSecondary,
+              fontFamily: FONT.main,
+            }}>
+              <div style={{ marginBottom: 6 }}>
+                {renderWithKeywordUnderline(originalQuestion, originalKeywords || [])}
+              </div>
+              {originalOptions?.map((opt, i) => (
+                <div key={i} style={{
+                  borderLeft: correctOptionIndices?.includes(i) ? "3px solid #22C55E" : "3px solid transparent",
+                  paddingLeft: 8,
+                  marginTop: 4,
+                  fontSize: Math.round(FONT.size.question * 0.5),
+                }}>
+                  {String.fromCharCode(65 + i)}. {opt.replace(/【/g, "").replace(/】/g, "")}
+                </div>
+              ))}
+            </div>
+          )}
 
           <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
             <div style={{
