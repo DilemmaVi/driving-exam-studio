@@ -33,6 +33,14 @@ interface SeriesData {
   bridge_tip_enabled?: number;
   outro_text?: string;
   outro_subtitle?: string;
+  show_transition?: number;
+  pause_start?: number;
+  pause_end?: number;
+  pause_before_tip?: number;
+  tts_speed?: string;
+  keyword_flash_enabled?: number;
+  underline_progress_enabled?: number;
+  avatar_enabled?: number;
 }
 
 interface Props {
@@ -42,7 +50,7 @@ interface Props {
   onSave: (updates: Record<string, unknown>) => void;
 }
 
-const TABS = ["基本信息", "视频风格", "语音设置"] as const;
+const TABS = ["基本信息", "视频风格", "语音设置", "播放控制", "动画效果", "头像设置"] as const;
 
 export function SettingsModal({ open, onClose, series, onSave }: Props) {
   const [tab, setTab] = useState<(typeof TABS)[number]>("基本信息");
@@ -81,6 +89,20 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
   const [outroText, setOutroText] = useState("");
   const [outroSubtitle, setOutroSubtitle] = useState("");
 
+  // Playback control
+  const [showTransition, setShowTransition] = useState(0);
+  const [pauseStart, setPauseStart] = useState(2.0);
+  const [pauseEnd, setPauseEnd] = useState(2.0);
+  const [pauseBeforeTip, setPauseBeforeTip] = useState(2.0);
+  const [ttsSpeed, setTtsSpeed] = useState("medium");
+
+  // Animation effects
+  const [keywordFlashEnabled, setKeywordFlashEnabled] = useState(1);
+  const [underlineProgressEnabled, setUnderlineProgressEnabled] = useState(1);
+
+  // Avatar
+  const [avatarEnabled, setAvatarEnabled] = useState(1);
+
   useEffect(() => {
     if (open) {
       fetch("/api/settings").then((r) => r.json()).then((d) => setMaskedKey(d.mimoApiKey || ""));
@@ -110,6 +132,14 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
         setBridgeTipEnabled(series.bridge_tip_enabled ?? 1);
         setOutroText(series.outro_text || "");
         setOutroSubtitle(series.outro_subtitle || "");
+        setShowTransition(series.show_transition ?? 0);
+        setPauseStart(series.pause_start ?? 2.0);
+        setPauseEnd(series.pause_end ?? 2.0);
+        setPauseBeforeTip(series.pause_before_tip ?? 2.0);
+        setTtsSpeed(series.tts_speed || "medium");
+        setKeywordFlashEnabled(series.keyword_flash_enabled ?? 1);
+        setUnderlineProgressEnabled(series.underline_progress_enabled ?? 1);
+        setAvatarEnabled(series.avatar_enabled ?? 1);
       }
     }
   }, [open, series]);
@@ -136,6 +166,14 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
       bridgeReveal: bridgeReveal || undefined,
       bridgeExplain: bridgeExplain || undefined,
       bridgeTip: bridgeTip || undefined,
+      showTransition,
+      pauseStart,
+      pauseEnd,
+      pauseBeforeTip,
+      ttsSpeed,
+      keywordFlashEnabled,
+      underlineProgressEnabled,
+      avatarEnabled,
     });
     setSaving(false);
     onClose();
@@ -261,6 +299,14 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
 
           {tab === "语音设置" && (
             <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">语速</label>
+                <select value={ttsSpeed} onChange={(e) => setTtsSpeed(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                  <option value="slow">稍慢</option>
+                  <option value="medium">适中</option>
+                  <option value="fast">稍快</option>
+                </select>
+              </div>
               <div className="flex gap-4">
                 <div className="flex-1">
                   <label className="block text-sm font-medium text-gray-700 mb-1">默认思考时间</label>
@@ -356,6 +402,68 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
                     <input value={bridgeTip} onChange={(e) => setBridgeTip(e.target.value)} placeholder="记住这个小技巧" className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                 </div>
+              </div>
+            </>
+          )}
+
+          {tab === "播放控制" && (
+            <>
+              <div>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={showTransition === 1} onChange={(e) => setShowTransition(e.target.checked ? 1 : 0)} className="rounded" />
+                  显示过场页（想一想）
+                </label>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">视频开头停顿（秒）</label>
+                <input type="number" min={0} max={10} step={0.5} value={pauseStart} onChange={(e) => setPauseStart(Number(e.target.value))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">视频结尾停顿（秒）</label>
+                <input type="number" min={0} max={10} step={0.5} value={pauseEnd} onChange={(e) => setPauseEnd(Number(e.target.value))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">技巧前停顿（秒）</label>
+                <input type="number" min={0} max={10} step={0.5} value={pauseBeforeTip} onChange={(e) => setPauseBeforeTip(Number(e.target.value))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </>
+          )}
+
+          {tab === "动画效果" && (
+            <>
+              <div>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={underlineProgressEnabled === 1} onChange={(e) => setUnderlineProgressEnabled(e.target.checked ? 1 : 0)} className="rounded" />
+                  朗读下划线进度
+                </label>
+              </div>
+              <div>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={keywordFlashEnabled === 1} onChange={(e) => setKeywordFlashEnabled(e.target.checked ? 1 : 0)} className="rounded" />
+                  关键字闪动
+                </label>
+              </div>
+            </>
+          )}
+
+          {tab === "头像设置" && (
+            <>
+              <div>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={avatarEnabled === 1} onChange={(e) => setAvatarEnabled(e.target.checked ? 1 : 0)} className="rounded" />
+                  显示头像
+                </label>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">头像大小: {avatarSize}px</label>
+                <input type="range" min={60} max={150} value={avatarSize} onChange={(e) => setAvatarSize(Number(e.target.value))} className="w-full" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">头像位置</label>
+                <select value={avatarPosition} onChange={(e) => setAvatarPosition(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                  <option value="bottom-right">右下角</option>
+                  <option value="bottom-left">左下角</option>
+                </select>
               </div>
             </>
           )}
