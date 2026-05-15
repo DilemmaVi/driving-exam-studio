@@ -217,10 +217,22 @@ async function renderInBackground(
     fs.writeFileSync(propsFile, JSON.stringify(props));
 
     await new Promise<void>((resolve, reject) => {
-      const child = spawn("npx", ["tsx", "scripts/render-video.ts", propsFile, outputPath], {
+      const isPackaged = !!process.env.NODE_PATH;
+      let cmd: string;
+      let args: string[];
+      if (isPackaged) {
+        const scriptPath = path.join(process.cwd(), "scripts", "render-video.js");
+        cmd = process.env.NODE_EXEC || process.execPath;
+        args = [scriptPath, propsFile, outputPath];
+      } else {
+        cmd = "npx";
+        args = ["tsx", "scripts/render-video.ts", propsFile, outputPath];
+      }
+      const child = spawn(cmd, args, {
         cwd: process.cwd(),
         stdio: ["ignore", "pipe", "pipe"],
         env: { ...process.env },
+        shell: !isPackaged,
       });
 
       let stderrBuf = "";
