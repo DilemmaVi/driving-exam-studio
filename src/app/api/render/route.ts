@@ -77,12 +77,23 @@ async function renderInBackground(
   try {
     updateTask(taskId, { status: "tts", phase: "tts", phase_label: "生成过渡语音", progress: 0 });
 
+    const showTransition = seriesData?.show_transition === 1;
+    const pauseStart = (seriesData?.pause_start as number) ?? 2.0;
+    const pauseEnd = (seriesData?.pause_end as number) ?? 2.0;
+    const pauseBeforeTip = (seriesData?.pause_before_tip as number) ?? 2.0;
+    const ttsSpeed = (seriesData?.tts_speed as string) || "medium";
+    const keywordFlashEnabled = seriesData?.keyword_flash_enabled !== 0;
+    const underlineProgressEnabled = seriesData?.underline_progress_enabled !== 0;
+    const avatarEnabled = seriesData?.avatar_enabled !== 0;
+    const avatarSize = (seriesData?.avatar_size as number) ?? 80;
+    const avatarPosition = (seriesData?.avatar_position as string) || "bottom-right";
+
     const bridgeDurations = await generateBridgeAudios(seriesData ? {
       bridge_think: seriesData.bridge_think as string | null,
       bridge_reveal: seriesData.bridge_reveal as string | null,
       bridge_explain: seriesData.bridge_explain as string | null,
       bridge_tip: seriesData.bridge_tip as string | null,
-    } : undefined);
+    } : undefined, ttsSpeed);
 
     // Apply bridge enabled switches
     const effectiveBridges = {
@@ -138,7 +149,7 @@ async function renderInBackground(
 
       const ttsResult = await generateTTSForQuestion(qId, {
         teacherExplanation, showOfficialExplanation, showTip,
-        answerReadOption, answerReadMulti,
+        answerReadOption, answerReadMulti, ttsSpeed, showTransition,
       });
       const row = db.prepare("SELECT * FROM questions WHERE id = ?").get(qId) as QuestionRow;
 
@@ -201,7 +212,18 @@ async function renderInBackground(
     const outputPath = path.join(outputDir, `${taskId}.mp4`);
     const propsFile = path.join(outputDir, `${taskId}.json`);
 
-    const props: Record<string, unknown> = { entries };
+    const props: Record<string, unknown> = {
+      entries,
+      showTransition,
+      pauseStart,
+      pauseEnd,
+      pauseBeforeTip,
+      keywordFlashEnabled,
+      underlineProgressEnabled,
+      avatarEnabled,
+      avatarSize,
+      avatarPosition,
+    };
     if (tipOnly) {
       props.tipOnly = true;
     } else if (seriesData) {
