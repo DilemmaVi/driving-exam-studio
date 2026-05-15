@@ -16,6 +16,7 @@ interface Props {
   readingDurationFrames?: number;
   keywords?: string[];
   panelHeight?: number;
+  underlineEnabled?: boolean;
 }
 
 interface Segment {
@@ -47,6 +48,7 @@ function splitByKeywords(text: string, keywords: string[]): Segment[] {
 export const BottomPanel: React.FC<Props> = ({
   title, titleColor, accentColor, content, startFrame, endFrame, borderColor,
   readingDurationFrames, keywords, panelHeight: panelHeightProp,
+  underlineEnabled = true,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -117,6 +119,10 @@ export const BottomPanel: React.FC<Props> = ({
   let charCounter = 0;
   const kws = keywords || [];
 
+  const underlineProgress = readingDurationFrames && readingDurationFrames > 0
+    ? Math.min(1, localFrame / readingDurationFrames)
+    : 0;
+
   return (
     <AbsoluteFill style={{ zIndex: 100 }}>
       <AbsoluteFill style={{ backgroundColor: `rgba(0,0,0,${Math.max(0, dimOpacity)})` }} />
@@ -159,25 +165,17 @@ export const BottomPanel: React.FC<Props> = ({
             </span>
           </div>
 
-          {readProgress >= 0 && (
-            <div style={{
-              height: 3, borderRadius: 2,
-              background: "rgba(148,163,184,0.15)",
-              marginBottom: SPACING.md,
-              flexShrink: 0,
-            }}>
-              <div style={{
-                height: "100%",
-                width: `${readProgress * 100}%`,
-                borderRadius: 2,
-                background: `linear-gradient(90deg, ${accentColor}, ${titleColor})`,
-                transition: "width 0.1s linear",
-              }} />
-            </div>
-          )}
-
           <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
-            <div style={{ transform: `translateY(-${scrollOffset}px)` }}>
+            <div style={{
+              transform: `translateY(-${scrollOffset}px)`,
+              ...(underlineEnabled ? {
+                backgroundImage: `linear-gradient(to right, ${COLORS.accent} ${underlineProgress * 100}%, transparent ${underlineProgress * 100}%)`,
+                backgroundSize: "100% 3px",
+                backgroundPosition: "left bottom",
+                backgroundRepeat: "no-repeat",
+                paddingBottom: 6,
+              } : {}),
+            }}>
             {sentences.map((sentence, i) => {
               const sentenceFrame = sentenceDelay * i;
               const sentenceOpacity = interpolate(
