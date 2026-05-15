@@ -1,0 +1,23 @@
+src/lib/tts.ts
+  a0016bb7d214ca0a 24-30,32,39,48,62,137-138,152-153,159-160,165,169,172,176,194-196,236,246
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.14",
+  "base_commit_sha": "c7343d22abe57962c80954a36f2252946723d3a0",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 26,
+      "total_deletions": 14,
+      "accepted_lines": 3257,
+      "overriden_lines": 0
+    }
+  }
+}
