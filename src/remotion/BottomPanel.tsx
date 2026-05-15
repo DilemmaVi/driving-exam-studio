@@ -22,6 +22,7 @@ interface Props {
   originalOptions?: string[];
   originalKeywords?: string[];
   correctOptionIndices?: number[];
+  keywordFlashEnabled?: boolean;
 }
 
 interface Segment {
@@ -69,7 +70,7 @@ export const BottomPanel: React.FC<Props> = ({
   title, titleColor, accentColor, content, startFrame, endFrame, borderColor,
   readingDurationFrames, keywords, panelHeight: panelHeightProp,
   underlineEnabled = true, phase, originalQuestion, originalOptions,
-  originalKeywords, correctOptionIndices,
+  originalKeywords, correctOptionIndices, keywordFlashEnabled,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -271,7 +272,7 @@ export const BottomPanel: React.FC<Props> = ({
                     ? startFrame + Math.round(segReadRatio * readingDurationFrames)
                     : startFrame;
                   return (
-                    <RedCircle key={`seg-${si}`} appearFrame={kwAppearFrame}>
+                    <RedCircle key={`seg-${si}`} appearFrame={kwAppearFrame} flashEnabled={keywordFlashEnabled}>
                       {chars}
                     </RedCircle>
                   );
