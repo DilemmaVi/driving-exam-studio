@@ -1,0 +1,25 @@
+src/remotion/theme.ts
+  a0016bb7d214ca0a 38-41,43
+src/remotion/RedCircle.tsx
+  a0016bb7d214ca0a 8,11,14-15,17-20,25,43,53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.14",
+  "base_commit_sha": "58f6e0d56a906596013b2a958b33bebe7b200f06",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 16,
+      "total_deletions": 15,
+      "accepted_lines": 3104,
+      "overriden_lines": 0
+    }
+  }
+}
