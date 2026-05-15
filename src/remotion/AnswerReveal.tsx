@@ -6,9 +6,10 @@ interface Props {
   correctLabel: string;
   correctText: string;
   startFrame: number;
+  readingDurationFrames?: number;
 }
 
-export const AnswerReveal: React.FC<Props> = ({ correctLabel, correctText, startFrame }) => {
+export const AnswerReveal: React.FC<Props> = ({ correctLabel, correctText, startFrame, readingDurationFrames }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -34,7 +35,19 @@ export const AnswerReveal: React.FC<Props> = ({ correctLabel, correctText, start
     extrapolateLeft: "clamp", extrapolateRight: "clamp",
   });
 
-  const scale = interpolate(enter, [0, 1], [0.8, 1]) * (localFrame > 5 ? shineScale : 1);
+  const pulse = localFrame > 15 ? spring({
+    frame: localFrame - 15,
+    fps,
+    config: { damping: 8, stiffness: 200 },
+    from: 1.08,
+    to: 1,
+  }) : 1;
+
+  const answerProgress = readingDurationFrames && readingDurationFrames > 0
+    ? Math.min(1, localFrame / readingDurationFrames)
+    : 0;
+
+  const scale = interpolate(enter, [0, 1], [0.8, 1]) * (localFrame > 5 ? shineScale : 1) * pulse;
 
   return (
     <div style={{
@@ -73,15 +86,21 @@ export const AnswerReveal: React.FC<Props> = ({ correctLabel, correctText, start
           padding: "0 12px",
           background: COLORS.correct,
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: correctLabel.length > 2 ? 30 : 40, fontWeight: 700, color: "#fff",
+          fontSize: correctLabel.length > 2 ? 30 : 48, fontWeight: 800, color: "#16A34A",
         }}>
           {correctLabel}
         </div>
         <span style={{
-          fontSize: FONT.size.option + 4,
+          fontSize: FONT.size.answer,
           color: COLORS.correct,
           fontFamily: FONT.main,
           fontWeight: 700,
+          lineHeight: 1.8,
+          backgroundImage: readingDurationFrames ? `linear-gradient(to right, #16A34A ${answerProgress * 100}%, transparent ${answerProgress * 100}%)` : undefined,
+          backgroundSize: "100% 3px",
+          backgroundPosition: "left bottom",
+          backgroundRepeat: "no-repeat",
+          paddingBottom: 4,
         }}>
           {correctText}
         </span>
