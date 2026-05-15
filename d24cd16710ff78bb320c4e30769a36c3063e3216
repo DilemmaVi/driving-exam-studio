@@ -1,0 +1,23 @@
+docs/superpowers/specs/2026-05-15-video-style-enhancements-design.md
+  a0016bb7d214ca0a 38,50-51,53-54,59,66,84-85,102,113-114,120,124,146,157-161,174-176
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.14",
+  "base_commit_sha": "d24cd16710ff78bb320c4e30769a36c3063e3216",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 24,
+      "total_deletions": 14,
+      "accepted_lines": 3112,
+      "overriden_lines": 0
+    }
+  }
+}
