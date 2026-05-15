@@ -19,7 +19,16 @@ export const RemotionRoot: React.FC = () => {
       width={1080}
       height={1920}
       calculateMetadata={({ props }: { props: Record<string, unknown> }) => {
-        const dur = calcCombinedDuration(props.entries as QuestionEntry[], !!props.introTitle, !!props.outroText, !!props.tipOnly);
+        const dur = calcCombinedDuration(
+          props.entries as QuestionEntry[],
+          !!props.introTitle,
+          !!props.outroText,
+          !!props.tipOnly,
+          !!props.showTransition,
+          props.pauseStart as number | undefined,
+          props.pauseEnd as number | undefined,
+          props.pauseBeforeTip as number | undefined,
+        );
         return { durationInFrames: Math.max(1, dur) };
       }}
     />
