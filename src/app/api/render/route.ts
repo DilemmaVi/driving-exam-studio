@@ -220,10 +220,13 @@ async function renderInBackground(
       const isPackaged = !!process.env.NODE_PATH;
       let cmd: string;
       let args: string[];
+      let renderEnv = { ...process.env };
       if (isPackaged) {
         const scriptPath = path.join(process.cwd(), "scripts", "render-video.js");
         cmd = process.env.NODE_EXEC || process.execPath;
+        const nodeDepsPath = path.join(process.cwd(), "node_deps");
         args = [scriptPath, propsFile, outputPath];
+        renderEnv = { ...process.env, NODE_PATH: nodeDepsPath };
       } else {
         cmd = "npx";
         args = ["tsx", "scripts/render-video.ts", propsFile, outputPath];
@@ -231,7 +234,7 @@ async function renderInBackground(
       const child = spawn(cmd, args, {
         cwd: process.cwd(),
         stdio: ["ignore", "pipe", "pipe"],
-        env: { ...process.env },
+        env: renderEnv,
         shell: !isPackaged,
       });
 
