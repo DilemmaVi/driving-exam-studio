@@ -42,6 +42,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       bridgeThinkEnabled: "bridge_think_enabled", bridgeRevealEnabled: "bridge_reveal_enabled",
       bridgeExplainEnabled: "bridge_explain_enabled", bridgeTipEnabled: "bridge_tip_enabled",
       outroText: "outro_text", outroSubtitle: "outro_subtitle",
+      showTransition: "show_transition", pauseStart: "pause_start",
+      pauseEnd: "pause_end", pauseBeforeTip: "pause_before_tip",
+      ttsSpeed: "tts_speed", keywordFlashEnabled: "keyword_flash_enabled",
+      underlineProgressEnabled: "underline_progress_enabled", avatarEnabled: "avatar_enabled",
     };
     const col = colMap[key];
     if (col) { fields.push(`${col} = ?`); values.push(val); }

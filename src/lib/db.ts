@@ -207,6 +207,24 @@ function initTables(db: Database.Database) {
     }
   }
 
+  // migrate: add style enhancement columns to video_series
+  const vsColsV3 = db.prepare("PRAGMA table_info(video_series)").all() as { name: string }[];
+  const styleEnhanceCols: [string, string][] = [
+    ["show_transition", "INTEGER DEFAULT 0"],
+    ["pause_start", "REAL DEFAULT 2.0"],
+    ["pause_end", "REAL DEFAULT 2.0"],
+    ["pause_before_tip", "REAL DEFAULT 2.0"],
+    ["tts_speed", "TEXT DEFAULT 'medium'"],
+    ["keyword_flash_enabled", "INTEGER DEFAULT 1"],
+    ["underline_progress_enabled", "INTEGER DEFAULT 1"],
+    ["avatar_enabled", "INTEGER DEFAULT 1"],
+  ];
+  for (const [col, typedef] of styleEnhanceCols) {
+    if (!vsColsV3.some((c) => c.name === col)) {
+      db.exec(`ALTER TABLE video_series ADD COLUMN ${col} ${typedef}`);
+    }
+  }
+
   // migrate: fix old JSON-format correct_answer (["1"] → "A")
   const oldFmt = (db.prepare("SELECT COUNT(*) as c FROM questions WHERE correct_answer LIKE '[%'").get() as { c: number }).c;
   if (oldFmt > 0) {
