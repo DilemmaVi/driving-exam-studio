@@ -35,11 +35,12 @@ export const FONT = {
     badge: 32,
     label: 36,
     tip: 42,
-    explanation: 44,
-    option: 52,
-    question: 62,
-    title: 60,
+    explanation: 50,
+    option: 58,
+    question: 68,
+    title: 64,
     number: 88,
+    answer: 40,
   },
 };
 
