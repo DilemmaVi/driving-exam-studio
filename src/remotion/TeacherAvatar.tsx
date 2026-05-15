@@ -1,7 +1,8 @@
-import React from "react";
-import { useCurrentFrame, useVideoConfig, spring, interpolate, Img, staticFile } from "remotion";
+import React, { useCallback, useEffect, useState } from "react";
+import { useCurrentFrame, useVideoConfig, spring, interpolate, Img, staticFile, cancelRender, delayRender, continueRender } from "remotion";
+import { Lottie } from "@remotion/lottie";
+import type { LottieAnimationData } from "@remotion/lottie";
 
-const AVATAR_SIZE = 120;
 const RING_WIDTH = 4;
 const LABEL_TEXT = "考试讲师";
 
@@ -10,6 +11,8 @@ interface Props {
   speaking?: boolean;
   position?: "bottom-right" | "bottom-left";
   hideFrame?: number;
+  size?: number;
+  avatarSrc?: string;
 }
 
 export const TeacherAvatar: React.FC<Props> = ({
@@ -17,9 +20,32 @@ export const TeacherAvatar: React.FC<Props> = ({
   speaking = false,
   position = "bottom-right",
   hideFrame,
+  size = 120,
+  avatarSrc = "images/teacher-avatar.png",
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+
+  const isLottie = avatarSrc?.endsWith(".json");
+
+  const [animationData, setAnimationData] = useState<LottieAnimationData | null>(null);
+  const [handle] = useState(() => isLottie ? delayRender("Loading Lottie animation") : null);
+
+  const fetchLottie = useCallback(async () => {
+    if (!isLottie || !handle) return;
+    try {
+      const res = await fetch(staticFile(avatarSrc));
+      const data = await res.json();
+      setAnimationData(data);
+      continueRender(handle);
+    } catch (err) {
+      cancelRender(err);
+    }
+  }, [avatarSrc, isLottie, handle]);
+
+  useEffect(() => {
+    fetchLottie();
+  }, [fetchLottie]);
 
   const enter = spring({
     frame: frame - startFrame,
@@ -60,50 +86,61 @@ export const TeacherAvatar: React.FC<Props> = ({
       alignItems: "center",
       gap: 8,
     }}>
-      {/* Circle avatar with ring */}
-      <div style={{
-        width: AVATAR_SIZE + RING_WIDTH * 2,
-        height: AVATAR_SIZE + RING_WIDTH * 2,
-        borderRadius: "50%",
-        background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
-        padding: RING_WIDTH,
-        boxShadow: ringGlow,
-      }}>
-        <div style={{
-          width: AVATAR_SIZE,
-          height: AVATAR_SIZE,
-          borderRadius: "50%",
-          overflow: "hidden",
-          border: "3px solid rgba(255,255,255,0.9)",
-        }}>
-          <Img
-            src={staticFile("images/teacher-avatar.png")}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              objectPosition: "center 15%",
-            }}
-          />
+      {isLottie ? (
+        /* Lottie avatar — no ring, no clip, no label */
+        <div style={{ width: size, height: size }}>
+          {animationData && (
+            <Lottie animationData={animationData} style={{ width: size, height: size }} />
+          )}
         </div>
-      </div>
-      {/* Name label */}
-      <div style={{
-        background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
-        borderRadius: 20,
-        padding: "4px 16px",
-        boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)",
-      }}>
-        <span style={{
-          color: "#fff",
-          fontSize: 22,
-          fontWeight: 600,
-          fontFamily: "'Noto Sans SC', sans-serif",
-          letterSpacing: 2,
-        }}>
-          {LABEL_TEXT}
-        </span>
-      </div>
+      ) : (
+        <>
+          {/* Circle avatar with ring */}
+          <div style={{
+            width: size + RING_WIDTH * 2,
+            height: size + RING_WIDTH * 2,
+            borderRadius: "50%",
+            background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
+            padding: RING_WIDTH,
+            boxShadow: ringGlow,
+          }}>
+            <div style={{
+              width: size,
+              height: size,
+              borderRadius: "50%",
+              overflow: "hidden",
+              border: "3px solid rgba(255,255,255,0.9)",
+            }}>
+              <Img
+                src={staticFile(avatarSrc)}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  objectPosition: "center 15%",
+                }}
+              />
+            </div>
+          </div>
+          {/* Name label */}
+          <div style={{
+            background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
+            borderRadius: 20,
+            padding: "4px 16px",
+            boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)",
+          }}>
+            <span style={{
+              color: "#fff",
+              fontSize: 22,
+              fontWeight: 600,
+              fontFamily: "'Noto Sans SC', sans-serif",
+              letterSpacing: 2,
+            }}>
+              {LABEL_TEXT}
+            </span>
+          </div>
+        </>
+      )}
     </div>
   );
 };
