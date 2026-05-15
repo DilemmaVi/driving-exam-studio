@@ -35,7 +35,7 @@ FONT.size:
 - AnswerReveal font size: shrink to fixed 40px (was `option + 4 = 56`)
 - QuestionHeader top padding: `SPACING.xl(48)` → `SPACING.lg(32)`
 - Add `SPACING.md(24)` gap between question area and answer area
-- Text lineHeight in answer area: 2 → 1.8
+- Text lineHeight in AnswerReveal component: current implicit default → explicit 1.8
 
 ---
 
@@ -47,20 +47,23 @@ A colored underline extends left-to-right beneath text, synchronized with TTS au
 
 ### Implementation
 
+The existing BottomPanel has a top progress bar (thin horizontal bar at panel top showing reading progress). The new underline progress is **different** — it's rendered directly beneath the text content as a decorative underline that sweeps left-to-right. The existing top progress bar is **removed** and replaced by this more prominent underline effect.
+
 Modify `BottomPanel` rendering:
-- Calculate `progress = localFrame / readingDurationFrames`
-- Render a pseudo-underline using `linear-gradient` on background:
+- Remove the existing `readingProgress` bar at the top of the panel
+- Wrap text content in a container with bottom-border gradient:
   - `background-image: linear-gradient(to right, accentColor progress%, transparent progress%)`
   - `background-size: 100% 3px`
   - `background-position: bottom`
   - `background-repeat: no-repeat`
+- Calculate `progress = localFrame / readingDurationFrames`
 
 ### Applied To
 
 | Phase | Component | Notes |
 |-------|-----------|-------|
 | Reading question | BottomPanel | Combined with existing keyword highlighting |
-| Reading answer | AnswerReveal | New: underline on answer text |
+| Reading answer | AnswerReveal | New: pass `answerAudioDurationFrames` prop from parent, render underline synced to it |
 | Reading explanation | BottomPanel | New |
 | Reading tip | BottomPanel | New |
 
@@ -78,8 +81,8 @@ Modify `BottomPanel` rendering:
 
 Modify `RedCircle` component:
 - Extend flash duration: 20 frames → 36 frames (~1.2s)
-- Softer pulse: opacity 1 → 0.4 → 1 → 0.4 → 1
-- After flash ends, hold at opacity=1
+- Softer pulse using `filter: brightness()` for values > 1: brightness(1.3) → brightness(0.7) → brightness(1.3) → brightness(0.7) → brightness(1.0)
+- After flash ends, hold at normal brightness
 
 Config: `keyword_flash_enabled` INTEGER default 1
 
@@ -96,7 +99,7 @@ During explanation phase, display a mini reference of the original question abov
 - Font size: ~70% of normal question font
 - Keywords (from `【】` markers): rendered with yellow underline (`text-decoration-color: #F59E0B`) + bold
 - Correct option: green left bar indicator
-- Max height: 35% of frame, auto-shrink font if overflow
+- Max height: 35% of frame, auto-shrink font if overflow (min font 28px; if still overflows at min, truncate with "..." and show only first N options)
 
 ---
 
@@ -107,14 +110,18 @@ During explanation phase, display a mini reference of the original question abov
 - Static PNG (current)
 - Lottie JSON animation (new, via `@remotion/lottie`)
 - Auto-detect by file extension
+- Lottie renders WITHOUT circular clipping — displayed as-is with transparent background, no ring decoration
+- PNG retains current circular clip + ring style
 
 ### Config Fields
 
 | Field | Type | Default | Notes |
 |-------|------|---------|-------|
-| `avatar_enabled` | INTEGER | 1 | Show/hide |
+| `avatar_enabled` | INTEGER | 1 | Show/hide (replaces the old avatarPosition:"none" pattern) |
 | `avatar_size` | INTEGER | 80 | Pixels (recommended small for animated) |
 | `avatar_position` | TEXT | "bottom-right" | "bottom-right" or "bottom-left" |
+
+Note: Any existing `avatar_size` column from prior migrations will be updated to default 80. The old pattern of using position="none" to hide the avatar is deprecated in favor of `avatar_enabled=0`.
 
 ### Text Avoidance
 
@@ -136,7 +143,7 @@ Settings page: upload button accepting `.png` or `.json`, saves to `public/image
 |-------|------|---------|-------|
 | `show_transition` | INTEGER | 0 | Off by default |
 
-When off: skip `QuestionTransition` sequence entirely, no TTS generated for "下面是第X题".
+When off: skip `QuestionTransition` sequence entirely. In `tts.ts`, gate the transition audio generation (`generateSegment` for bridge/transition) on this flag — do not generate TTS when `show_transition=0`.
 
 ### Silence Pauses (Requirement 9)
 
@@ -147,10 +154,11 @@ When off: skip `QuestionTransition` sequence entirely, no TTS generated for "下
 | `pause_before_tip` | REAL | 2.0 | Seconds of silence before tip reading |
 
 Implementation:
-- `pause_start`: insert blank frames before first question (hold IntroCard or first frame)
-- `pause_end`: append blank frames after OutroCard
-- `pause_before_tip`: insert blank frames before tip phase per question
-- `questionDuration` and `calcCombinedDuration` include these values
+- `pause_start`: insert `Math.round(pause_start * fps)` blank frames before first question (hold IntroCard final frame)
+- `pause_end`: append `Math.round(pause_end * fps)` blank frames after OutroCard (hold OutroCard final frame)
+- `pause_before_tip`: insert `Math.round(pause_before_tip * fps)` blank frames before tip phase per question
+- `questionDuration` formula: add `pause_before_tip` seconds when `showTip=true`
+- `calcCombinedDuration` formula: add `pause_start + pause_end` (in frames) to total duration
 
 ### TTS Speed (Requirement 4)
 
@@ -163,7 +171,9 @@ Prompt mapping:
 - medium → "语速适中自然"
 - fast → "语速比正常稍快"
 
-Applied uniformly to all TTS generation (question, options, answer, explanation, tip).
+Applied uniformly to all TTS generation (question, options, answer, explanation, tip, bridge/transition audio via `generateBridgeAudios`). The speed modifier string is passed to every `generateSegment` call.
+
+**Cache invalidation**: TTS audio is cached by `(question_id, segment)`. When `tts_speed` changes, existing cached audio must be regenerated. Add `tts_speed` to the cache key, or delete existing audio files for the series when speed changes.
 
 ---
 
