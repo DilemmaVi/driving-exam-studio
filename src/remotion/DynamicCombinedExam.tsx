@@ -49,10 +49,15 @@ interface Props {
   outroText?: string;
   outroSubtitle?: string;
   tipOnly?: boolean;
+  showTransition?: boolean;
+  pauseStart?: number;
+  pauseEnd?: number;
+  pauseBeforeTip?: number;
 }
 
 export const DynamicCombinedExam: React.FC<Props> = ({
   entries, audioServerUrl = "", introTitle, introSubtitle, introCategory, outroText, outroSubtitle, tipOnly,
+  showTransition, pauseStart, pauseEnd, pauseBeforeTip,
 }) => {
   let currentFrame = 0;
   const sequences: React.ReactElement[] = [];
@@ -67,6 +72,16 @@ export const DynamicCombinedExam: React.FC<Props> = ({
     currentFrame += introFrames;
   }
 
+  if (pauseStart && pauseStart > 0) {
+    const pauseFrames = Math.round(pauseStart * FPS);
+    sequences.push(
+      <Sequence key="pause-start" from={currentFrame} durationInFrames={pauseFrames}>
+        <AbsoluteFill style={{ backgroundColor: "transparent" }} />
+      </Sequence>
+    );
+    currentFrame += pauseFrames;
+  }
+
   entries.forEach((entry, idx) => {
     const effectiveEntry = tipOnly ? {
       ...entry,
@@ -78,7 +93,7 @@ export const DynamicCombinedExam: React.FC<Props> = ({
     const qDurSecs = questionDuration(effectiveEntry, tipOnly);
     const qFrames = Math.ceil(qDurSecs * FPS);
 
-    if (idx > 0) {
+    if (showTransition && idx > 0) {
       const transFrames = Math.ceil(TRANS_DURATION * FPS);
       const typeLabel = entry.question.type === "true-false" ? "判断题" : "单选题";
       const audioFile = `q${entry.question.id}_transition.wav`;
@@ -113,6 +128,7 @@ export const DynamicCombinedExam: React.FC<Props> = ({
           showOfficialExplanation={effectiveEntry.showOfficialExplanation}
           showTip={effectiveEntry.showTip}
           readOptions={effectiveEntry.readOptions}
+          pauseBeforeTip={pauseBeforeTip}
         />
       </Sequence>
     );
@@ -129,15 +145,38 @@ export const DynamicCombinedExam: React.FC<Props> = ({
     currentFrame += outroFrames;
   }
 
+  if (pauseEnd && pauseEnd > 0) {
+    const pauseFrames = Math.round(pauseEnd * FPS);
+    sequences.push(
+      <Sequence key="pause-end" from={currentFrame} durationInFrames={pauseFrames}>
+        <AbsoluteFill style={{ backgroundColor: "transparent" }} />
+      </Sequence>
+    );
+    currentFrame += pauseFrames;
+  }
+
   return <AbsoluteFill>{sequences}</AbsoluteFill>;
 };
 
-export function calcCombinedDuration(entries: QuestionEntry[], hasIntro?: boolean, hasOutro?: boolean, tipOnly?: boolean): number {
+export function calcCombinedDuration(
+  entries: QuestionEntry[],
+  hasIntro?: boolean,
+  hasOutro?: boolean,
+  tipOnly?: boolean,
+  showTransition?: boolean,
+  pauseStart?: number,
+  pauseEnd?: number,
+  pauseBeforeTip?: number,
+): number {
   let total = hasIntro ? INTRO_DURATION : 0;
+  total += (pauseStart || 0);
   entries.forEach((entry, idx) => {
-    if (idx > 0) total += TRANS_DURATION;
-    total += questionDuration(entry, tipOnly);
+    if (showTransition && idx > 0) total += TRANS_DURATION;
+    let qDur = questionDuration(entry, tipOnly);
+    if (entry.showTip !== false && pauseBeforeTip) qDur += pauseBeforeTip;
+    total += qDur;
   });
   if (hasOutro) total += OUTRO_DURATION;
+  total += (pauseEnd || 0);
   return Math.ceil(total * FPS);
 }
