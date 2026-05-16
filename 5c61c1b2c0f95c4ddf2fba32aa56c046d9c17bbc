@@ -1,0 +1,77 @@
+src/remotion/DynamicCombinedExam.tsx
+  a0016bb7d214ca0a 161-162
+src/components/BatchActionBar.tsx
+  a0016bb7d214ca0a 2,13-36,44-50,56,60-61
+src/app/api/series/route.ts
+  a0016bb7d214ca0a 5,7-28,33,35-41
+src/components/VideoPreview.tsx
+  a0016bb7d214ca0a 40-41,52,115-116
+src/components/StylePreview.tsx
+  a0016bb7d214ca0a 125
+src/remotion/types.ts
+  a0016bb7d214ca0a 44-58
+src/app/api/series/[id]/questions/route.ts
+  a0016bb7d214ca0a 16-25,43-44,60-69
+src/remotion/OptionItem.tsx
+  a0016bb7d214ca0a 17-20,23-25,32-36,47,131-134,138-139,141,153,165,198
+src/app/api/render/route.ts
+  a0016bb7d214ca0a 59-104,131-135,183-192,265-274,292-296
+src/app/api/tts/route.ts
+  a0016bb7d214ca0a 6,13
+src/app/globals.css
+  a0016bb7d214ca0a 27-34
+src/remotion/ScrollableQuestion.tsx
+  a0016bb7d214ca0a 84-85,87,164-195,209-210
+src/components/SettingsModal.tsx
+  a0016bb7d214ca0a 43-47,58,107-111,152-156,191-196,206,208,211,454-478
+src/remotion/RedCircle.tsx
+  a0016bb7d214ca0a 9,12,14,44,54
+src/components/AudioPreview.tsx
+  a0016bb7d214ca0a 1-109
+src/app/series/page.tsx
+  a0016bb7d214ca0a 3,19-24,33-39,42-44,46,48,75-76,79,83,85,89-114,117,120-121,124,129,132-134,138,143-144,152-163
+src/app/api/audio/[...path]/route.ts
+  a0016bb7d214ca0a 6-11,13,21-23,26-27,35,37-57,60-62
+src/app/editor/[seriesId]/page.tsx
+  a0016bb7d214ca0a 15,22,52-61,95-107,128,137-138,143,165,169-170,174,187-195,291-382,384-411,424-425,427,431-432,451,455,459-460,467,470-471,475,485-511,539,541-547,596-605,610,619-643,646,650-651,663,674-701,722,730-737,758-762,764,772,777-806,827,843,880,883-886,888-889,891,922-923
+src/app/api/questions/route.ts
+  a0016bb7d214ca0a 25-32
+src/app/api/tts/check/route.ts
+  a0016bb7d214ca0a 1-59
+src/app/renders/page.tsx
+  a0016bb7d214ca0a 3,8-9,23-29,32-36,38-46,49-52,54-68,87-96,98-118,120,122,128,131,133-139,141-150,156-157,161,163,168,170,178-181,185,187,195,200-202,209-219
+src/app/api/series/[id]/route.ts
+  a0016bb7d214ca0a 11
+src/lib/tts.ts
+  a0016bb7d214ca0a 24,33-38,100-101,143,159,165-166,171,175,178,182
+src/app/api/tts/preview/route.ts
+  a0016bb7d214ca0a 1-37
+src/remotion/MultipleChoice.tsx
+  a0016bb7d214ca0a 2,44-45,47,123-153,159
+src/remotion/TrueFalseQuestion.tsx
+  a0016bb7d214ca0a 2,42-43,45,118-147,153,175
+src/lib/db.ts
+  a0016bb7d214ca0a 136-137
+src/remotion/QuestionHeader.tsx
+  a0016bb7d214ca0a 14,16-24,27-29,36-40,51-52,70-95,103,121-123,137,147,153-159,161,192,196,201-208,216-230,236,266
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.14",
+  "base_commit_sha": "5c61c1b2c0f95c4ddf2fba32aa56c046d9c17bbc",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 448,
+      "total_deletions": 150,
+      "accepted_lines": 5925,
+      "overriden_lines": 0
+    }
+  }
+}
