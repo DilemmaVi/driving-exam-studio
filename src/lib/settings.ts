@@ -9,7 +9,7 @@ interface Settings {
   watermarkText?: string;
   watermarkPosition?: string;
   watermarkOpacity?: number;
-  watermarkFontSize?: string;
+  watermarkFontSize?: number;
 }
 
 export function getSettings(): Settings {

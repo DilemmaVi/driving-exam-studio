@@ -21,12 +21,24 @@ interface TTSResult {
   duration: number;
 }
 
-async function generateSegment(questionId: number, segment: string, text: string, style: string, speed: string = "medium", force = false): Promise<TTSResult> {
+export const MIMO_VOICES = [
+  { id: "冰糖", name: "冰糖", gender: "female", lang: "zh" },
+  { id: "茉莉", name: "茉莉", gender: "female", lang: "zh" },
+  { id: "苏打", name: "苏打", gender: "male", lang: "zh" },
+  { id: "白桦", name: "白桦", gender: "male", lang: "zh" },
+  { id: "Mia", name: "Mia", gender: "female", lang: "en" },
+  { id: "Chloe", name: "Chloe", gender: "female", lang: "en" },
+  { id: "Milo", name: "Milo", gender: "male", lang: "en" },
+  { id: "Dean", name: "Dean", gender: "male", lang: "en" },
+] as const;
+
+async function generateSegment(questionId: number, segment: string, text: string, style: string, speed: string = "medium", force = false, voice: string = "冰糖"): Promise<TTSResult> {
   const speedPrefix = speed === "slow" ? "语速稍慢，节奏从容。"
     : speed === "fast" ? "语速比正常稍快。"
     : "语速适中自然。";
   const fullStyle = speedPrefix + style;
   let cacheSegment = speed === "medium" ? segment : `${segment}_${speed}`;
+  if (voice !== "冰糖") cacheSegment = `${cacheSegment}_v${voice}`;
   if (questionId === 0) {
     const hash = Array.from(text).reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0).toString(36);
     cacheSegment = `${cacheSegment}_${hash}`;
@@ -42,13 +54,13 @@ async function generateSegment(questionId: number, segment: string, text: string
     }
   }
 
-  const client = getClient();
   const fileName = `q${questionId}_${cacheSegment}.wav`;
   const filePath = `audio/${fileName}`;
   const fullPath = path.join(AUDIO_DIR, fileName);
 
   fs.mkdirSync(AUDIO_DIR, { recursive: true });
 
+  const client = getClient();
   const completion = await client.chat.completions.create({
     model: "mimo-v2.5-tts",
     messages: [
@@ -56,7 +68,7 @@ async function generateSegment(questionId: number, segment: string, text: string
       { role: "assistant", content: text },
     ],
     // @ts-ignore
-    audio: { format: "wav", voice: "冰糖" },
+    audio: { format: "wav", voice },
   });
 
   const message = completion.choices?.[0]?.message;
@@ -150,6 +162,7 @@ export async function generateTTSForQuestion(
     answerReadOption?: boolean;
     answerReadMulti?: boolean;
     ttsSpeed?: string;
+    ttsVoice?: string;
     showTransition?: boolean;
     force?: boolean;
   }
@@ -166,6 +179,7 @@ export async function generateTTSForQuestion(
   const showTip = options?.showTip !== false;
   const teacherText = options?.teacherExplanation || "";
   const ttsSpeed = options?.ttsSpeed || "medium";
+  const ttsVoice = options?.ttsVoice || "冰糖";
   const showTransition = options?.showTransition;
   const force = options?.force || false;
 
@@ -173,24 +187,24 @@ export async function generateTTSForQuestion(
   const opts = [row.option1, row.option2, row.option3, row.option4].filter(Boolean) as string[];
 
   const promises: Promise<TTSResult>[] = [
-    generateSegment(questionId, "question", questionText, "用清晰的教学语气朗读题目。", ttsSpeed, force),
-    generateSegment(questionId, "answer", answerText, "用肯定、清晰的语气播报正确答案。", ttsSpeed, force),
+    generateSegment(questionId, "question", questionText, "用清晰的教学语气朗读题目。", ttsSpeed, force, ttsVoice),
+    generateSegment(questionId, "answer", answerText, "用肯定、清晰的语气播报正确答案。", ttsSpeed, force, ttsVoice),
   ];
 
   for (let i = 0; i < opts.length; i++) {
     const optText = buildOptionText(labels[i], opts[i]);
-    promises.push(generateSegment(questionId, `opt_${i}`, optText, "用清晰的教学语气朗读选项。", ttsSpeed, force));
+    promises.push(generateSegment(questionId, `opt_${i}`, optText, "用清晰的教学语气朗读选项。", ttsSpeed, force, ttsVoice));
   }
 
   if (showExplanation) {
-    promises.push(generateSegment(questionId, "explanation", row.explanation || "无解读。", "用沉稳、权威的教学语气解读法规内容。", ttsSpeed, force));
+    promises.push(generateSegment(questionId, "explanation", row.explanation || "无解读。", "用沉稳、权威的教学语气解读法规内容。", ttsSpeed, force, ttsVoice));
   }
   if (showTip) {
-    promises.push(generateSegment(questionId, "tip", row.tip_text || "无技巧。", "用轻快、提示性的语气分享答题技巧。", ttsSpeed, force));
+    promises.push(generateSegment(questionId, "tip", row.tip_text || "无技巧。", "用轻快、提示性的语气分享答题技巧。", ttsSpeed, force, ttsVoice));
   }
   if (teacherText) {
     const cleanText = teacherText.replace(/【/g, "").replace(/】/g, "");
-    promises.push(generateSegment(questionId, "teacher_explanation", cleanText, "用沉稳清晰的教学语气进行讲解，关键词处稍加重音。", ttsSpeed, force));
+    promises.push(generateSegment(questionId, "teacher_explanation", cleanText, "用沉稳清晰的教学语气进行讲解，关键词处稍加重音。", ttsSpeed, force, ttsVoice));
   }
 
   const results = await Promise.all(promises);
@@ -209,7 +223,7 @@ export async function generateTTSForQuestion(
   // transition audio
   const typeLabel = row.type === 1 ? "判断题" : isMulti ? "多选题" : "单选题";
   if (showTransition) {
-    await generateSegment(questionId, "transition", `下一题，${typeLabel}。`, "用清晰、有节奏感的播报语气报出题号和类型。", ttsSpeed);
+    await generateSegment(questionId, "transition", `下一题，${typeLabel}。`, "用清晰、有节奏感的播报语气报出题号和类型。", ttsSpeed, false, ttsVoice);
   }
 
   return {
@@ -250,7 +264,7 @@ export async function generateBridgeAudios(seriesData?: {
   bridge_reveal?: string | null;
   bridge_explain?: string | null;
   bridge_tip?: string | null;
-}, ttsSpeed?: string): Promise<BridgeDurations> {
+}, ttsSpeed?: string, ttsVoice?: string): Promise<BridgeDurations> {
   const texts = {
     bridge_think: seriesData?.bridge_think || DEFAULT_BRIDGES.bridge_think,
     bridge_reveal: seriesData?.bridge_reveal || DEFAULT_BRIDGES.bridge_reveal,
@@ -260,7 +274,7 @@ export async function generateBridgeAudios(seriesData?: {
 
   const results = await Promise.all(
     Object.entries(texts).map(([key, text]) =>
-      generateSegment(0, key, text, BRIDGE_STYLES[key], ttsSpeed || "medium")
+      generateSegment(0, key, text, BRIDGE_STYLES[key], ttsSpeed || "medium", false, ttsVoice || "冰糖")
     )
   );
 

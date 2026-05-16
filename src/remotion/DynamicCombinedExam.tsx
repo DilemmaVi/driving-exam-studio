@@ -67,7 +67,7 @@ interface Props {
   watermarkText?: string;
   watermarkPosition?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
   watermarkOpacity?: number;
-  watermarkFontSize?: "small" | "medium" | "large";
+  watermarkFontSize?: number;
 }
 
 export const DynamicCombinedExam: React.FC<Props> = ({

@@ -29,6 +29,8 @@ export default function SeriesPage() {
   const [introTitle, setIntroTitle] = useState("");
   const [introSubtitle, setIntroSubtitle] = useState("");
   const [creating, setCreating] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [batchRendering, setBatchRendering] = useState(false);
   const router = useRouter();
 
   const pageSize = 20;
@@ -72,6 +74,31 @@ export default function SeriesPage() {
     fetchSeries();
   };
 
+  const toggleSelect = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const batchRender = async () => {
+    if (selected.size === 0 || batchRendering) return;
+    setBatchRendering(true);
+    const res = await fetch("/api/render/batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ seriesIds: Array.from(selected) }),
+    });
+    const data = await res.json();
+    setBatchRendering(false);
+    if (data.count > 0) {
+      setSelected(new Set());
+      router.push("/renders");
+    }
+  };
+
   return (
     <div className="max-w-5xl mx-auto p-8">
       <div id="tour-header" className="flex items-center justify-between mb-6">
@@ -80,6 +107,15 @@ export default function SeriesPage() {
           <p className="text-gray-500 text-sm mt-1">{total} 个系列</p>
         </div>
         <div className="flex items-center gap-2">
+          {selected.size > 0 && (
+            <button
+              onClick={batchRender}
+              disabled={batchRendering}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition disabled:opacity-40"
+            >
+              {batchRendering ? "提交中..." : `批量渲染 (${selected.size})`}
+            </button>
+          )}
           <GuideTourButton page="series" />
           <button
             id="tour-create-btn"
@@ -131,12 +167,21 @@ export default function SeriesPage() {
             <div
               key={s.id}
               onClick={() => router.push(`/editor/${s.id}`)}
-              className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-gray-300 transition cursor-pointer group"
+              className={`bg-white border rounded-xl p-5 hover:shadow-md transition cursor-pointer group ${selected.has(s.id) ? "border-blue-400 ring-2 ring-blue-100" : "border-gray-200 hover:border-gray-300"}`}
             >
               <div className="flex items-start justify-between">
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-base truncate">{s.name}</h3>
-                  {s.category && <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 mt-1.5 inline-block">{s.category}</span>}
+                <div className="flex items-start gap-2 min-w-0 flex-1">
+                  <input
+                    type="checkbox"
+                    checked={selected.has(s.id)}
+                    onClick={(e) => toggleSelect(s.id, e)}
+                    onChange={() => {}}
+                    className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-base truncate">{s.name}</h3>
+                    {s.category && <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 mt-1.5 inline-block">{s.category}</span>}
+                  </div>
                 </div>
                 <button
                   onClick={(e) => deleteSeries(s.id, e)}

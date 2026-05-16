@@ -3,6 +3,7 @@ import { getDb } from "@/lib/db";
 import { generateTTSForQuestion, generateBridgeAudios, type QuestionRow } from "@/lib/tts";
 import { getOutputDir } from "@/lib/paths";
 import { getSettings } from "@/lib/settings";
+import { renderQueue } from "@/lib/render-queue";
 import { v4 as uuid } from "uuid";
 import { spawn } from "child_process";
 import path from "path";
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
     db.prepare("INSERT INTO render_tasks (id, question_ids, series_id, status, phase, phase_label) VALUES (?, ?, ?, 'pending', '', '')")
       .run(taskId, JSON.stringify(qIds), seriesId || null);
 
-    renderInBackground(taskId, qIds, seriesData, seriesQuestions, !!tipOnly);
+    renderQueue.enqueue(taskId, () => renderInBackground(taskId, qIds, seriesData, seriesQuestions, !!tipOnly));
 
     return NextResponse.json({ taskId });
   } catch (e: unknown) {
@@ -52,8 +53,11 @@ export async function GET(request: NextRequest) {
   const db = getDb();
 
   if (taskId) {
-    const task = db.prepare("SELECT * FROM render_tasks WHERE id = ?").get(taskId);
+    const task = db.prepare("SELECT * FROM render_tasks WHERE id = ?").get(taskId) as Record<string, unknown> | undefined;
     if (!task) return NextResponse.json({ error: "not found" }, { status: 404 });
+    if (task.status === "pending") {
+      (task as Record<string, unknown>).queue_position = renderQueue.getPosition(taskId);
+    }
     return NextResponse.json(task);
   }
 
@@ -86,9 +90,15 @@ export async function GET(request: NextRequest) {
     WHERE ${where}
     ORDER BY r.created_at DESC
     LIMIT ? OFFSET ?
-  `).all(...params, pageSize, (page - 1) * pageSize);
+  `).all(...params, pageSize, (page - 1) * pageSize) as Record<string, unknown>[];
 
-  return NextResponse.json({ tasks, total: totalRow.cnt });
+  for (const t of tasks) {
+    if (t.status === "pending") {
+      t.queue_position = renderQueue.getPosition(t.id as string);
+    }
+  }
+
+  return NextResponse.json({ tasks, total: totalRow.cnt, queueLength: renderQueue.getQueueLength() });
 }
 
 export async function DELETE(request: NextRequest) {
@@ -112,7 +122,7 @@ function updateTask(taskId: string, fields: Record<string, unknown>) {
   db.prepare(`UPDATE render_tasks SET ${sets} WHERE id = ?`).run(...values, taskId);
 }
 
-async function renderInBackground(
+export async function renderInBackground(
   taskId: string,
   questionIds: number[],
   seriesData: Record<string, unknown> | null,
@@ -127,6 +137,7 @@ async function renderInBackground(
     const pauseEnd = (seriesData?.pause_end as number) ?? 2.0;
     const pauseBeforeTip = (seriesData?.pause_before_tip as number) ?? 2.0;
     const ttsSpeed = (seriesData?.tts_speed as string) || "medium";
+    const ttsVoice = (seriesData?.tts_voice as string) || "冰糖";
     const keywordFlashEnabled = seriesData?.keyword_flash_enabled !== 0;
     const underlineProgressEnabled = seriesData?.underline_progress_enabled !== 0;
     const underlineQuestion = seriesData?.underline_question !== 0;
@@ -143,7 +154,7 @@ async function renderInBackground(
       bridge_reveal: seriesData.bridge_reveal as string | null,
       bridge_explain: seriesData.bridge_explain as string | null,
       bridge_tip: seriesData.bridge_tip as string | null,
-    } : undefined, ttsSpeed);
+    } : undefined, ttsSpeed, ttsVoice);
 
     // Apply bridge enabled switches
     const effectiveBridges = {
@@ -209,7 +220,7 @@ async function renderInBackground(
 
       const ttsResult = await generateTTSForQuestion(qId, {
         teacherExplanation, showOfficialExplanation, showTip,
-        answerReadOption, answerReadMulti, ttsSpeed, showTransition,
+        answerReadOption, answerReadMulti, ttsSpeed, ttsVoice, showTransition,
       });
       const row = db.prepare("SELECT * FROM questions WHERE id = ?").get(qId) as QuestionRow;
 

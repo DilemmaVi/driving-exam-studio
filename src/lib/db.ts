@@ -218,6 +218,7 @@ function initTables(db: Database.Database) {
     ["pause_end", "REAL DEFAULT 2.0"],
     ["pause_before_tip", "REAL DEFAULT 2.0"],
     ["tts_speed", "TEXT DEFAULT 'medium'"],
+    ["tts_voice", "TEXT DEFAULT '冰糖'"],
     ["keyword_flash_enabled", "INTEGER DEFAULT 1"],
     ["underline_progress_enabled", "INTEGER DEFAULT 1"],
     ["avatar_enabled", "INTEGER DEFAULT 1"],

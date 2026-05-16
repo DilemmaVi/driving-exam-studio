@@ -44,7 +44,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       outroText: "outro_text", outroSubtitle: "outro_subtitle",
       showTransition: "show_transition", pauseStart: "pause_start",
       pauseEnd: "pause_end", pauseBeforeTip: "pause_before_tip",
-      ttsSpeed: "tts_speed", keywordFlashEnabled: "keyword_flash_enabled",
+      ttsSpeed: "tts_speed", ttsVoice: "tts_voice", keywordFlashEnabled: "keyword_flash_enabled",
       underlineProgressEnabled: "underline_progress_enabled", avatarEnabled: "avatar_enabled",
     };
     const col = colMap[key];

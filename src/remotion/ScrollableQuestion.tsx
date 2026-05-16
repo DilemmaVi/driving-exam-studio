@@ -88,7 +88,7 @@ export const ScrollableQuestion: React.FC<{
   watermarkText?: string;
   watermarkPosition?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
   watermarkOpacity?: number;
-  watermarkFontSize?: "small" | "medium" | "large";
+  watermarkFontSize?: number;
 }> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize }) => {
   const labels = ["A", "B", "C", "D"];
   const correctIndices = question.correctIndices || [question.correctIndex];

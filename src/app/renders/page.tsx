@@ -19,6 +19,7 @@ interface RenderTask {
   error: string | null;
   created_at: string;
   completed_at: string | null;
+  queue_position?: number;
 }
 
 const STATUS_TABS = [
@@ -160,7 +161,7 @@ export default function RendersPage() {
                 {isActive && (
                   <div className="mb-2">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-gray-700">{task.phase_label || "准备中..."}</span>
+                      <span className="text-sm text-gray-700">{task.status === "pending" && task.queue_position ? `排队中（第${task.queue_position}位）` : task.phase_label || "准备中..."}</span>
                       <span className="text-sm font-mono text-gray-500">{pct}%</span>
                     </div>
                     <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">

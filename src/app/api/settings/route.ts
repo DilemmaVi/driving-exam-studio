@@ -10,7 +10,7 @@ export async function GET() {
     watermarkText: settings.watermarkText || "",
     watermarkPosition: settings.watermarkPosition || "bottom-right",
     watermarkOpacity: settings.watermarkOpacity ?? 30,
-    watermarkFontSize: settings.watermarkFontSize || "medium",
+    watermarkFontSize: settings.watermarkFontSize ?? 36,
   });
 }
 

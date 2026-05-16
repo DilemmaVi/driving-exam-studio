@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { StylePreview } from "./StylePreview";
 
 interface SeriesData {
@@ -38,6 +38,7 @@ interface SeriesData {
   pause_end?: number;
   pause_before_tip?: number;
   tts_speed?: string;
+  tts_voice?: string;
   keyword_flash_enabled?: number;
   underline_progress_enabled?: number;
   underline_question?: number;
@@ -100,6 +101,9 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
   const [pauseEnd, setPauseEnd] = useState(2.0);
   const [pauseBeforeTip, setPauseBeforeTip] = useState(2.0);
   const [ttsSpeed, setTtsSpeed] = useState("medium");
+  const [ttsVoice, setTtsVoice] = useState("冰糖");
+  const [voicePreviewing, setVoicePreviewing] = useState(false);
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // Animation effects
   const [keywordFlashEnabled, setKeywordFlashEnabled] = useState(1);
@@ -118,7 +122,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
   const [watermarkText, setWatermarkText] = useState("");
   const [watermarkPosition, setWatermarkPosition] = useState("bottom-right");
   const [watermarkOpacity, setWatermarkOpacity] = useState(30);
-  const [watermarkFontSize, setWatermarkFontSize] = useState("medium");
+  const [watermarkFontSize, setWatermarkFontSize] = useState(36);
 
   useEffect(() => {
     if (open) {
@@ -128,7 +132,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
         setWatermarkText(d.watermarkText || "");
         setWatermarkPosition(d.watermarkPosition || "bottom-right");
         setWatermarkOpacity(d.watermarkOpacity ?? 30);
-        setWatermarkFontSize(d.watermarkFontSize || "medium");
+        setWatermarkFontSize(d.watermarkFontSize ?? 36);
       });
       if (series) {
         setIntroTitle(series.intro_title || "");
@@ -161,6 +165,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
         setPauseEnd(series.pause_end ?? 2.0);
         setPauseBeforeTip(series.pause_before_tip ?? 2.0);
         setTtsSpeed(series.tts_speed || "medium");
+        setTtsVoice(series.tts_voice || "冰糖");
         setKeywordFlashEnabled(series.keyword_flash_enabled ?? 1);
         setUnderlineProgressEnabled(series.underline_progress_enabled ?? 1);
         setUnderlineQuestion(series.underline_question ?? 1);
@@ -206,6 +211,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
       pauseEnd,
       pauseBeforeTip,
       ttsSpeed,
+      ttsVoice,
       keywordFlashEnabled,
       underlineProgressEnabled,
       underlineQuestion,
@@ -339,13 +345,58 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
 
           {tab === "语音设置" && (
             <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">语速</label>
-                <select value={ttsSpeed} onChange={(e) => setTtsSpeed(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                  <option value="slow">稍慢</option>
-                  <option value="medium">适中</option>
-                  <option value="fast">稍快</option>
-                </select>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">语速</label>
+                  <select value={ttsSpeed} onChange={(e) => setTtsSpeed(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <option value="slow">稍慢</option>
+                    <option value="medium">适中</option>
+                    <option value="fast">稍快</option>
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">音色</label>
+                  <select value={ttsVoice} onChange={(e) => setTtsVoice(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <optgroup label="中文">
+                      <option value="冰糖">冰糖（女声）</option>
+                      <option value="茉莉">茉莉（女声）</option>
+                      <option value="苏打">苏打（男声）</option>
+                      <option value="白桦">白桦（男声）</option>
+                    </optgroup>
+                    <optgroup label="English">
+                      <option value="Mia">Mia (Female)</option>
+                      <option value="Chloe">Chloe (Female)</option>
+                      <option value="Milo">Milo (Male)</option>
+                      <option value="Dean">Dean (Male)</option>
+                    </optgroup>
+                  </select>
+                  <button
+                    type="button"
+                    disabled={voicePreviewing}
+                    onClick={async () => {
+                      setVoicePreviewing(true);
+                      try {
+                        if (previewAudioRef.current) { previewAudioRef.current.pause(); previewAudioRef.current = null; }
+                        const res = await fetch("/api/tts/sample", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ voice: ttsVoice, speed: ttsSpeed }),
+                        });
+                        if (!res.ok) throw new Error(await res.text());
+                        const blob = await res.blob();
+                        const url = URL.createObjectURL(blob);
+                        const audio = new Audio(url);
+                        previewAudioRef.current = audio;
+                        audio.onended = () => URL.revokeObjectURL(url);
+                        audio.play();
+                      } catch (e) { alert("试听失败: " + (e instanceof Error ? e.message : e)); }
+                      setVoicePreviewing(false);
+                    }}
+                    className="mt-1.5 px-3 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+                  >
+                    {voicePreviewing ? "加载中..." : "▶ 试听"}
+                  </button>
+                </div>
               </div>
               <div className="flex gap-4">
                 <div className="flex-1">
@@ -534,12 +585,8 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
                       <input type="range" min={10} max={80} value={watermarkOpacity} onChange={(e) => setWatermarkOpacity(Number(e.target.value))} className="w-full" />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">字体大小</label>
-                      <select value={watermarkFontSize} onChange={(e) => setWatermarkFontSize(e.target.value)} className="border rounded-lg px-3 py-2 text-sm">
-                        <option value="small">小</option>
-                        <option value="medium">中</option>
-                        <option value="large">大</option>
-                      </select>
+                      <label className="block text-sm text-gray-600 mb-1">字体大小 ({watermarkFontSize}px)</label>
+                      <input type="range" min={16} max={80} value={watermarkFontSize} onChange={(e) => setWatermarkFontSize(Number(e.target.value))} className="w-full" />
                     </div>
                   </>
                 )}
