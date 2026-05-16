@@ -54,6 +54,6 @@ export interface QuestionEntry {
   stemKeywordPhases?: string[];
   readingPrefixDelay?: number;
   readingSpeedRatio?: number;
-  panelAdjust?: "auto-shift" | "auto-scale" | "manual" | "none";
+  panelAdjust?: "auto-shift" | "auto-scale" | "manual" | "manual-scale" | "none";
   panelAdjustValue?: number;
 }

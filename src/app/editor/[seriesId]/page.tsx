@@ -366,6 +366,7 @@ function SortableItem({
                 <option value="auto-shift">自动上移</option>
                 <option value="auto-scale">自动缩小</option>
                 <option value="manual">手动上移</option>
+                <option value="manual-scale">手动缩小</option>
                 <option value="none">不调整</option>
               </select>
             </div>
@@ -379,6 +380,19 @@ function SortableItem({
                 >
                   <option value="">请选择</option>
                   {[100, 200, 300, 400, 500, 600, 700, 800].map((v) => <option key={v} value={v}>{v}px</option>)}
+                </select>
+              </div>
+            )}
+            {item.panelAdjust === "manual-scale" && (
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">缩放比例(%)</label>
+                <select
+                  value={item.panelAdjustValue ?? ""}
+                  onChange={(e) => onUpdate(item.id, { panelAdjustValue: e.target.value === "" ? null : Number(e.target.value) })}
+                  className="border border-gray-300 rounded-lg px-2 py-1 text-sm"
+                >
+                  <option value="">请选择</option>
+                  {[90, 85, 80, 75, 70, 65, 60, 55, 50].map((v) => <option key={v} value={v}>{v}%</option>)}
                 </select>
               </div>
             )}
