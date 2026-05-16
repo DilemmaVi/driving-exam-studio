@@ -44,7 +44,36 @@ export default function QuestionsPage() {
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const [deleting, setDeleting] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [showCategoryMgr, setShowCategoryMgr] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [editingCat, setEditingCat] = useState<{ id: string; name: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const refreshCategories = async () => {
+    const d = await fetch("/api/categories").then((r) => r.json());
+    setCategories(d.categories);
+  };
+
+  const addCategory = async () => {
+    if (!newCatName.trim()) return;
+    await fetch("/api/categories", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: newCatName.trim() }) });
+    setNewCatName("");
+    refreshCategories();
+  };
+
+  const updateCategory = async () => {
+    if (!editingCat || !editingCat.name.trim()) return;
+    await fetch("/api/categories", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: editingCat.id, name: editingCat.name.trim() }) });
+    setEditingCat(null);
+    refreshCategories();
+  };
+
+  const deleteCategory = async (id: string) => {
+    if (!confirm("删除后该分类下的题目将失去分类关联，确认删除？")) return;
+    await fetch("/api/categories", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    if (activeCategory === id) setActiveCategory("all");
+    refreshCategories();
+  };
 
   useEffect(() => {
     fetch("/api/categories").then((r) => r.json()).then((d) => {
@@ -130,7 +159,7 @@ export default function QuestionsPage() {
       </div>
 
       {/* 分类 Tab */}
-      <div className="flex gap-2 mb-4 flex-wrap">
+      <div className="flex gap-2 mb-4 flex-wrap items-center">
         <button onClick={() => { setActiveCategory("all"); setPage(1); }}
           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${activeCategory === "all" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
         >全部</button>
@@ -139,6 +168,7 @@ export default function QuestionsPage() {
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${activeCategory === c.id ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
           >{c.name}</button>
         ))}
+        <button onClick={() => setShowCategoryMgr(true)} className="px-2.5 py-1.5 rounded-lg text-sm text-gray-500 hover:bg-gray-100 transition" title="管理分类">⚙</button>
       </div>
 
       {/* 搜索 + 筛选 */}
@@ -287,7 +317,7 @@ export default function QuestionsPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Excel 文件</label>
                 <input ref={fileRef} type="file" accept=".xlsx,.xls" className="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 file:font-medium file:cursor-pointer" />
-                <p className="text-xs text-gray-400 mt-1">支持 quanan 导出的标准模板格式</p>
+                <p className="text-xs text-gray-400 mt-1">支持 quanan 导出的标准模板格式 · <a href="/api/questions/template" className="text-blue-600 hover:underline">下载导入模板</a></p>
               </div>
               {importResult && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
@@ -301,6 +331,40 @@ export default function QuestionsPage() {
               <button onClick={handleImport} disabled={importing}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-40"
               >{importing ? "导入中..." : "开始导入"}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCategoryMgr && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setShowCategoryMgr(false)}>
+          <div className="bg-white rounded-xl shadow-xl w-[480px] max-h-[70vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">管理分类</h3>
+              <button onClick={() => setShowCategoryMgr(false)} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-2">
+              {categories.map((c) => (
+                <div key={c.id} className="flex items-center gap-2 group">
+                  {editingCat?.id === c.id ? (
+                    <>
+                      <input value={editingCat.name} onChange={(e) => setEditingCat({ ...editingCat, name: e.target.value })} onKeyDown={(e) => e.key === "Enter" && updateCategory()} className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" autoFocus />
+                      <button onClick={updateCategory} className="px-2 py-1 text-xs bg-blue-600 text-white rounded">保存</button>
+                      <button onClick={() => setEditingCat(null)} className="px-2 py-1 text-xs text-gray-500">取消</button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="flex-1 text-sm text-gray-700">{c.name}</span>
+                      <button onClick={() => setEditingCat({ id: c.id, name: c.name })} className="px-2 py-1 text-xs text-gray-400 opacity-0 group-hover:opacity-100 hover:text-blue-600">编辑</button>
+                      <button onClick={() => deleteCategory(c.id)} className="px-2 py-1 text-xs text-gray-400 opacity-0 group-hover:opacity-100 hover:text-red-600">删除</button>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2 px-6 py-4 border-t">
+              <input value={newCatName} onChange={(e) => setNewCatName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addCategory()} placeholder="输入新分类名称..." className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <button onClick={addCategory} disabled={!newCatName.trim()} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-40">添加</button>
             </div>
           </div>
         </div>
