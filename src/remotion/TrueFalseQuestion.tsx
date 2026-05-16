@@ -147,7 +147,7 @@ export const TrueFalseQuestion: React.FC<{
     contentShift = interpolate(panelProgress, [0, 1], [0, -overflow]);
   } else if (mode === "auto-scale" && overflow > 0) {
     const contentHeight = contentBottom - 30;
-    const targetScale = Math.max(0.5, (panelTop - 50) / contentHeight);
+    const targetScale = Math.max(0.5, (panelTop - 80) / contentHeight);
     contentScale = interpolate(panelProgress, [0, 1], [1, targetScale]);
   } else if (mode === "manual" && panelAdjustValue) {
     contentShift = interpolate(panelProgress, [0, 1], [0, -panelAdjustValue]);

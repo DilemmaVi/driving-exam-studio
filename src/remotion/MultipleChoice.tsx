@@ -139,7 +139,7 @@ export const MultipleChoice: React.FC<{
     const lines = Math.max(1, Math.ceil(text.length / charsPerLineO));
     return sum + lines * fo * 1.5 + 64 + gap;
   }, 0);
-  const contentBottom = 30 + qHeight + imgHeight + 40 + optHeight + 130;
+  const contentBottom = 30 + qHeight + imgHeight + 40 + optHeight + 250;
   const overflow = Math.max(0, contentBottom - panelTop + 40);
 
   const panelProgress = panelVisibleFrame > 0 && frame >= panelVisibleFrame
@@ -153,7 +153,7 @@ export const MultipleChoice: React.FC<{
     contentShift = interpolate(panelProgress, [0, 1], [0, -overflow]);
   } else if (mode === "auto-scale" && overflow > 0) {
     const contentHeight = contentBottom - 30;
-    const targetScale = Math.max(0.5, (panelTop - 50) / contentHeight);
+    const targetScale = Math.max(0.5, (panelTop - 80) / contentHeight);
     contentScale = interpolate(panelProgress, [0, 1], [1, targetScale]);
   } else if (mode === "manual" && panelAdjustValue) {
     contentShift = interpolate(panelProgress, [0, 1], [0, -panelAdjustValue]);
