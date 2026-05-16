@@ -1,0 +1,27 @@
+src/remotion/TrueFalseQuestion.tsx
+  a0016bb7d214ca0a 123-130,132-134
+src/remotion/ScrollableQuestion.tsx
+  a0016bb7d214ca0a 169-174,176,178-180
+src/remotion/MultipleChoice.tsx
+  a0016bb7d214ca0a 128-134,136,138-140
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.14",
+  "base_commit_sha": "9fe491130e161d11652c1d2bb0db5790d1f8d53d",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 68,
+      "total_deletions": 30,
+      "accepted_lines": 4082,
+      "overriden_lines": 0
+    }
+  }
+}
