@@ -142,24 +142,32 @@ export const MultipleChoice: React.FC<{
   const mode = panelAdjust || "auto-shift";
   let contentShift = 0;
   let contentScale = 1;
+  const topOffset = 30;
+  const safeMargin = 20;
+  const availableBottom = panelTop - safeMargin;
   if (mode === "auto-shift" && overflow > 0) {
-    contentShift = interpolate(panelProgress, [0, 1], [0, -overflow]);
+    // Shift up, but don't push content above screen top
+    const maxShift = topOffset;
+    if (overflow <= maxShift) {
+      contentShift = interpolate(panelProgress, [0, 1], [0, -overflow]);
+    } else {
+      // Shift as much as possible, then scale down the remainder
+      const remainingOverflow = overflow - maxShift;
+      const currentBottom = contentBottom - maxShift;
+      const targetScale = Math.max(0.5, availableBottom / currentBottom);
+      contentShift = interpolate(panelProgress, [0, 1], [0, -maxShift]);
+      contentScale = interpolate(panelProgress, [0, 1], [1, targetScale]);
+    }
   } else if (mode === "auto-scale" && overflow > 0) {
-    const targetScale = Math.max(0.5, (panelTop - 60) / contentBottom);
+    // Scale to fit content into available space above panel
+    const contentHeight = contentBottom - topOffset;
+    const targetScale = Math.max(0.5, (availableBottom - topOffset) / contentHeight);
     contentScale = interpolate(panelProgress, [0, 1], [1, targetScale]);
-    const scaledHeight = contentBottom * targetScale;
-    const availableSpace = panelTop - 60;
-    const centerOffset = (availableSpace - scaledHeight) / 2;
-    contentShift = interpolate(panelProgress, [0, 1], [0, centerOffset]);
   } else if (mode === "manual" && panelAdjustValue) {
     contentShift = interpolate(panelProgress, [0, 1], [0, -panelAdjustValue]);
   } else if (mode === "manual-scale" && panelAdjustValue) {
     const targetScale = Math.max(0.3, panelAdjustValue / 100);
     contentScale = interpolate(panelProgress, [0, 1], [1, targetScale]);
-    const scaledHeight = contentBottom * targetScale;
-    const availableSpace = panelTop - 60;
-    const centerOffset = (availableSpace - scaledHeight) / 2;
-    contentShift = interpolate(panelProgress, [0, 1], [0, centerOffset]);
   }
 
   return (
