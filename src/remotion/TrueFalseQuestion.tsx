@@ -161,7 +161,7 @@ export const TrueFalseQuestion: React.FC<{
       <Background />
       <ProgressBar />
 
-      <div style={{ position: "absolute", top: 30, left: 0, right: 0, transform: `translateY(${contentShift}px) scale(${contentScale})`, transformOrigin: "top center" }}>
+      <div style={{ position: "absolute", top: 30, left: 0, right: 0, transform: `translateY(${contentShift}px) scale(${contentScale})`, transformOrigin: "top center", width: contentScale < 1 ? `${100 / contentScale}%` : undefined, marginLeft: contentScale < 1 ? `${-(100 / contentScale - 100) / 2}%` : undefined }}>
         <QuestionHeader
           text={question.questionContent}
           startFrame={T.questionStart}
@@ -183,7 +183,7 @@ export const TrueFalseQuestion: React.FC<{
         />
       </div>
 
-      <div style={{ position: "absolute", top: 540, left: 0, right: 0, transform: `translateY(${contentShift}px) scale(${contentScale})`, transformOrigin: "top center" }}>
+      <div style={{ position: "absolute", top: 540, left: 0, right: 0, transform: `translateY(${contentShift}px) scale(${contentScale})`, transformOrigin: "top center", width: contentScale < 1 ? `${100 / contentScale}%` : undefined, marginLeft: contentScale < 1 ? `${-(100 / contentScale - 100) / 2}%` : undefined }}>
         {question.options.map((opt, i) => (
           <OptionItem
             key={i} label={labels[i]} text={opt} index={i}

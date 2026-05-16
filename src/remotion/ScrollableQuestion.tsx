@@ -217,6 +217,8 @@ export const ScrollableQuestion: React.FC<{
         flexDirection: "column",
         transform: `translateY(${contentShift}px) scale(${contentScale})`,
         transformOrigin: "top center",
+        width: contentScale < 1 ? `${100 / contentScale}%` : undefined,
+        marginLeft: contentScale < 1 ? `${-(100 / contentScale - 100) / 2}%` : undefined,
       }}>
         <QuestionHeader
           text={question.questionContent}
