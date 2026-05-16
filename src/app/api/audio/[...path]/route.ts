@@ -15,7 +15,12 @@ export async function GET(
 ) {
   const { path: segments } = await params;
   const fileName = segments.join("/");
-  const filePath = path.join(getAudioDir(), fileName);
+  const audioDir = getAudioDir();
+  const filePath = path.join(audioDir, fileName);
+  const resolved = path.resolve(filePath);
+  if (!resolved.startsWith(path.resolve(audioDir))) {
+    return new NextResponse("Forbidden", { status: 403 });
+  }
 
   if (!fs.existsSync(filePath)) {
     return new NextResponse(SILENT_WAV, {
@@ -40,13 +45,21 @@ export async function GET(
     if (match) {
       const start = parseInt(match[1], 10);
       const end = match[2] ? parseInt(match[2], 10) : fileSize - 1;
-      const chunk = fs.readFileSync(filePath).subarray(start, end + 1);
-      return new NextResponse(chunk, {
+      const chunkSize = end - start + 1;
+      const stream = fs.createReadStream(filePath, { start, end });
+      const webStream = new ReadableStream({
+        start(controller) {
+          stream.on("data", (chunk) => controller.enqueue(chunk));
+          stream.on("end", () => controller.close());
+          stream.on("error", (err) => controller.error(err));
+        },
+      });
+      return new NextResponse(webStream, {
         status: 206,
         headers: {
           "Content-Type": contentType,
           "Content-Range": `bytes ${start}-${end}/${fileSize}`,
-          "Content-Length": String(chunk.length),
+          "Content-Length": String(chunkSize),
           "Accept-Ranges": "bytes",
           "Cache-Control": "public, max-age=3600",
         },
@@ -54,8 +67,15 @@ export async function GET(
     }
   }
 
-  const buffer = fs.readFileSync(filePath);
-  return new NextResponse(buffer, {
+  const stream = fs.createReadStream(filePath);
+  const webStream = new ReadableStream({
+    start(controller) {
+      stream.on("data", (chunk) => controller.enqueue(chunk));
+      stream.on("end", () => controller.close());
+      stream.on("error", (err) => controller.error(err));
+    },
+  });
+  return new NextResponse(webStream, {
     headers: {
       "Content-Type": contentType,
       "Content-Length": String(fileSize),

@@ -26,7 +26,11 @@ async function generateSegment(questionId: number, segment: string, text: string
     : speed === "fast" ? "语速比正常稍快。"
     : "语速适中自然。";
   const fullStyle = speedPrefix + style;
-  const cacheSegment = speed === "medium" ? segment : `${segment}_${speed}`;
+  let cacheSegment = speed === "medium" ? segment : `${segment}_${speed}`;
+  if (questionId === 0) {
+    const hash = Array.from(text).reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0).toString(36);
+    cacheSegment = `${cacheSegment}_${hash}`;
+  }
 
   const db = getDb();
 
@@ -55,9 +59,11 @@ async function generateSegment(questionId: number, segment: string, text: string
     audio: { format: "wav", voice: "冰糖" },
   });
 
-  const message = completion.choices[0].message;
+  const message = completion.choices?.[0]?.message;
   // @ts-ignore
-  const audioBytes = Buffer.from(message.audio.data, "base64");
+  const audioData = message?.audio?.data;
+  if (!audioData) throw new Error(`TTS returned no audio for q${questionId}_${segment}`);
+  const audioBytes = Buffer.from(audioData, "base64");
   fs.writeFileSync(fullPath, audioBytes);
 
   const duration = getWavDuration(fullPath);
@@ -69,11 +75,16 @@ async function generateSegment(questionId: number, segment: string, text: string
 
 function getWavDuration(filePath: string): number {
   const buf = fs.readFileSync(filePath);
+  if (buf.length < 44) return 1.0;
   const channels = buf.readUInt16LE(22);
   const sampleRate = buf.readUInt32LE(24);
   const bitsPerSample = buf.readUInt16LE(34);
-  const dataStart = buf.indexOf(Buffer.from("data")) + 8;
+  if (!channels || !sampleRate || !bitsPerSample) return 1.0;
+  const dataIdx = buf.indexOf(Buffer.from("data"));
+  if (dataIdx < 0) return 1.0;
+  const dataStart = dataIdx + 8;
   const dataSize = buf.length - dataStart;
+  if (dataSize <= 0) return 0;
   return dataSize / (channels * sampleRate * (bitsPerSample / 8));
 }
 

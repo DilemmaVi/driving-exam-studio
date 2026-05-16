@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
 
   const db = getDb();
   const audioDir = getAudioDir();
-  const result: Record<number, { ready: boolean; durations?: Record<string, number> }> = {};
+  const result: Record<number, { ready: boolean; durations?: Record<string, number | number[]> }> = {};
 
   for (const qId of questionIds) {
     const rows = db.prepare(
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
         explanation: durations.explanation || durations.teacher_explanation || 0,
         tip: durations.tip || 0,
         teacherExplanation: durations.teacher_explanation || 0,
-        optionDurations: optDurs as unknown as number,
+        optionDurations: optDurs,
       },
     };
   }

@@ -18,12 +18,21 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "file not found" }, { status: 404 });
   }
 
-  const fileBuffer = fs.readFileSync(task.output_path);
-  return new NextResponse(fileBuffer, {
+  const stat = fs.statSync(task.output_path);
+  const stream = fs.createReadStream(task.output_path);
+  const webStream = new ReadableStream({
+    start(controller) {
+      stream.on("data", (chunk) => controller.enqueue(chunk));
+      stream.on("end", () => controller.close());
+      stream.on("error", (err) => controller.error(err));
+    },
+  });
+
+  return new NextResponse(webStream, {
     headers: {
       "Content-Type": "video/mp4",
       "Content-Disposition": `attachment; filename="exam-${taskId.slice(0, 8)}.mp4"`,
-      "Content-Length": String(fileBuffer.length),
+      "Content-Length": String(stat.size),
     },
   });
 }

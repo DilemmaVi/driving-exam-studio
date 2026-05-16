@@ -5,13 +5,14 @@ import fs from "fs";
 const DB_PATH = process.env.DB_PATH || path.join(process.cwd(), "data", "exam.db");
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 
-let _db: Database.Database | null = null;
+let _db: Database.Database | null = (globalThis as any).__examDb || null;
 
 export function getDb(): Database.Database {
   if (!_db) {
     _db = new Database(DB_PATH);
     _db.pragma("journal_mode = WAL");
     initTables(_db);
+    (globalThis as any).__examDb = _db;
   }
   return _db;
 }

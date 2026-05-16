@@ -102,7 +102,7 @@ export const BottomPanel: React.FC<Props> = ({
     : 0;
 
   const translateY = interpolate(slideIn, [0, 1], [900, 0]) + interpolate(slideOut, [0, 1], [0, 900]);
-  const dimOpacity = interpolate(slideIn, [0, 1], [0, 0.35]) - interpolate(slideOut, [0, 1], [0, 0.35]);
+  const dimOpacity = interpolate(slideIn, [0, 1], [0, 0.15]) - interpolate(slideOut, [0, 1], [0, 0.15]);
 
   const cleanContent = content.replace(/【/g, "").replace(/】/g, "").replace(/[{}｛｝]/g, "");
   const sentences = cleanContent.split(/(?<=[。！？；])/).filter(s => s.trim());

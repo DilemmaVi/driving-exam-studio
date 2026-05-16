@@ -18,7 +18,7 @@ const PADDING_SIDE = 48;
 const CONTENT_W = SCREEN_W - PADDING_SIDE * 2;
 
 function estimateLines(text: string, fontSize: number, maxWidth: number): number {
-  const charsPerLine = Math.floor(maxWidth / fontSize);
+  const charsPerLine = Math.floor(maxWidth / (fontSize * 0.55));
   const clean = text.replace(/【/g, "").replace(/】/g, "").replace(/A[.:：][\s\S]*$/, "");
   return Math.max(1, Math.ceil(clean.length / charsPerLine));
 }
@@ -88,7 +88,7 @@ export const ScrollableQuestion: React.FC<{
   const labels = ["A", "B", "C", "D"];
   const correctIndices = question.correctIndices || [question.correctIndex];
   const correctLabel = correctIndices.map(i => labels[i]).join("");
-  const correctText = correctIndices.map(i => question.options[i]?.replace(/【/g, "").replace(/】/g, "").replace(/[{}｛｝]/g, "")).join("、");
+  const correctText = correctIndices.map(i => question.options[i]?.replace(/【/g, "").replace(/】/g, "").replace(/[{}｛｝]/g, "")).filter(Boolean).join("、");
 
   const kwRegex = /【([^】]+)】/g;
   const keywords: string[] = [];
@@ -134,6 +134,7 @@ export const ScrollableQuestion: React.FC<{
   const effectiveOptFrames = readOptions ? totalOptFrames : 0;
 
   let cursor = qFrames + effectiveOptFrames + Math.round(0.3 * FPS);
+  cursor += Math.round((thinkTime || 0) * FPS);
   T.highlightPhaseFrame = cursor;
   T.bridgeRevealStart = cursor;
   cursor += brFrames;
@@ -147,6 +148,7 @@ export const ScrollableQuestion: React.FC<{
     cursor = T.explanationEnd;
   }
   if (showTip !== false && tFrames > 0) {
+    cursor += Math.round((pauseBeforeTip || 0) * FPS);
     T.bridgeTipStart = cursor; cursor += bpFrames;
     T.tipStart = cursor;
     T.tipEnd = cursor + tFrames + Math.round(2.5 * FPS);

@@ -17,6 +17,7 @@ export const TrueFalseQuestion: React.FC<{
   audioDurations: AudioDurations;
   audioServerUrl?: string;
   thinkTime?: number;
+  readOptions?: boolean;
   teacherExplanation?: string;
   showOfficialExplanation?: boolean;
   showTip?: boolean;
@@ -42,7 +43,7 @@ export const TrueFalseQuestion: React.FC<{
   panelAdjust?: string;
   panelAdjustValue?: number;
   subjectLabel?: string;
-}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel }) => {
+}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, readOptions = true, teacherExplanation, showOfficialExplanation, showTip, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel }) => {
   const labels = ["A", "B"];
   const correctLabel = labels[question.correctIndex];
   const correctText = question.options[question.correctIndex];
@@ -88,7 +89,10 @@ export const TrueFalseQuestion: React.FC<{
     bridgeTipStart: 0, tipStart: 0, tipEnd: 0,
   };
 
-  let cursor = qFrames + totalOptFrames + Math.round(0.3 * FPS);
+  const effectiveOptFrames = readOptions ? totalOptFrames : 0;
+
+  let cursor = qFrames + effectiveOptFrames + Math.round(0.3 * FPS);
+  cursor += Math.round((thinkTime || 0) * FPS);
   T.highlightPhaseFrame = cursor;
   T.bridgeRevealStart = cursor;
   cursor += brFrames;
@@ -102,6 +106,7 @@ export const TrueFalseQuestion: React.FC<{
     cursor = T.explanationEnd;
   }
   if (showTip !== false && tFrames > 0) {
+    cursor += Math.round((pauseBeforeTip || 0) * FPS);
     T.bridgeTipStart = cursor; cursor += bpFrames;
     T.tipStart = cursor;
     T.tipEnd = cursor + tFrames + Math.round(2.5 * FPS);
@@ -215,7 +220,7 @@ export const TrueFalseQuestion: React.FC<{
       {/* Stem audio */}
       <Sequence from={0}><Audio src={`${audioServerUrl}/audio/q${question.id}_question.wav`} /></Sequence>
       {/* Per-option audio */}
-      {question.options.map((_, i) => (
+      {readOptions && question.options.map((_, i) => (
         <Sequence key={`opt-audio-${i}`} from={optReadStarts[i]}>
           <Audio src={`${audioServerUrl}/audio/q${question.id}_opt_${i}.wav`} />
         </Sequence>

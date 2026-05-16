@@ -156,7 +156,7 @@ export const QuestionHeader: React.FC<Props> = ({
             textDecoration: hasStemWavy ? "underline wavy" : undefined,
             textDecorationColor: hasStemWavy ? "#EF4444" : undefined,
             textUnderlineOffset: hasStemWavy ? "6px" : undefined,
-            textDecorationThickness: hasStemWavy ? "6px" : undefined,
+            textDecorationThickness: hasStemWavy ? "10px" : undefined,
             transition: "color 0.15s",
           } as React.CSSProperties}>
             {ch}
@@ -204,7 +204,7 @@ export const QuestionHeader: React.FC<Props> = ({
           textDecoration: hasStemWavy ? "underline wavy" : undefined,
           textDecorationColor: hasStemWavy ? "#EF4444" : undefined,
           textUnderlineOffset: hasStemWavy ? "6px" : undefined,
-          textDecorationThickness: hasStemWavy ? "4px" : undefined,
+          textDecorationThickness: hasStemWavy ? "10px" : undefined,
         } as React.CSSProperties}>
           {ch}
         </span>

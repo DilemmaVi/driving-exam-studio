@@ -48,7 +48,7 @@ export const MultipleChoice: React.FC<{
   const labels = ["A", "B", "C", "D"];
   const correctIndices = question.correctIndices || [question.correctIndex];
   const correctLabel = correctIndices.map(i => labels[i]).join("");
-  const correctText = correctIndices.map(i => question.options[i]?.replace(/【/g, "").replace(/】/g, "").replace(/[{}｛｝]/g, "")).join("、");
+  const correctText = correctIndices.map(i => question.options[i]?.replace(/【/g, "").replace(/】/g, "").replace(/[{}｛｝]/g, "")).filter(Boolean).join("、");
 
   const kwRegex = /【([^】]+)】/g;
   const keywords: string[] = [];
@@ -95,6 +95,7 @@ export const MultipleChoice: React.FC<{
   const effectiveOptFrames = readOptions ? totalOptFrames : 0;
 
   let cursor = qFrames + effectiveOptFrames + Math.round(0.3 * FPS);
+  cursor += Math.round((thinkTime || 0) * FPS);
   T.highlightPhaseFrame = cursor;
   T.bridgeRevealStart = cursor;
   cursor += brFrames;
@@ -108,6 +109,7 @@ export const MultipleChoice: React.FC<{
     cursor = T.explanationEnd;
   }
   if (showTip !== false && tFrames > 0) {
+    cursor += Math.round((pauseBeforeTip || 0) * FPS);
     T.bridgeTipStart = cursor; cursor += bpFrames;
     T.tipStart = cursor;
     T.tipEnd = cursor + tFrames + Math.round(2.5 * FPS);
