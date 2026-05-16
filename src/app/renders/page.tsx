@@ -34,6 +34,7 @@ export default function RendersPage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("");
   const [keyword, setKeyword] = useState("");
+  const [playingTaskId, setPlayingTaskId] = useState<string | null>(null);
   const pageSize = 20;
 
   const fetchTasks = useCallback(async () => {
@@ -184,12 +185,20 @@ export default function RendersPage() {
                       {task.file_size && <span>{task.file_size}</span>}
                       {task.total_frames > 0 && <span>{(task.total_frames / 30).toFixed(0)}秒</span>}
                     </div>
-                    <a
-                      href={`/api/render/download?taskId=${task.id}`}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition"
-                    >
-                      下载
-                    </a>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setPlayingTaskId(task.id)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition"
+                      >
+                        ▶ 播放
+                      </button>
+                      <a
+                        href={`/api/render/download?taskId=${task.id}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition"
+                      >
+                        下载
+                      </a>
+                    </div>
                   </div>
                 )}
 
@@ -219,6 +228,23 @@ export default function RendersPage() {
           <span className="px-3 py-1.5 text-sm text-gray-500">{page} / {totalPages}</span>
           <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}
             className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm disabled:opacity-30 hover:bg-gray-50 transition">下一页</button>
+        </div>
+      )}
+      {/* Video Player Modal */}
+      {playingTaskId && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center" onClick={() => setPlayingTaskId(null)}>
+          <div className="relative w-[360px] max-h-[90vh] rounded-xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setPlayingTaskId(null)}
+              className="absolute top-3 right-3 z-10 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black/70 transition"
+            >×</button>
+            <video
+              src={`/api/render/download?taskId=${playingTaskId}`}
+              controls
+              autoPlay
+              className="w-full max-h-[90vh]"
+            />
+          </div>
         </div>
       )}
     </div>
