@@ -7,6 +7,7 @@ import { MultipleChoice } from "./MultipleChoice";
 import { ScrollableQuestion } from "./ScrollableQuestion";
 import { IntroCard } from "./IntroCard";
 import { OutroCard } from "./OutroCard";
+import { Watermark } from "./Watermark";
 import type { QuestionEntry } from "./types";
 
 const FPS = 30;
@@ -63,12 +64,16 @@ interface Props {
   avatarEnabled?: boolean;
   avatarSize?: number;
   avatarPosition?: string;
+  watermarkText?: string;
+  watermarkPosition?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
+  watermarkOpacity?: number;
+  watermarkFontSize?: "small" | "medium" | "large";
 }
 
 export const DynamicCombinedExam: React.FC<Props> = ({
   entries, audioServerUrl = "", introTitle, introSubtitle, introCategory, outroText, outroSubtitle, tipOnly,
   showTransition, pauseStart, pauseEnd, pauseBeforeTip,
-  keywordFlashEnabled, underlineProgressEnabled, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, avatarEnabled, avatarSize, avatarPosition,
+  keywordFlashEnabled, underlineProgressEnabled, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, avatarEnabled, avatarSize, avatarPosition, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize,
 }) => {
   let currentFrame = 0;
   const sequences: React.ReactElement[] = [];
@@ -187,7 +192,12 @@ export const DynamicCombinedExam: React.FC<Props> = ({
     currentFrame += pauseFrames;
   }
 
-  return <AbsoluteFill>{sequences}</AbsoluteFill>;
+  return (
+    <AbsoluteFill>
+      {sequences}
+      {watermarkText && <Watermark text={watermarkText} position={watermarkPosition} opacity={watermarkOpacity} fontSize={watermarkFontSize} />}
+    </AbsoluteFill>
+  );
 };
 
 export function calcCombinedDuration(

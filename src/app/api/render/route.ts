@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { generateTTSForQuestion, generateBridgeAudios, type QuestionRow } from "@/lib/tts";
 import { getOutputDir } from "@/lib/paths";
+import { getSettings } from "@/lib/settings";
 import { v4 as uuid } from "uuid";
 import { spawn } from "child_process";
 import path from "path";
@@ -298,6 +299,14 @@ async function renderInBackground(
       avatarSize,
       avatarPosition,
     };
+
+    const settings = getSettings();
+    if (settings.watermarkEnabled && settings.watermarkText) {
+      props.watermarkText = settings.watermarkText;
+      props.watermarkPosition = settings.watermarkPosition || "bottom-right";
+      props.watermarkOpacity = settings.watermarkOpacity ?? 30;
+      props.watermarkFontSize = settings.watermarkFontSize || "medium";
+    }
     if (tipOnly) {
       props.tipOnly = true;
     } else if (seriesData) {

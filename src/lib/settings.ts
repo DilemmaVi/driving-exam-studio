@@ -5,6 +5,11 @@ const SETTINGS_PATH = path.join(process.cwd(), "data", "settings.json");
 
 interface Settings {
   mimoApiKey?: string;
+  watermarkEnabled?: boolean;
+  watermarkText?: string;
+  watermarkPosition?: string;
+  watermarkOpacity?: number;
+  watermarkFontSize?: string;
 }
 
 export function getSettings(): Settings {

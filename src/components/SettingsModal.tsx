@@ -55,7 +55,7 @@ interface Props {
   onSave: (updates: Record<string, unknown>) => void;
 }
 
-const TABS = ["基本信息", "视频风格", "语音设置", "播放控制", "动画效果"] as const;
+const TABS = ["基本信息", "视频风格", "语音设置", "播放控制", "动画效果", "水印"] as const;
 
 export function SettingsModal({ open, onClose, series, onSave }: Props) {
   const [tab, setTab] = useState<(typeof TABS)[number]>("基本信息");
@@ -113,9 +113,23 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
   // Avatar
   const [avatarEnabled, setAvatarEnabled] = useState(1);
 
+  // Watermark
+  const [watermarkEnabled, setWatermarkEnabled] = useState(false);
+  const [watermarkText, setWatermarkText] = useState("");
+  const [watermarkPosition, setWatermarkPosition] = useState("bottom-right");
+  const [watermarkOpacity, setWatermarkOpacity] = useState(30);
+  const [watermarkFontSize, setWatermarkFontSize] = useState("medium");
+
   useEffect(() => {
     if (open) {
-      fetch("/api/settings").then((r) => r.json()).then((d) => setMaskedKey(d.mimoApiKey || ""));
+      fetch("/api/settings").then((r) => r.json()).then((d) => {
+        setMaskedKey(d.mimoApiKey || "");
+        setWatermarkEnabled(!!d.watermarkEnabled);
+        setWatermarkText(d.watermarkText || "");
+        setWatermarkPosition(d.watermarkPosition || "bottom-right");
+        setWatermarkOpacity(d.watermarkOpacity ?? 30);
+        setWatermarkFontSize(d.watermarkFontSize || "medium");
+      });
       if (series) {
         setIntroTitle(series.intro_title || "");
         setIntroSubtitle(series.intro_subtitle || "");
@@ -165,10 +179,16 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
       await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mimoApiKey: apiKey.trim() }),
+        body: JSON.stringify({ mimoApiKey: apiKey.trim(), watermarkEnabled, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize }),
       });
       setMaskedKey("sk-****" + apiKey.trim().slice(-6));
       setApiKey("");
+    } else {
+      await fetch("/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ watermarkEnabled, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize }),
+      });
     }
     onSave({
       introTitle, introSubtitle, category,
@@ -482,6 +502,47 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
                   <input type="checkbox" checked={keywordFlashEnabled === 1} onChange={(e) => setKeywordFlashEnabled(e.target.checked ? 1 : 0)} className="rounded" />
                   关键字闪动
                 </label>
+              </div>
+            </>
+          )}
+
+          {tab === "水印" && (
+            <>
+              <div className="space-y-4">
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={watermarkEnabled} onChange={(e) => setWatermarkEnabled(e.target.checked)} className="rounded" />
+                  <span className="font-medium text-gray-700">启用水印</span>
+                </label>
+                {watermarkEnabled && (
+                  <>
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">水印文案</label>
+                      <input type="text" value={watermarkText} onChange={(e) => setWatermarkText(e.target.value)} placeholder="如：@你的账号名" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">位置</label>
+                      <select value={watermarkPosition} onChange={(e) => setWatermarkPosition(e.target.value)} className="border rounded-lg px-3 py-2 text-sm">
+                        <option value="top-left">左上角</option>
+                        <option value="top-right">右上角</option>
+                        <option value="bottom-left">左下角</option>
+                        <option value="bottom-right">右下角</option>
+                        <option value="center">居中</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">透明度 ({watermarkOpacity}%)</label>
+                      <input type="range" min={10} max={80} value={watermarkOpacity} onChange={(e) => setWatermarkOpacity(Number(e.target.value))} className="w-full" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">字体大小</label>
+                      <select value={watermarkFontSize} onChange={(e) => setWatermarkFontSize(e.target.value)} className="border rounded-lg px-3 py-2 text-sm">
+                        <option value="small">小</option>
+                        <option value="medium">中</option>
+                        <option value="large">大</option>
+                      </select>
+                    </div>
+                  </>
+                )}
               </div>
             </>
           )}
