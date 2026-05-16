@@ -102,8 +102,17 @@ function getEditorPageSteps() {
       element: "#tour-question-expand",
       popover: {
         title: "展开题目配置",
-        description: "点击题目可以展开详细配置面板，包含多种可自定义选项。",
+        description: "点击题目可以展开详细配置面板，包含多种可自定义选项。点击「下一步」将自动展开配置面板。",
         side: "bottom" as const,
+        onNextClick: () => {
+          const btn = document.getElementById("tour-question-expand");
+          if (btn && !document.getElementById("tour-config-section")) {
+            btn.click();
+          }
+          setTimeout(() => {
+            (window as any).__driverInstance?.moveNext();
+          }, 400);
+        },
       },
     },
     {
@@ -207,10 +216,12 @@ export function useGuideTour(page: "series" | "editor" | "renders") {
       progressText: "{{current}} / {{total}}",
       steps,
       onDestroyStarted: () => {
+        (window as any).__driverInstance = null;
         d.destroy();
       },
     });
 
+    (window as any).__driverInstance = d;
     setTimeout(() => d.drive(), 300);
   }, [page]);
 
