@@ -1,0 +1,41 @@
+src/remotion/BottomPanel.tsx
+  a0016bb7d214ca0a 105
+src/remotion/ScrollableQuestion.tsx
+  a0016bb7d214ca0a 21,91,137,151
+src/app/api/audio/[...path]/route.ts
+  a0016bb7d214ca0a 18-23,48-57,62,70-78
+src/remotion/MultipleChoice.tsx
+  a0016bb7d214ca0a 51,98,112
+src/remotion/TrueFalseQuestion.tsx
+  a0016bb7d214ca0a 20,46,92-95,109,223
+src/lib/tts.ts
+  a0016bb7d214ca0a 29-33,62,64-66,78,82-85,87
+src/app/api/tts/check/route.ts
+  a0016bb7d214ca0a 13,53
+src/lib/db.ts
+  a0016bb7d214ca0a 8,15
+src/app/api/render/download/route.ts
+  a0016bb7d214ca0a 21-31,35
+src/remotion/QuestionHeader.tsx
+  a0016bb7d214ca0a 159,207
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.14",
+  "base_commit_sha": "ca1b2d1c2ca8cef1d1f3c7d11109c4c7f25370d4",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 75,
+      "total_deletions": 25,
+      "accepted_lines": 75,
+      "overriden_lines": 0
+    }
+  }
+}
