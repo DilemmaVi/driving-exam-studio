@@ -56,8 +56,52 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(task);
   }
 
-  const tasks = db.prepare("SELECT * FROM render_tasks ORDER BY created_at DESC LIMIT 50").all();
-  return NextResponse.json({ tasks });
+  const page = Math.max(1, Number(searchParams.get("page") || 1));
+  const pageSize = Math.min(50, Math.max(1, Number(searchParams.get("pageSize") || 20)));
+  const status = searchParams.get("status") || "";
+  const keyword = searchParams.get("keyword") || "";
+
+  let where = "1=1";
+  const params: unknown[] = [];
+  if (status) {
+    if (status === "active") {
+      where += " AND r.status IN ('pending','tts','rendering')";
+    } else {
+      where += " AND r.status = ?";
+      params.push(status);
+    }
+  }
+  if (keyword) {
+    where += " AND (r.id LIKE ? OR s.name LIKE ?)";
+    params.push(`%${keyword}%`, `%${keyword}%`);
+  }
+
+  const totalRow = db.prepare(`SELECT COUNT(*) as cnt FROM render_tasks r LEFT JOIN video_series s ON s.id = r.series_id WHERE ${where}`).get(...params) as { cnt: number };
+
+  const tasks = db.prepare(`
+    SELECT r.*, s.name as series_name
+    FROM render_tasks r
+    LEFT JOIN video_series s ON s.id = r.series_id
+    WHERE ${where}
+    ORDER BY r.created_at DESC
+    LIMIT ? OFFSET ?
+  `).all(...params, pageSize, (page - 1) * pageSize);
+
+  return NextResponse.json({ tasks, total: totalRow.cnt });
+}
+
+export async function DELETE(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const taskId = searchParams.get("taskId");
+  const clearDone = searchParams.get("clearDone");
+  const db = getDb();
+
+  if (taskId) {
+    db.prepare("DELETE FROM render_tasks WHERE id = ?").run(taskId);
+  } else if (clearDone === "1") {
+    db.prepare("DELETE FROM render_tasks WHERE status IN ('done','error')").run();
+  }
+  return NextResponse.json({ ok: true });
 }
 
 function updateTask(taskId: string, fields: Record<string, unknown>) {
@@ -84,6 +128,11 @@ async function renderInBackground(
     const ttsSpeed = (seriesData?.tts_speed as string) || "medium";
     const keywordFlashEnabled = seriesData?.keyword_flash_enabled !== 0;
     const underlineProgressEnabled = seriesData?.underline_progress_enabled !== 0;
+    const underlineQuestion = seriesData?.underline_question !== 0;
+    const underlineOption = (seriesData?.underline_option as number) === 1;
+    const underlineExplanation = seriesData?.underline_explanation !== 0;
+    const underlineTip = seriesData?.underline_tip !== 0;
+    const underlineColor = (seriesData?.underline_color as string) || "#6366F1";
     const avatarEnabled = seriesData?.avatar_enabled !== 0;
     const avatarSize = (seriesData?.avatar_size as number) ?? 80;
     const avatarPosition = (seriesData?.avatar_position as string) || "bottom-right";
@@ -131,6 +180,16 @@ async function renderInBackground(
       showTip?: boolean;
       thinkTime?: number;
       readOptions?: boolean;
+      optionGap?: number;
+      fontSizeQuestion?: number;
+      fontSizeOption?: number;
+      fontSizeExplanation?: number;
+      stemKeywords?: string[];
+      stemKeywordPhases?: string[];
+      readingPrefixDelay?: number;
+      readingSpeedRatio?: number;
+      panelAdjust?: string;
+      panelAdjustValue?: number;
     }> = [];
 
     for (let i = 0; i < questionIds.length; i++) {
@@ -203,6 +262,16 @@ async function renderInBackground(
         showTip,
         thinkTime,
         readOptions: readOpts,
+        optionGap: (sq?.option_gap as number | null) ?? undefined,
+        fontSizeQuestion: (sq?.font_size_question as number | null) ?? undefined,
+        fontSizeOption: (sq?.font_size_option as number | null) ?? undefined,
+        fontSizeExplanation: (sq?.font_size_explanation as number | null) ?? undefined,
+        stemKeywords: ((sq?.stem_keywords as string) || "").split(",").filter(Boolean) || undefined,
+        stemKeywordPhases: ((sq?.stem_keyword_phases as string) || "").split(",").filter(Boolean) || undefined,
+        readingPrefixDelay: (sq?.reading_prefix_delay as number | null) ?? undefined,
+        readingSpeedRatio: (sq?.reading_speed_ratio as number | null) ?? undefined,
+        panelAdjust: (sq?.panel_adjust as string) || undefined,
+        panelAdjustValue: (sq?.panel_adjust_value as number | null) ?? undefined,
       });
     }
 
@@ -220,6 +289,11 @@ async function renderInBackground(
       pauseBeforeTip,
       keywordFlashEnabled,
       underlineProgressEnabled,
+      underlineQuestion,
+      underlineOption,
+      underlineExplanation,
+      underlineTip,
+      underlineColor,
       avatarEnabled,
       avatarSize,
       avatarPosition,

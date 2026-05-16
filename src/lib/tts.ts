@@ -21,7 +21,7 @@ interface TTSResult {
   duration: number;
 }
 
-async function generateSegment(questionId: number, segment: string, text: string, style: string, speed: string = "medium"): Promise<TTSResult> {
+async function generateSegment(questionId: number, segment: string, text: string, style: string, speed: string = "medium", force = false): Promise<TTSResult> {
   const speedPrefix = speed === "slow" ? "语速稍慢，节奏从容。"
     : speed === "fast" ? "语速比正常稍快。"
     : "语速适中自然。";
@@ -29,10 +29,13 @@ async function generateSegment(questionId: number, segment: string, text: string
   const cacheSegment = speed === "medium" ? segment : `${segment}_${speed}`;
 
   const db = getDb();
-  const cached = db.prepare("SELECT file_path, duration_sec FROM tts_cache WHERE question_id = ? AND segment = ?").get(questionId, cacheSegment) as { file_path: string; duration_sec: number } | undefined;
 
-  if (cached && fs.existsSync(path.join(AUDIO_DIR, path.basename(cached.file_path)))) {
-    return { filePath: cached.file_path, duration: cached.duration_sec };
+  if (!force) {
+    const cached = db.prepare("SELECT file_path, duration_sec FROM tts_cache WHERE question_id = ? AND segment = ?").get(questionId, cacheSegment) as { file_path: string; duration_sec: number } | undefined;
+
+    if (cached && fs.existsSync(path.join(AUDIO_DIR, path.basename(cached.file_path)))) {
+      return { filePath: cached.file_path, duration: cached.duration_sec };
+    }
   }
 
   const client = getClient();
@@ -94,7 +97,8 @@ export interface QuestionRow {
 }
 
 function buildQuestionStemText(row: QuestionRow): string {
-  const typeLabel = row.type === 1 ? "判断题。" : "单选题。";
+  const isMulti = (row.correct_answer || "").length > 1;
+  const typeLabel = row.type === 1 ? "判断题。" : isMulti ? "多选题。" : "单选题。";
   let content = row.question_content || row.question_text || "";
   content = content.replace(/;/g, "，");
   content = content.replace(/【/g, "").replace(/】/g, "");
@@ -136,6 +140,7 @@ export async function generateTTSForQuestion(
     answerReadMulti?: boolean;
     ttsSpeed?: string;
     showTransition?: boolean;
+    force?: boolean;
   }
 ) {
   const db = getDb();
@@ -151,29 +156,30 @@ export async function generateTTSForQuestion(
   const teacherText = options?.teacherExplanation || "";
   const ttsSpeed = options?.ttsSpeed || "medium";
   const showTransition = options?.showTransition;
+  const force = options?.force || false;
 
   const labels = ["A", "B", "C", "D"];
   const opts = [row.option1, row.option2, row.option3, row.option4].filter(Boolean) as string[];
 
   const promises: Promise<TTSResult>[] = [
-    generateSegment(questionId, "question", questionText, "用清晰的教学语气朗读题目。", ttsSpeed),
-    generateSegment(questionId, "answer", answerText, "用肯定、清晰的语气播报正确答案。", ttsSpeed),
+    generateSegment(questionId, "question", questionText, "用清晰的教学语气朗读题目。", ttsSpeed, force),
+    generateSegment(questionId, "answer", answerText, "用肯定、清晰的语气播报正确答案。", ttsSpeed, force),
   ];
 
   for (let i = 0; i < opts.length; i++) {
     const optText = buildOptionText(labels[i], opts[i]);
-    promises.push(generateSegment(questionId, `opt_${i}`, optText, "用清晰的教学语气朗读选项。", ttsSpeed));
+    promises.push(generateSegment(questionId, `opt_${i}`, optText, "用清晰的教学语气朗读选项。", ttsSpeed, force));
   }
 
   if (showExplanation) {
-    promises.push(generateSegment(questionId, "explanation", row.explanation || "无解读。", "用沉稳、权威的教学语气解读法规内容。", ttsSpeed));
+    promises.push(generateSegment(questionId, "explanation", row.explanation || "无解读。", "用沉稳、权威的教学语气解读法规内容。", ttsSpeed, force));
   }
   if (showTip) {
-    promises.push(generateSegment(questionId, "tip", row.tip_text || "无技巧。", "用轻快、提示性的语气分享答题技巧。", ttsSpeed));
+    promises.push(generateSegment(questionId, "tip", row.tip_text || "无技巧。", "用轻快、提示性的语气分享答题技巧。", ttsSpeed, force));
   }
   if (teacherText) {
     const cleanText = teacherText.replace(/【/g, "").replace(/】/g, "");
-    promises.push(generateSegment(questionId, "teacher_explanation", cleanText, "用沉稳清晰的教学语气进行讲解，关键词处稍加重音。", ttsSpeed));
+    promises.push(generateSegment(questionId, "teacher_explanation", cleanText, "用沉稳清晰的教学语气进行讲解，关键词处稍加重音。", ttsSpeed, force));
   }
 
   const results = await Promise.all(promises);

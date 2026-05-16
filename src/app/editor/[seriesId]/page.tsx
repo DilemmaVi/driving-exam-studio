@@ -12,12 +12,14 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { SettingsModal } from "@/components/SettingsModal";
+import { AudioPreview } from "@/components/AudioPreview";
 import { BatchActionBar } from "@/components/BatchActionBar";
 import { VideoPreview } from "@/components/VideoPreview";
 import type { Question, AudioDurations } from "@/remotion/types";
 
 interface QuestionRow {
   id: number;
+  question_id?: number;
   type: number;
   question_text: string;
   question_content: string;
@@ -47,6 +49,16 @@ interface SelectedQuestion {
   readOptions: number | null;
   speechRate: number | null;
   revealPause: number | null;
+  optionGap: number | null;
+  fontSizeQuestion: number | null;
+  fontSizeOption: number | null;
+  fontSizeExplanation: number | null;
+  stemKeywords: string;
+  stemKeywordPhases: string;
+  readingPrefixDelay: number | null;
+  readingSpeedRatio: number | null;
+  panelAdjust: string;
+  panelAdjustValue: number | null;
 }
 
 interface SeriesData {
@@ -80,6 +92,19 @@ interface SeriesData {
   bridge_tip_enabled?: number;
   outro_text?: string;
   outro_subtitle?: string;
+  keyword_flash_enabled?: number;
+  underline_progress_enabled?: number;
+  avatar_enabled?: number;
+  pause_before_tip?: number;
+  show_transition?: number;
+  pause_start?: number;
+  pause_end?: number;
+  tts_speed?: string;
+  underline_question?: number;
+  underline_option?: number;
+  underline_explanation?: number;
+  underline_tip?: number;
+  underline_color?: string;
 }
 
 function HighlightPreview({ text }: { text: string }) {
@@ -100,7 +125,7 @@ function HighlightPreview({ text }: { text: string }) {
 
 function SortableItem({
   item, index, onRemove, onUpdate,
-  defaultThinkTime, defaultVoiceStyle, onPreview,
+  defaultThinkTime, defaultVoiceStyle, onPreview, onAudioPreview, onRegenerate,
 }: {
   item: SelectedQuestion;
   index: number;
@@ -109,11 +134,13 @@ function SortableItem({
   defaultThinkTime: number;
   defaultVoiceStyle: string;
   onPreview: (id: number) => void;
+  onAudioPreview: (id: number) => void;
+  onRegenerate: (id: number) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: item.id });
   const style = { transform: CSS.Transform.toString(transform), transition };
 
-  const typeLabel = item.row.type === 1 ? "判断" : "选择";
+  const typeLabel = item.row.type === 1 ? "判断" : (item.row.correct_answer || "").length > 1 ? "多选" : "单选";
   const statusColors: Record<string, string> = {
     pending: "bg-gray-200 text-gray-600",
     generating: "bg-yellow-100 text-yellow-700",
@@ -135,12 +162,16 @@ function SortableItem({
         />
         <button {...attributes} {...listeners} className="cursor-grab text-gray-300 hover:text-gray-500 touch-none text-lg" aria-label="拖拽排序">⋮⋮</button>
         <span className="text-sm font-bold text-blue-600 bg-blue-50 rounded-full w-7 h-7 flex items-center justify-center flex-shrink-0">{index + 1}</span>
-        <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${typeLabel === "判断" ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"}`}>{typeLabel}</span>
+        <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${typeLabel === "判断" ? "bg-amber-50 text-amber-700" : typeLabel === "多选" ? "bg-purple-50 text-purple-700" : "bg-blue-50 text-blue-700"}`}>{typeLabel}</span>
         <div className="flex-1" />
         <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${statusColors[item.ttsStatus]}`}>{statusText[item.ttsStatus]}</span>
         {item.ttsStatus === "ready" && (
+          <button onClick={() => onAudioPreview(item.id)} className="text-xs px-3 py-1 rounded-full bg-green-50 text-green-600 hover:bg-green-100 font-medium transition">🔊 试听</button>
+        )}
+        {item.ttsStatus === "ready" && (
           <button onClick={() => onPreview(item.id)} className="text-xs px-3 py-1 rounded-full bg-purple-50 text-purple-600 hover:bg-purple-100 font-medium transition">▶ 预览</button>
         )}
+        <button onClick={() => onRegenerate(item.id)} disabled={item.ttsStatus === "generating"} className="text-xs px-3 py-1 rounded-full bg-orange-50 text-orange-600 hover:bg-orange-100 font-medium transition disabled:opacity-40">🔄 重新生成</button>
         <button
           onClick={() => onUpdate(item.id, { expanded: !item.expanded })}
           className="text-xs px-3 py-1 rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100 transition"
@@ -153,7 +184,15 @@ function SortableItem({
       {/* Question text - always visible, wraps properly */}
       <div className="px-4 pb-3">
         <p className="text-sm text-gray-700 leading-relaxed line-clamp-3">{item.row.question_text}</p>
-        {!item.expanded && item.teacherExplanation && (
+        <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-0.5">
+          {[item.row.option1, item.row.option2, item.row.option3, item.row.option4].map((opt, oi) => opt ? (
+            <span key={oi} className={`text-xs ${item.row.correct_answer.includes("ABCD"[oi]) ? "text-green-600 font-medium" : "text-gray-500"}`}>
+              {"ABCD"[oi]}. {opt}
+            </span>
+          ) : null)}
+        </div>
+        <p className="text-xs text-green-600 mt-1 font-medium">答案：{item.row.correct_answer}</p>
+        {!item.expanded && item.teacherExplanation && item.teacherExplanation !== item.row.explanation && (
           <div className="mt-1.5">
             <HighlightPreview text={item.teacherExplanation} />
           </div>
@@ -249,6 +288,127 @@ function SortableItem({
                 {[0.3, 0.5, 1, 2, 3, 5].map((v) => <option key={v} value={v}>{v}秒</option>)}
               </select>
             </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">选项间距</label>
+              <select
+                value={item.optionGap ?? ""}
+                onChange={(e) => onUpdate(item.id, { optionGap: e.target.value === "" ? null : Number(e.target.value) })}
+                className="border border-gray-300 rounded-lg px-2 py-1 text-sm"
+              >
+                <option value="">默认</option>
+                {[4, 8, 12, 16, 24, 32, 48].map((v) => <option key={v} value={v}>{v}px</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">题干字号</label>
+              <select
+                value={item.fontSizeQuestion ?? ""}
+                onChange={(e) => onUpdate(item.id, { fontSizeQuestion: e.target.value === "" ? null : Number(e.target.value) })}
+                className="border border-gray-300 rounded-lg px-2 py-1 text-sm"
+              >
+                <option value="">默认</option>
+                {[36, 40, 44, 48, 52, 56, 60, 64, 68, 72].map((v) => <option key={v} value={v}>{v}px</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">选项字号</label>
+              <select
+                value={item.fontSizeOption ?? ""}
+                onChange={(e) => onUpdate(item.id, { fontSizeOption: e.target.value === "" ? null : Number(e.target.value) })}
+                className="border border-gray-300 rounded-lg px-2 py-1 text-sm"
+              >
+                <option value="">默认</option>
+                {[32, 36, 40, 44, 48, 52, 56, 60].map((v) => <option key={v} value={v}>{v}px</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">解析字号</label>
+              <select
+                value={item.fontSizeExplanation ?? ""}
+                onChange={(e) => onUpdate(item.id, { fontSizeExplanation: e.target.value === "" ? null : Number(e.target.value) })}
+                className="border border-gray-300 rounded-lg px-2 py-1 text-sm"
+              >
+                <option value="">默认</option>
+                {[32, 36, 40, 44, 48, 52, 56, 60].map((v) => <option key={v} value={v}>{v}px</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">变色延迟</label>
+              <select
+                value={item.readingPrefixDelay ?? ""}
+                onChange={(e) => onUpdate(item.id, { readingPrefixDelay: e.target.value === "" ? null : Number(e.target.value) })}
+                className="border border-gray-300 rounded-lg px-2 py-1 text-sm"
+              >
+                <option value="">默认(8帧)</option>
+                {[0, 3, 5, 8, 12, 15, 20, 25, 30, 40, 50, 60].map((v) => <option key={v} value={v}>{v}帧</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">变色速率</label>
+              <select
+                value={item.readingSpeedRatio ?? ""}
+                onChange={(e) => onUpdate(item.id, { readingSpeedRatio: e.target.value === "" ? null : Number(e.target.value) })}
+                className="border border-gray-300 rounded-lg px-2 py-1 text-sm"
+              >
+                <option value="">默认(1.0x)</option>
+                {[0.7, 0.8, 0.85, 0.9, 0.95, 1.0, 1.05, 1.1, 1.15, 1.2, 1.3].map((v) => <option key={v} value={v}>{v}x</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">弹窗适配</label>
+              <select
+                value={item.panelAdjust || "auto-shift"}
+                onChange={(e) => onUpdate(item.id, { panelAdjust: e.target.value })}
+                className="border border-gray-300 rounded-lg px-2 py-1 text-sm"
+              >
+                <option value="auto-shift">自动上移</option>
+                <option value="auto-scale">自动缩小</option>
+                <option value="manual">手动上移</option>
+                <option value="none">不调整</option>
+              </select>
+            </div>
+            {item.panelAdjust === "manual" && (
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">上移量(px)</label>
+                <select
+                  value={item.panelAdjustValue ?? ""}
+                  onChange={(e) => onUpdate(item.id, { panelAdjustValue: e.target.value === "" ? null : Number(e.target.value) })}
+                  className="border border-gray-300 rounded-lg px-2 py-1 text-sm"
+                >
+                  <option value="">请选择</option>
+                  {[100, 200, 300, 400, 500, 600, 700, 800].map((v) => <option key={v} value={v}>{v}px</option>)}
+                </select>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">题干关键字红色波浪线（逗号分隔多个关键字）</label>
+            <input
+              value={item.stemKeywords}
+              onChange={(e) => onUpdate(item.id, { stemKeywords: e.target.value })}
+              placeholder="如：禁止标线,不允许通行"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <div className="flex items-center gap-4 mt-2">
+              <span className="text-xs text-gray-500">触发阶段：</span>
+              {([["question", "读题"], ["explanation", "解析"], ["tip", "技巧"]] as const).map(([val, label]) => {
+                const phases = (item.stemKeywordPhases || "").split(",").filter(Boolean);
+                const checked = phases.includes(val);
+                return (
+                  <label key={val} className="flex items-center gap-1.5 text-xs text-gray-600">
+                    <input
+                      type="checkbox" checked={checked} className="rounded border-gray-300 w-3.5 h-3.5"
+                      onChange={(e) => {
+                        const next = e.target.checked ? [...phases, val] : phases.filter((p) => p !== val);
+                        onUpdate(item.id, { stemKeywordPhases: next.join(",") || "question" });
+                      }}
+                    />
+                    {label}
+                  </label>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
@@ -261,12 +421,15 @@ function rowToQuestion(row: QuestionRow): Question {
     ? [row.option1 || "正确", row.option2 || "错误"]
     : [row.option1, row.option2, row.option3, row.option4].filter(Boolean) as string[];
   const correctMap: Record<string, number> = { A: 0, B: 1, C: 2, D: 3 };
+  const letters = (row.correct_answer || "").split("").filter((c) => correctMap[c] !== undefined);
+  const correctIndices = letters.map((c) => correctMap[c]);
   return {
-    id: row.id,
+    id: row.question_id || row.id,
     type: row.type === 1 ? "true-false" : "multiple-choice",
     questionContent: row.question_content || row.question_text,
     options,
-    correctIndex: correctMap[row.correct_answer] ?? 0,
+    correctIndex: correctIndices[0] ?? 0,
+    correctIndices: correctIndices.length > 1 ? correctIndices : undefined,
     explanation: row.explanation || "",
     tip: row.tip_display || row.tip_text || "",
     coverImage: row.cover_image || undefined,
@@ -285,11 +448,15 @@ export default function SeriesEditorPage() {
   const [generatingTTS, setGeneratingTTS] = useState(false);
   const [rendering, setRendering] = useState(false);
   const [renderTaskId, setRenderTaskId] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [saving, setSaving] = useState(false);
   const [previewId, setPreviewId] = useState<number | null>(null);
+  const [audioPreviewId, setAudioPreviewId] = useState<number | null>(null);
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -297,14 +464,15 @@ export default function SeriesEditorPage() {
   );
 
   useEffect(() => {
-    fetch(`/api/series/${seriesId}`).then((r) => r.json()).then((data) => {
+    fetch(`/api/series/${seriesId}`).then((r) => r.json()).then(async (data) => {
       setSeries(data.series);
       if (data.questions?.length > 0) {
-        setSelected(data.questions.map((sq: Record<string, unknown>) => ({
+        const qIds = data.questions.map((sq: Record<string, unknown>) => sq.question_id as number);
+        const items = data.questions.map((sq: Record<string, unknown>) => ({
           id: sq.question_id as number,
           row: sq as unknown as QuestionRow,
           ttsStatus: "pending" as const,
-          teacherExplanation: (sq.teacher_explanation as string) || "",
+          teacherExplanation: (sq.teacher_explanation as string) || (sq.explanation as string) || "",
           showOfficialExplanation: sq.show_official_explanation !== 0,
           showTip: sq.show_tip !== 0,
           thinkTime: sq.think_time as number | null,
@@ -314,7 +482,33 @@ export default function SeriesEditorPage() {
           readOptions: (sq.read_options as number | null) ?? null,
           speechRate: (sq.speech_rate as number | null) ?? null,
           revealPause: (sq.reveal_pause as number | null) ?? null,
-        })));
+          optionGap: (sq.option_gap as number | null) ?? null,
+          fontSizeQuestion: (sq.font_size_question as number | null) ?? null,
+          fontSizeOption: (sq.font_size_option as number | null) ?? null,
+          fontSizeExplanation: (sq.font_size_explanation as number | null) ?? null,
+          stemKeywords: (sq.stem_keywords as string) || "",
+          stemKeywordPhases: (sq.stem_keyword_phases as string) || "question",
+          readingPrefixDelay: (sq.reading_prefix_delay as number | null) ?? null,
+          readingSpeedRatio: (sq.reading_speed_ratio as number | null) ?? null,
+          panelAdjust: (sq.panel_adjust as string) || "auto-shift",
+          panelAdjustValue: (sq.panel_adjust_value as number | null) ?? null,
+        }));
+        setSelected(items);
+
+        // Check TTS cache status
+        try {
+          const checkRes = await fetch("/api/tts/check", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ questionIds: qIds }),
+          });
+          const ttsStatus = await checkRes.json();
+          setSelected((prev) => prev.map((s) => {
+            const info = ttsStatus[s.id];
+            if (info?.ready) return { ...s, ttsStatus: "ready" as const, durations: info.durations };
+            return s;
+          }));
+        } catch {}
       }
     });
   }, [seriesId]);
@@ -342,9 +536,15 @@ export default function SeriesEditorPage() {
     if (selected.some((s) => s.id === row.id)) return;
     setSelected((prev) => [...prev, {
       id: row.id, row, ttsStatus: "pending",
-      teacherExplanation: "", showOfficialExplanation: true, showTip: true,
+      teacherExplanation: row.explanation || "", showOfficialExplanation: true, showTip: true,
       thinkTime: null, voiceStyle: null, expanded: false, checked: false,
-      readOptions: null, speechRate: null, revealPause: null,
+      readOptions: null, speechRate: null, revealPause: null, optionGap: null,
+      fontSizeQuestion: null, fontSizeOption: null, fontSizeExplanation: null,
+      stemKeywords: "", stemKeywordPhases: "question",
+      readingPrefixDelay: null,
+      readingSpeedRatio: null,
+      panelAdjust: "auto-shift",
+      panelAdjustValue: null,
     }]);
   };
 
@@ -393,10 +593,21 @@ export default function SeriesEditorPage() {
           readOptions: s.readOptions,
           speechRate: s.speechRate,
           revealPause: s.revealPause,
+          optionGap: s.optionGap,
+          fontSizeQuestion: s.fontSizeQuestion,
+          fontSizeOption: s.fontSizeOption,
+          fontSizeExplanation: s.fontSizeExplanation,
+          stemKeywords: s.stemKeywords,
+          stemKeywordPhases: s.stemKeywordPhases,
+          readingPrefixDelay: s.readingPrefixDelay,
+          readingSpeedRatio: s.readingSpeedRatio,
+          panelAdjust: s.panelAdjust,
+          panelAdjustValue: s.panelAdjustValue,
         })),
       }),
     });
     setSaving(false);
+    showToast("✅ 已保存");
   };
 
   const updateSeriesSettings = async (updates: Record<string, unknown>) => {
@@ -405,15 +616,39 @@ export default function SeriesEditorPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updates),
     });
-    setSeries((prev) => prev ? { ...prev, ...updates } as SeriesData : prev);
+    const colMap: Record<string, string> = {
+      introTitle: "intro_title", introSubtitle: "intro_subtitle", category: "category",
+      theme: "theme", fontScale: "font_scale", avatarPosition: "avatar_position",
+      avatarSize: "avatar_size", keywordStyle: "keyword_style", panelHeight: "panel_height",
+      defaultThinkTime: "default_think_time", defaultVoiceStyle: "default_voice_style",
+      speechRate: "speech_rate", readOptions: "read_options",
+      answerReadOption: "answer_read_option", answerReadMulti: "answer_read_multi",
+      bridgeThinkEnabled: "bridge_think_enabled", bridgeRevealEnabled: "bridge_reveal_enabled",
+      bridgeExplainEnabled: "bridge_explain_enabled", bridgeTipEnabled: "bridge_tip_enabled",
+      outroText: "outro_text", outroSubtitle: "outro_subtitle",
+      bridgeThink: "bridge_think", bridgeReveal: "bridge_reveal",
+      bridgeExplain: "bridge_explain", bridgeTip: "bridge_tip",
+      showTransition: "show_transition", pauseStart: "pause_start",
+      pauseEnd: "pause_end", pauseBeforeTip: "pause_before_tip",
+      ttsSpeed: "tts_speed", keywordFlashEnabled: "keyword_flash_enabled",
+      underlineProgressEnabled: "underline_progress_enabled", avatarEnabled: "avatar_enabled",
+      underlineQuestion: "underline_question", underlineOption: "underline_option",
+      underlineExplanation: "underline_explanation", underlineTip: "underline_tip",
+      underlineColor: "underline_color",
+    };
+    const snakeUpdates: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(updates)) {
+      snakeUpdates[colMap[k] || k] = v;
+    }
+    setSeries((prev) => prev ? { ...prev, ...snakeUpdates } as SeriesData : prev);
   };
 
-  const generateTTS = async () => {
+  const generateTTS = async (force = false) => {
     if (generatingTTS) return;
     await saveToServer();
     setGeneratingTTS(true);
-    const pending = selected.filter((s) => s.ttsStatus === "pending" || s.ttsStatus === "error");
-    for (const item of pending) {
+    const targets = force ? selected : selected.filter((s) => s.ttsStatus === "pending" || s.ttsStatus === "error");
+    for (const item of targets) {
       setSelected((prev) => prev.map((s) => (s.id === item.id ? { ...s, ttsStatus: "generating" as const } : s)));
       try {
         const res = await fetch("/api/tts", {
@@ -425,6 +660,7 @@ export default function SeriesEditorPage() {
             showOfficialExplanation: item.showOfficialExplanation,
             showTip: item.showTip,
             voiceStyle: item.voiceStyle,
+            force,
           }),
         });
         const data = await res.json();
@@ -435,6 +671,34 @@ export default function SeriesEditorPage() {
       }
     }
     setGeneratingTTS(false);
+    showToast("✅ 语音生成完成");
+  };
+
+  const regenerateSingle = async (id: number) => {
+    const item = selected.find((s) => s.id === id);
+    if (!item) return;
+    setSelected((prev) => prev.map((s) => s.id === id ? { ...s, ttsStatus: "generating" as const } : s));
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          questionId: item.id,
+          teacherExplanation: item.teacherExplanation,
+          showOfficialExplanation: item.showOfficialExplanation,
+          showTip: item.showTip,
+          voiceStyle: item.voiceStyle,
+          force: true,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setSelected((prev) => prev.map((s) => s.id === id ? { ...s, ttsStatus: "ready" as const, durations: data.durations } : s));
+      showToast("✅ 语音已重新生成");
+    } catch {
+      setSelected((prev) => prev.map((s) => s.id === id ? { ...s, ttsStatus: "error" as const } : s));
+      showToast("❌ 语音生成失败");
+    }
   };
 
   const startRender = async (tipOnly = false) => {
@@ -455,6 +719,7 @@ export default function SeriesEditorPage() {
       });
       const data = await res.json();
       setRenderTaskId(data.taskId);
+      showToast("✅ 视频生成任务已提交，请到任务列表查看进度");
     } catch { alert("渲染提交失败"); }
     setRendering(false);
   };
@@ -462,7 +727,14 @@ export default function SeriesEditorPage() {
   // Preview
   const previewItem = selected.find((s) => s.id === previewId);
   const previewQuestion = previewItem ? rowToQuestion(previewItem.row) : null;
-  const previewComponent = previewItem?.row.type === 1 ? "tf" as const : "mc" as const;
+  const previewComponent = (() => {
+    if (!previewItem) return "mc" as const;
+    if (previewItem.row.type === 1) return "tf" as const;
+    const opts = [previewItem.row.option1, previewItem.row.option2, previewItem.row.option3, previewItem.row.option4].filter(Boolean) as string[];
+    const qText = previewItem.row.question_content || previewItem.row.question_text || "";
+    const isLong = qText.length > 100 || opts.some((o) => o.length > 20);
+    return isLong ? "scroll" as const : "mc" as const;
+  })();
 
   const allReady = selected.length > 0 && selected.every((s) => s.ttsStatus === "ready");
   const defaultThinkTime = series?.default_think_time ?? 3;
@@ -483,7 +755,13 @@ export default function SeriesEditorPage() {
 
   return (
     <div className="flex h-[calc(100vh-52px)]">
+      {toast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white px-5 py-3 rounded-lg shadow-lg text-sm animate-fade-in">
+          {toast}
+        </div>
+      )}
       <SettingsModal open={showSettings} onClose={() => setShowSettings(false)} series={series} onSave={updateSeriesSettings} />
+      <AudioPreview questionId={audioPreviewId || 0} open={audioPreviewId !== null} onClose={() => setAudioPreviewId(null)} />
 
       <VideoPreview
         open={previewId !== null}
@@ -491,11 +769,41 @@ export default function SeriesEditorPage() {
         question={previewQuestion}
         audioDurations={previewItem?.durations || null}
         component={previewComponent}
-        audioServerUrl=""
+        audioServerUrl="/api"
         teacherExplanation={previewItem?.teacherExplanation}
         showOfficialExplanation={previewItem?.showOfficialExplanation}
         showTip={previewItem?.showTip}
         thinkTime={previewItem?.thinkTime ?? defaultThinkTime}
+        readOptions={(() => {
+          if (!previewItem) return true;
+          const threshold = previewItem.readOptions ?? (series?.read_options as number | null | undefined) ?? 999;
+          if (threshold === 0) return false;
+          if (threshold >= 999) return true;
+          const stemLen = (previewItem.row.question_text || "").replace(/【|】/g, "").length;
+          return stemLen <= threshold;
+        })()}
+        keywordFlashEnabled={series?.keyword_flash_enabled !== 0}
+        underlineProgressEnabled={series?.underline_progress_enabled !== 0}
+        avatarEnabled={series?.avatar_enabled !== 0}
+        avatarSize={series?.avatar_size ?? 80}
+        avatarPosition={series?.avatar_position || "bottom-right"}
+        pauseBeforeTip={series?.pause_before_tip as number | undefined}
+        optionGap={previewItem?.optionGap ?? undefined}
+        fontSizeQuestion={previewItem?.fontSizeQuestion ?? undefined}
+        fontSizeOption={previewItem?.fontSizeOption ?? undefined}
+        fontSizeExplanation={previewItem?.fontSizeExplanation ?? undefined}
+        underlineQuestion={series?.underline_question !== 0}
+        underlineOption={series?.underline_option === 1}
+        underlineExplanation={series?.underline_explanation !== 0}
+        underlineTip={series?.underline_tip !== 0}
+        underlineColor={series?.underline_color || "#6366F1"}
+        stemKeywords={previewItem?.stemKeywords ? previewItem.stemKeywords.split(",").filter(Boolean) : undefined}
+        stemKeywordPhases={previewItem?.stemKeywordPhases ? previewItem.stemKeywordPhases.split(",").filter(Boolean) : undefined}
+        readingPrefixDelay={previewItem?.readingPrefixDelay ?? undefined}
+        readingSpeedRatio={previewItem?.readingSpeedRatio ?? undefined}
+        panelAdjust={previewItem?.panelAdjust || undefined}
+        panelAdjustValue={previewItem?.panelAdjustValue ?? undefined}
+        subjectLabel={series?.category || undefined}
       />
 
       {/* 左侧题库 */}
@@ -516,7 +824,7 @@ export default function SeriesEditorPage() {
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
           <div className="flex gap-1.5">
-            {[{ value: "all", label: "全部" }, { value: "1", label: "判断题" }, { value: "2", label: "选择题" }].map((t) => (
+            {[{ value: "all", label: "全部" }, { value: "1", label: "判断题" }, { value: "single", label: "单选题" }, { value: "multi", label: "多选题" }].map((t) => (
               <button key={t.value} onClick={() => { setTypeFilter(t.value); setPage(1); }}
                 className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-medium transition ${typeFilter === t.value ? "bg-blue-600 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
               >{t.label}</button>
@@ -532,7 +840,7 @@ export default function SeriesEditorPage() {
               >
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-xs text-gray-400 font-mono">#{q.id}</span>
-                  <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${q.type === 1 ? "bg-amber-50 text-amber-600" : "bg-blue-50 text-blue-600"}`}>{q.type === 1 ? "判断" : "选择"}</span>
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${q.type === 1 ? "bg-amber-50 text-amber-600" : (q.correct_answer || "").length > 1 ? "bg-purple-50 text-purple-600" : "bg-blue-50 text-blue-600"}`}>{q.type === 1 ? "判断" : (q.correct_answer || "").length > 1 ? "多选" : "单选"}</span>
                   {isSelected && <span className="text-xs text-blue-500 font-medium">✓ 已选</span>}
                 </div>
                 <p className="text-xs text-gray-600 leading-relaxed line-clamp-2">{q.question_text}</p>
@@ -569,15 +877,18 @@ export default function SeriesEditorPage() {
             <button onClick={saveToServer} disabled={saving} className="px-3 py-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 transition">
               {saving ? "保存中..." : "💾 保存"}
             </button>
-            <button onClick={generateTTS} disabled={selected.length === 0 || generatingTTS}
+            <button onClick={() => generateTTS()} disabled={selected.length === 0 || generatingTTS}
               className="px-4 py-1.5 bg-gray-800 text-white rounded-lg text-sm hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
             >{generatingTTS ? "生成中..." : "🎙 生成语音"}</button>
-            <button onClick={() => startRender(false)} disabled={!allReady || rendering || generatingTTS}
+            <button onClick={() => generateTTS(true)} disabled={selected.length === 0 || generatingTTS}
+              className="px-3 py-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >{generatingTTS ? "生成中..." : "🔄 全部重新生成"}</button>
+            <button onClick={() => startRender(false)} disabled={!allReady || rendering || generatingTTS || !!renderTaskId}
               className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm"
-            >{rendering ? "提交中..." : "🎬 生成视频"}</button>
-            <button onClick={() => startRender(true)} disabled={!allReady || rendering || generatingTTS}
+            >{rendering ? "提交中..." : renderTaskId ? "已提交" : "🎬 生成视频"}</button>
+            <button onClick={() => startRender(true)} disabled={!allReady || rendering || generatingTTS || !!renderTaskId}
               className="px-4 py-1.5 bg-amber-500 text-white rounded-lg text-sm hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm"
-            >{rendering ? "提交中..." : "💡 只渲染技巧"}</button>
+            >{rendering ? "提交中..." : renderTaskId ? "已提交" : "💡 只渲染技巧"}</button>
           </div>
         </div>
 
@@ -608,6 +919,8 @@ export default function SeriesEditorPage() {
                     onRemove={removeQuestion} onUpdate={updateQuestion}
                     defaultThinkTime={defaultThinkTime} defaultVoiceStyle={defaultVoiceStyle}
                     onPreview={setPreviewId}
+                    onAudioPreview={setAudioPreviewId}
+                    onRegenerate={regenerateSingle}
                   />
                 ))}
               </SortableContext>

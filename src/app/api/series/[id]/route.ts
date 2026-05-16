@@ -8,7 +8,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   if (!series) return NextResponse.json({ error: "not found" }, { status: 404 });
 
   const questions = db.prepare(`
-    SELECT sq.*, q.type, q.question_text, q.question_content, q.option1, q.option2, q.option3, q.option4,
+    SELECT sq.*, q.id as question_db_id, q.type, q.question_text, q.question_content, q.option1, q.option2, q.option3, q.option4,
            q.correct_answer, q.explanation, q.tip_text, q.tip_display, q.cover_image, q.keywords
     FROM series_questions sq
     JOIN questions q ON q.id = sq.question_id

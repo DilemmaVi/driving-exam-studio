@@ -81,8 +81,10 @@ export const ScrollableQuestion: React.FC<{
   stemKeywordPhases?: string[];
   readingPrefixDelay?: number;
   readingSpeedRatio?: number;
+  panelAdjust?: string;
+  panelAdjustValue?: number;
   subjectLabel?: string;
-}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, subjectLabel }) => {
+}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel }) => {
   const labels = ["A", "B", "C", "D"];
   const correctIndices = question.correctIndices || [question.correctIndex];
   const correctLabel = correctIndices.map(i => labels[i]).join("");
@@ -159,6 +161,38 @@ export const ScrollableQuestion: React.FC<{
 
   const fontScale = calcFontScale(question.questionContent, question.options);
 
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const panelVisibleFrame = T.explanationStart > 0 ? T.explanationStart : T.tipStart > 0 ? T.tipStart : 0;
+
+  const panelTop = 1920 * 0.52;
+  const qLines = Math.ceil(question.questionContent.replace(/【[^】]*】/g, "").replace(/[{｛][^}｝]*[}｝]/g, "").replace(/A[.:：][\s\S]*$/, "").length / Math.floor(CONTENT_W / Math.round(62 * fontScale)));
+  const fq = Math.round(62 * fontScale);
+  const fo = Math.round(52 * fontScale);
+  const qHeight = 80 + qLines * fq * 1.7 + 30;
+  const optHeight = question.options.reduce((sum, opt) => {
+    const lines = Math.max(1, Math.ceil(opt.replace(/【[^】]*】/g, "").length / Math.floor((CONTENT_W - 100) / fo)));
+    return sum + lines * fo * 1.5 + 64 + 12;
+  }, 0);
+  const contentBottom = PADDING_TOP + qHeight + 10 + optHeight + 130;
+  const overflow = Math.max(0, contentBottom - panelTop + 40);
+
+  const panelProgress = panelVisibleFrame > 0 && frame >= panelVisibleFrame
+    ? spring({ frame: frame - panelVisibleFrame, fps, config: { damping: 28, stiffness: 90 } })
+    : 0;
+
+  const mode = panelAdjust || "auto-shift";
+  let contentShift = 0;
+  let contentScale = 1;
+  if (mode === "auto-shift" && overflow > 0) {
+    contentShift = interpolate(panelProgress, [0, 1], [0, -overflow]);
+  } else if (mode === "auto-scale" && overflow > 0) {
+    const targetScale = Math.max(0.5, (panelTop - 60) / contentBottom);
+    contentScale = interpolate(panelProgress, [0, 1], [1, targetScale]);
+  } else if (mode === "manual" && panelAdjustValue) {
+    contentShift = interpolate(panelProgress, [0, 1], [0, -panelAdjustValue]);
+  }
+
   return (
     <AbsoluteFill>
       <Background />
@@ -172,6 +206,8 @@ export const ScrollableQuestion: React.FC<{
         bottom: 0,
         display: "flex",
         flexDirection: "column",
+        transform: `translateY(${contentShift}px) scale(${contentScale})`,
+        transformOrigin: "top center",
       }}>
         <QuestionHeader
           text={question.questionContent}

@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Audio, Sequence } from "remotion";
+import { AbsoluteFill, Audio, Sequence, useCurrentFrame, useVideoConfig, spring, interpolate } from "remotion";
 import { Background } from "./Background";
 import { ProgressBar } from "./ProgressBar";
 import { QuestionHeader } from "./QuestionHeader";
@@ -39,8 +39,10 @@ export const TrueFalseQuestion: React.FC<{
   stemKeywordPhases?: string[];
   readingPrefixDelay?: number;
   readingSpeedRatio?: number;
+  panelAdjust?: string;
+  panelAdjustValue?: number;
   subjectLabel?: string;
-}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, subjectLabel }) => {
+}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel }) => {
   const labels = ["A", "B"];
   const correctLabel = labels[question.correctIndex];
   const correctText = question.options[question.correctIndex];
@@ -113,12 +115,42 @@ export const TrueFalseQuestion: React.FC<{
     optCursor += optFramesArr[i] || 0;
   }
 
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const panelVisibleFrame = T.explanationStart > 0 ? T.explanationStart : T.tipStart > 0 ? T.tipStart : 0;
+
+  const panelTop = 1920 * 0.52;
+  const qLines = Math.ceil(question.questionContent.replace(/【[^】]*】/g, "").replace(/[{｛][^}｝]*[}｝]/g, "").length / 16);
+  const qHeight = 80 + qLines * 62 * 1.7 + 30;
+  const optHeight = question.options.reduce((sum, opt) => {
+    const lines = Math.max(1, Math.ceil(opt.replace(/【[^】]*】/g, "").length / 14));
+    return sum + lines * 52 * 1.5 + 64 + 12;
+  }, 0);
+  const contentBottom = 30 + qHeight + optHeight + 230;
+  const overflow = Math.max(0, contentBottom - panelTop + 40);
+
+  const panelProgress = panelVisibleFrame > 0 && frame >= panelVisibleFrame
+    ? spring({ frame: frame - panelVisibleFrame, fps, config: { damping: 28, stiffness: 90 } })
+    : 0;
+
+  const mode = panelAdjust || "auto-shift";
+  let contentShift = 0;
+  let contentScale = 1;
+  if (mode === "auto-shift" && overflow > 0) {
+    contentShift = interpolate(panelProgress, [0, 1], [0, -overflow]);
+  } else if (mode === "auto-scale" && overflow > 0) {
+    const targetScale = Math.max(0.5, (panelTop - 60) / contentBottom);
+    contentScale = interpolate(panelProgress, [0, 1], [1, targetScale]);
+  } else if (mode === "manual" && panelAdjustValue) {
+    contentShift = interpolate(panelProgress, [0, 1], [0, -panelAdjustValue]);
+  }
+
   return (
     <AbsoluteFill>
       <Background />
       <ProgressBar />
 
-      <div style={{ position: "absolute", top: 30, left: 0, right: 0 }}>
+      <div style={{ position: "absolute", top: 30, left: 0, right: 0, transform: `translateY(${contentShift}px) scale(${contentScale})`, transformOrigin: "top center" }}>
         <QuestionHeader
           text={question.questionContent}
           startFrame={T.questionStart}
@@ -140,7 +172,7 @@ export const TrueFalseQuestion: React.FC<{
         />
       </div>
 
-      <div style={{ position: "absolute", top: 540, left: 0, right: 0 }}>
+      <div style={{ position: "absolute", top: 540, left: 0, right: 0, transform: `translateY(${contentShift}px) scale(${contentScale})`, transformOrigin: "top center" }}>
         {question.options.map((opt, i) => (
           <OptionItem
             key={i} label={labels[i]} text={opt} index={i}

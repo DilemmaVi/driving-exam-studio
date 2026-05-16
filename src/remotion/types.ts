@@ -41,4 +41,19 @@ export interface QuestionEntry {
   transition?: string;
   videoStyle?: VideoStyle;
   readOptions?: boolean;
+  optionGap?: number;
+  fontSizeQuestion?: number;
+  fontSizeOption?: number;
+  fontSizeExplanation?: number;
+  underlineQuestion?: boolean;
+  underlineOption?: boolean;
+  underlineExplanation?: boolean;
+  underlineTip?: boolean;
+  underlineColor?: string;
+  stemKeywords?: string[];
+  stemKeywordPhases?: string[];
+  readingPrefixDelay?: number;
+  readingSpeedRatio?: number;
+  panelAdjust?: "auto-shift" | "auto-scale" | "manual" | "none";
+  panelAdjustValue?: number;
 }

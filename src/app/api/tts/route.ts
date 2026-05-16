@@ -3,14 +3,14 @@ import { generateTTSForQuestion, generateBridgeAudios } from "@/lib/tts";
 
 export async function POST(request: NextRequest) {
   try {
-    const { questionId, teacherExplanation, showOfficialExplanation, showTip, voiceStyle } = await request.json();
+    const { questionId, teacherExplanation, showOfficialExplanation, showTip, voiceStyle, force } = await request.json();
     if (!questionId) {
       return NextResponse.json({ error: "questionId required" }, { status: 400 });
     }
 
     const [result, bridgeDurations] = await Promise.all([
       generateTTSForQuestion(questionId, {
-        teacherExplanation, showOfficialExplanation, showTip, voiceStyle,
+        teacherExplanation, showOfficialExplanation, showTip, voiceStyle, force,
       }),
       generateBridgeAudios(),
     ]);

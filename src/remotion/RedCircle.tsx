@@ -6,10 +6,12 @@ interface Props {
   children: React.ReactNode;
   appearFrame?: number;
   flashEnabled?: boolean;
+  color?: string;
 }
 
-export const RedCircle: React.FC<Props> = ({ children, appearFrame, flashEnabled = true }) => {
+export const RedCircle: React.FC<Props> = ({ children, appearFrame, flashEnabled = true, color }) => {
   const frame = useCurrentFrame();
+  const circleColor = color || COLORS.redBox;
 
   let filterVal = "brightness(1)";
   if (flashEnabled && appearFrame !== undefined) {
@@ -39,7 +41,7 @@ export const RedCircle: React.FC<Props> = ({ children, appearFrame, flashEnabled
         <ellipse
           cx="100" cy="40" rx="92" ry="34"
           fill="none"
-          stroke={COLORS.redBox}
+          stroke={circleColor}
           strokeWidth="5.5"
           strokeLinecap="round"
           strokeDasharray="4 2"
@@ -49,7 +51,7 @@ export const RedCircle: React.FC<Props> = ({ children, appearFrame, flashEnabled
         <ellipse
           cx="102" cy="41" rx="90" ry="32"
           fill="none"
-          stroke={COLORS.redBox}
+          stroke={circleColor}
           strokeWidth="2.5"
           strokeLinecap="round"
           transform="rotate(1, 102, 41)"

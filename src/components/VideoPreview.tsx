@@ -37,6 +37,8 @@ interface Props {
   stemKeywordPhases?: string[];
   readingPrefixDelay?: number;
   readingSpeedRatio?: number;
+  panelAdjust?: string;
+  panelAdjustValue?: number;
   subjectLabel?: string;
 }
 
@@ -47,7 +49,7 @@ export function VideoPreview({
   avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap,
   fontSizeQuestion, fontSizeOption, fontSizeExplanation,
   underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor,
-  stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, subjectLabel,
+  stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel,
 }: Props) {
   const durationInFrames = useMemo(() => {
     if (!audioDurations) return 300;
@@ -110,6 +112,8 @@ export function VideoPreview({
             stemKeywordPhases,
             readingPrefixDelay,
             readingSpeedRatio,
+            panelAdjust,
+            panelAdjustValue,
             subjectLabel,
           }}
           durationInFrames={durationInFrames}

@@ -22,8 +22,14 @@ export async function GET(request: NextRequest) {
   }
 
   if (type && type !== "all") {
-    where += " AND q.type = ?";
-    params.push(parseInt(type));
+    if (type === "multi") {
+      where += " AND q.type = 2 AND length(q.correct_answer) > 1";
+    } else if (type === "single") {
+      where += " AND q.type = 2 AND length(q.correct_answer) = 1";
+    } else {
+      where += " AND q.type = ?";
+      params.push(parseInt(type));
+    }
   }
 
   if (keyword) {

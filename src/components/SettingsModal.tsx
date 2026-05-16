@@ -40,6 +40,11 @@ interface SeriesData {
   tts_speed?: string;
   keyword_flash_enabled?: number;
   underline_progress_enabled?: number;
+  underline_question?: number;
+  underline_option?: number;
+  underline_explanation?: number;
+  underline_tip?: number;
+  underline_color?: string;
   avatar_enabled?: number;
 }
 
@@ -50,7 +55,7 @@ interface Props {
   onSave: (updates: Record<string, unknown>) => void;
 }
 
-const TABS = ["基本信息", "视频风格", "语音设置", "播放控制", "动画效果", "头像设置"] as const;
+const TABS = ["基本信息", "视频风格", "语音设置", "播放控制", "动画效果"] as const;
 
 export function SettingsModal({ open, onClose, series, onSave }: Props) {
   const [tab, setTab] = useState<(typeof TABS)[number]>("基本信息");
@@ -99,6 +104,11 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
   // Animation effects
   const [keywordFlashEnabled, setKeywordFlashEnabled] = useState(1);
   const [underlineProgressEnabled, setUnderlineProgressEnabled] = useState(1);
+  const [underlineQuestion, setUnderlineQuestion] = useState(1);
+  const [underlineOption, setUnderlineOption] = useState(0);
+  const [underlineExplanation, setUnderlineExplanation] = useState(1);
+  const [underlineTip, setUnderlineTip] = useState(1);
+  const [underlineColor, setUnderlineColor] = useState("#6366F1");
 
   // Avatar
   const [avatarEnabled, setAvatarEnabled] = useState(1);
@@ -139,6 +149,11 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
         setTtsSpeed(series.tts_speed || "medium");
         setKeywordFlashEnabled(series.keyword_flash_enabled ?? 1);
         setUnderlineProgressEnabled(series.underline_progress_enabled ?? 1);
+        setUnderlineQuestion(series.underline_question ?? 1);
+        setUnderlineOption(series.underline_option ?? 0);
+        setUnderlineExplanation(series.underline_explanation ?? 1);
+        setUnderlineTip(series.underline_tip ?? 1);
+        setUnderlineColor(series.underline_color || "#6366F1");
         setAvatarEnabled(series.avatar_enabled ?? 1);
       }
     }
@@ -173,7 +188,12 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
       ttsSpeed,
       keywordFlashEnabled,
       underlineProgressEnabled,
-      avatarEnabled,
+      underlineQuestion,
+      underlineOption,
+      underlineExplanation,
+      underlineTip,
+      underlineColor,
+      avatarEnabled: avatarPosition === "none" ? 0 : 1,
     });
     setSaving(false);
     onClose();
@@ -183,12 +203,12 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={onClose}>
-      <div className={`bg-white rounded-xl shadow-xl max-h-[80vh] flex flex-col transition-all ${tab === "视频风格" ? "w-[920px]" : "w-[560px]"}`} onClick={(e) => e.stopPropagation()}>
+      <div className={`bg-white rounded-xl shadow-xl max-h-[80vh] flex flex-col transition-all ${tab === "视频风格" ? "w-[920px]" : "w-[680px]"}`} onClick={(e) => e.stopPropagation()}>
         {/* Tab header */}
-        <div className="flex border-b border-gray-200 px-6 pt-5">
+        <div className="flex border-b border-gray-200 px-6 pt-5 overflow-x-auto">
           {TABS.map((t) => (
             <button key={t} onClick={() => setTab(t)}
-              className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition ${tab === t ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+              className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition whitespace-nowrap ${tab === t ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}
             >{t}</button>
           ))}
         </div>
@@ -431,11 +451,31 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
 
           {tab === "动画效果" && (
             <>
-              <div>
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={underlineProgressEnabled === 1} onChange={(e) => setUnderlineProgressEnabled(e.target.checked ? 1 : 0)} className="rounded" />
-                  朗读下划线进度
-                </label>
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-gray-700">朗读下划线进度</h4>
+                <div className="flex items-center gap-4 flex-wrap">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={underlineQuestion === 1} onChange={(e) => setUnderlineQuestion(e.target.checked ? 1 : 0)} className="rounded" />
+                    题干
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={underlineOption === 1} onChange={(e) => setUnderlineOption(e.target.checked ? 1 : 0)} className="rounded" />
+                    选项
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={underlineExplanation === 1} onChange={(e) => setUnderlineExplanation(e.target.checked ? 1 : 0)} className="rounded" />
+                    解析
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={underlineTip === 1} onChange={(e) => setUnderlineTip(e.target.checked ? 1 : 0)} className="rounded" />
+                    技巧
+                  </label>
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className="text-sm text-gray-600">下划线颜色</label>
+                  <input type="color" value={underlineColor} onChange={(e) => setUnderlineColor(e.target.value)} className="w-8 h-8 rounded border border-gray-300 cursor-pointer" />
+                  <span className="text-xs text-gray-400">{underlineColor}</span>
+                </div>
               </div>
               <div>
                 <label className="flex items-center gap-2 text-sm">
@@ -446,27 +486,6 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
             </>
           )}
 
-          {tab === "头像设置" && (
-            <>
-              <div>
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={avatarEnabled === 1} onChange={(e) => setAvatarEnabled(e.target.checked ? 1 : 0)} className="rounded" />
-                  显示头像
-                </label>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">头像大小: {avatarSize}px</label>
-                <input type="range" min={60} max={150} value={avatarSize} onChange={(e) => setAvatarSize(Number(e.target.value))} className="w-full" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">头像位置</label>
-                <select value={avatarPosition} onChange={(e) => setAvatarPosition(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                  <option value="bottom-right">右下角</option>
-                  <option value="bottom-left">左下角</option>
-                </select>
-              </div>
-            </>
-          )}
           </div>
           {tab === "视频风格" && (
             <div className="flex-shrink-0 p-6 pl-0 flex flex-col items-center gap-3">

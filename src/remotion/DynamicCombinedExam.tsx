@@ -158,6 +158,8 @@ export const DynamicCombinedExam: React.FC<Props> = ({
           stemKeywordPhases={effectiveEntry.stemKeywordPhases}
           readingPrefixDelay={effectiveEntry.readingPrefixDelay}
           readingSpeedRatio={effectiveEntry.readingSpeedRatio}
+          panelAdjust={effectiveEntry.panelAdjust}
+          panelAdjustValue={effectiveEntry.panelAdjustValue}
           subjectLabel={introCategory}
         />
       </Sequence>

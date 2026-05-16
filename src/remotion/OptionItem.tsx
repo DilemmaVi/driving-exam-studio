@@ -14,18 +14,26 @@ interface Props {
   tipFrame?: number;
   readStartFrame?: number;
   fontScale?: number;
+  optionGap?: number;
+  fontSizeOverride?: number;
+  underlineEnabled?: boolean;
+  underlineColor?: string;
 }
 
-const parseSegments = (text: string): { text: string; highlight: boolean }[] => {
-  const parts: { text: string; highlight: boolean }[] = [];
-  const regex = /【([^】]*)】/g;
+const parseSegments = (text: string): { text: string; highlight: boolean; blue?: boolean }[] => {
+  const parts: { text: string; highlight: boolean; blue?: boolean }[] = [];
+  const regex = /【([^】]*)】|[{｛]([^}｝]*)[}｝]/g;
   let lastIndex = 0;
   let match;
   while ((match = regex.exec(text)) !== null) {
     if (match.index > lastIndex) {
       parts.push({ text: text.slice(lastIndex, match.index), highlight: false });
     }
-    parts.push({ text: match[1], highlight: true });
+    if (match[1] !== undefined) {
+      parts.push({ text: match[1], highlight: true });
+    } else {
+      parts.push({ text: match[2], highlight: true, blue: true });
+    }
     lastIndex = regex.lastIndex;
   }
   if (lastIndex < text.length) {
@@ -36,7 +44,7 @@ const parseSegments = (text: string): { text: string; highlight: boolean }[] => 
 
 export const OptionItem: React.FC<Props> = ({
   label, text, index, startFrame, revealFrame, isCorrect,
-  circleFrame, tipFrame, readStartFrame, fontScale = 1,
+  circleFrame, tipFrame, readStartFrame, fontScale = 1, optionGap, fontSizeOverride, underlineEnabled, underlineColor,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -120,11 +128,17 @@ export const OptionItem: React.FC<Props> = ({
     const chars = p.text.split("").map((ch, ci) => {
       const idx = globalCharIdx++;
       const isRead = readChars >= 0 && idx < readChars;
-      const charColor = revealed ? textColor : isRead ? COLORS.accent : COLORS.text;
+      let charColor = revealed ? textColor : isRead ? COLORS.accent : COLORS.text;
+      if (showCircle && p.highlight && p.blue) {
+        charColor = "#3B82F6";
+      }
       return (
         <span key={`${pi}-${ci}`} style={{
           color: charColor,
+          fontWeight: showCircle && p.highlight ? 700 : undefined,
+          fontSize: showCircle && p.highlight ? "1.1em" : undefined,
           opacity: tipFlashOn && p.highlight ? 0.3 : 1,
+          borderBottom: underlineEnabled && isRead ? `3px solid ${underlineColor || COLORS.accent}` : undefined,
           transition: "color 0.1s",
         }}>{ch}</span>
       );
@@ -136,7 +150,7 @@ export const OptionItem: React.FC<Props> = ({
           opacity: tipFlashOn ? 0.3 : 1,
           transition: "opacity 0.1s",
         }}>
-          <RedCircle appearFrame={circleFrame}>{chars}</RedCircle>
+          <RedCircle appearFrame={circleFrame} color={p.blue ? "#3B82F6" : undefined}>{chars}</RedCircle>
         </span>
       );
     }
@@ -148,7 +162,7 @@ export const OptionItem: React.FC<Props> = ({
       style={{
         opacity,
         transform: `translateX(${translateX}px) scale(${scale})`,
-        margin: `0 ${SPACING.xl}px ${Math.round(SPACING.sm * fontScale)}px`,
+        margin: `0 ${SPACING.xl}px ${optionGap ?? Math.round(SPACING.sm * fontScale)}px`,
         padding: `${Math.round(SPACING.lg * fontScale)}px ${SPACING.lg}px`,
         borderRadius: RADIUS.lg,
         background: bgColor,
@@ -181,7 +195,7 @@ export const OptionItem: React.FC<Props> = ({
       </div>
       <div
         style={{
-          fontSize: Math.round(FONT.size.option * fontScale),
+          fontSize: fontSizeOverride || Math.round(FONT.size.option * fontScale),
           color: textColor,
           fontFamily: FONT.main,
           fontWeight: revealed && isCorrect ? 700 : 500,

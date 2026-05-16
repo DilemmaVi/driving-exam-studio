@@ -133,6 +133,8 @@ function initTables(db: Database.Database) {
     ["read_options", "INTEGER"],
     ["speech_rate", "REAL"],
     ["reveal_pause", "REAL"],
+    ["panel_adjust", "TEXT"],
+    ["panel_adjust_value", "INTEGER"],
   ];
   for (const [col, typedef] of sqNewCols) {
     if (!sqCols.some((c) => c.name === col)) {

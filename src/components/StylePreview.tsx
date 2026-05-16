@@ -122,8 +122,7 @@ export function StylePreview({ theme, fontScale, avatarPosition, avatarSize, key
       <div style={{
         position: "absolute", bottom: 0, left: 0, right: 0, height: panelH,
         background: t.glass, borderRadius: `${Math.round(32 * SCALE)}px ${Math.round(32 * SCALE)}px 0 0`,
-        border: `1px solid ${t.border}`, borderBottom: "none",
-        backdropFilter: "blur(20px)", padding: Math.round(24 * SCALE),
+        borderTop: `1px solid ${t.border}`, borderLeft: `1px solid ${t.border}`, borderRight: `1px solid ${t.border}`, borderBottom: "none",        backdropFilter: "blur(20px)", padding: Math.round(24 * SCALE),
         display: "flex", flexDirection: "column", overflow: "hidden",
       }}>
         <div style={{ width: 20, height: 2, borderRadius: 1, background: t.muted, margin: "0 auto", marginBottom: 6, opacity: 0.5 }} />
