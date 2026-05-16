@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
+import { GuideTourButton } from "@/components/GuideTour";
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor,
   useSensor, useSensors, type DragEndEvent,
@@ -169,10 +170,11 @@ function SortableItem({
           <button onClick={() => onAudioPreview(item.id)} className="text-xs px-3 py-1 rounded-full bg-green-50 text-green-600 hover:bg-green-100 font-medium transition">🔊 试听</button>
         )}
         {item.ttsStatus === "ready" && (
-          <button onClick={() => onPreview(item.id)} className="text-xs px-3 py-1 rounded-full bg-purple-50 text-purple-600 hover:bg-purple-100 font-medium transition">▶ 预览</button>
+          <button id={index === 0 ? "tour-preview-btn" : undefined} onClick={() => onPreview(item.id)} className="text-xs px-3 py-1 rounded-full bg-purple-50 text-purple-600 hover:bg-purple-100 font-medium transition">▶ 预览</button>
         )}
         <button onClick={() => onRegenerate(item.id)} disabled={item.ttsStatus === "generating"} className="text-xs px-3 py-1 rounded-full bg-orange-50 text-orange-600 hover:bg-orange-100 font-medium transition disabled:opacity-40">🔄 重新生成</button>
         <button
+          id={index === 0 ? "tour-question-expand" : undefined}
           onClick={() => onUpdate(item.id, { expanded: !item.expanded })}
           className="text-xs px-3 py-1 rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100 transition"
         >
@@ -200,7 +202,7 @@ function SortableItem({
       </div>
 
       {item.expanded && (
-        <div className="px-4 pb-4 pt-3 border-t border-gray-100 space-y-4 bg-gray-50/50 rounded-b-xl">
+        <div id={index === 0 ? "tour-config-section" : undefined} className="px-4 pb-4 pt-3 border-t border-gray-100 space-y-4 bg-gray-50/50 rounded-b-xl">
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">老师讲解（用【】标记关键词高亮）</label>
             <textarea
@@ -332,7 +334,7 @@ function SortableItem({
                 {[32, 36, 40, 44, 48, 52, 56, 60].map((v) => <option key={v} value={v}>{v}px</option>)}
               </select>
             </div>
-            <div>
+            <div id={index === 0 ? "tour-prefix-delay" : undefined}>
               <label className="block text-xs text-gray-500 mb-1">变色延迟</label>
               <select
                 value={item.readingPrefixDelay ?? ""}
@@ -343,7 +345,7 @@ function SortableItem({
                 {[0, 3, 5, 8, 12, 15, 20, 25, 30, 40, 50, 60].map((v) => <option key={v} value={v}>{v}帧</option>)}
               </select>
             </div>
-            <div>
+            <div id={index === 0 ? "tour-speed-ratio" : undefined}>
               <label className="block text-xs text-gray-500 mb-1">变色速率</label>
               <select
                 value={item.readingSpeedRatio ?? ""}
@@ -354,7 +356,7 @@ function SortableItem({
                 {[0.7, 0.8, 0.85, 0.9, 0.95, 1.0, 1.05, 1.1, 1.15, 1.2, 1.3].map((v) => <option key={v} value={v}>{v}x</option>)}
               </select>
             </div>
-            <div>
+            <div id={index === 0 ? "tour-panel-adjust" : undefined}>
               <label className="block text-xs text-gray-500 mb-1">弹窗适配</label>
               <select
                 value={item.panelAdjust || "auto-shift"}
@@ -382,7 +384,7 @@ function SortableItem({
             )}
           </div>
 
-          <div>
+          <div id={index === 0 ? "tour-stem-keywords" : undefined}>
             <label className="block text-xs font-medium text-gray-500 mb-1">题干关键字红色波浪线（逗号分隔多个关键字）</label>
             <input
               value={item.stemKeywords}
@@ -807,7 +809,7 @@ export default function SeriesEditorPage() {
       />
 
       {/* 左侧题库 */}
-      <div className="w-80 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col">
+      <div id="tour-question-bank" className="w-80 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col">
         <div className="p-4 border-b border-gray-200 space-y-3">
           <h2 className="font-bold text-base text-gray-800">题库选题</h2>
           <div className="relative">
@@ -859,7 +861,7 @@ export default function SeriesEditorPage() {
       </div>
 
       {/* 右侧编排 */}
-      <div className="flex-1 flex flex-col bg-gray-50/50 min-w-0">
+      <div id="tour-selected-list" className="flex-1 flex flex-col bg-gray-50/50 min-w-0">
         <div className="px-6 py-4 border-b border-gray-200 bg-white flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3">
@@ -870,20 +872,21 @@ export default function SeriesEditorPage() {
               {selected.length} 题 · 预计 {Math.floor(estimatedDuration / 60)}:{String(Math.floor(estimatedDuration % 60)).padStart(2, "0")}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div id="tour-batch-bar" className="flex items-center gap-2">
+            <GuideTourButton page="editor" />
             <button onClick={() => setShowSettings(true)} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition" title="设置">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
             </button>
-            <button onClick={saveToServer} disabled={saving} className="px-3 py-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 transition">
+            <button id="tour-save-btn" onClick={saveToServer} disabled={saving} className="px-3 py-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 transition">
               {saving ? "保存中..." : "💾 保存"}
             </button>
-            <button onClick={() => generateTTS()} disabled={selected.length === 0 || generatingTTS}
+            <button id="tour-tts-btn" onClick={() => generateTTS()} disabled={selected.length === 0 || generatingTTS}
               className="px-4 py-1.5 bg-gray-800 text-white rounded-lg text-sm hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
             >{generatingTTS ? "生成中..." : "🎙 生成语音"}</button>
             <button onClick={() => generateTTS(true)} disabled={selected.length === 0 || generatingTTS}
               className="px-3 py-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
             >{generatingTTS ? "生成中..." : "🔄 全部重新生成"}</button>
-            <button onClick={() => startRender(false)} disabled={!allReady || rendering || generatingTTS || !!renderTaskId}
+            <button id="tour-render-btn" onClick={() => startRender(false)} disabled={!allReady || rendering || generatingTTS || !!renderTaskId}
               className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm"
             >{rendering ? "提交中..." : renderTaskId ? "已提交" : "🎬 生成视频"}</button>
             <button onClick={() => startRender(true)} disabled={!allReady || rendering || generatingTTS || !!renderTaskId}

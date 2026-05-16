@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { GuideTourButton } from "@/components/GuideTour";
 
 interface RenderTask {
   id: string;
@@ -90,13 +91,16 @@ export default function RendersPage() {
           <h1 className="text-2xl font-bold">渲染任务</h1>
           <p className="text-gray-500 text-sm mt-1">{total} 个任务</p>
         </div>
-        <button onClick={clearCompleted} className="px-3 py-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-          清理已完成
-        </button>
+        <div className="flex items-center gap-2">
+          <GuideTourButton page="renders" />
+          <button onClick={clearCompleted} className="px-3 py-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+            清理已完成
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-3 mb-5 flex-wrap">
+      <div id="tour-render-tabs" className="flex items-center gap-3 mb-5 flex-wrap">
         <div className="flex rounded-lg border border-gray-200 overflow-hidden">
           {STATUS_TABS.map((tab) => (
             <button
@@ -119,7 +123,7 @@ export default function RendersPage() {
       {tasks.length === 0 ? (
         <p className="text-gray-400 text-center py-20">{keyword || statusFilter ? "没有匹配的任务" : "暂无渲染任务"}</p>
       ) : (
-        <div className="space-y-3">
+        <div id="tour-render-list" className="space-y-3">
           {tasks.map((task) => {
             const qIds = JSON.parse(task.question_ids);
             const badge = statusBadge[task.status] || { text: task.status, color: "bg-gray-100" };

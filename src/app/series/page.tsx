@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { GuideTourButton } from "@/components/GuideTour";
 
 interface Series {
   id: string;
@@ -73,21 +74,25 @@ export default function SeriesPage() {
 
   return (
     <div className="max-w-5xl mx-auto p-8">
-      <div className="flex items-center justify-between mb-6">
+      <div id="tour-header" className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">视频系列</h1>
           <p className="text-gray-500 text-sm mt-1">{total} 个系列</p>
         </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition"
-        >
-          + 新建系列
-        </button>
+        <div className="flex items-center gap-2">
+          <GuideTourButton page="series" />
+          <button
+            id="tour-create-btn"
+            onClick={() => setShowCreate(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+          >
+            + 新建系列
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-3 mb-5 flex-wrap">
+      <div id="tour-search" className="flex items-center gap-3 mb-5 flex-wrap">
         <input
           type="text" placeholder="搜索系列名称..." value={keyword}
           onChange={(e) => { setKeyword(e.target.value); setPage(1); }}
@@ -121,7 +126,7 @@ export default function SeriesPage() {
           <p className="text-sm">{keyword || categoryFilter ? "尝试调整筛选条件" : "点击「新建系列」开始创建"}</p>
         </div>
       ) : (
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div id="tour-series-grid" className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {seriesList.map((s) => (
             <div
               key={s.id}

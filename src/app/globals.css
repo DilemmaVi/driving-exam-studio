@@ -32,3 +32,13 @@ body {
 .animate-fade-in {
   animation: fade-in 0.2s ease-out;
 }
+
+.guide-popover .driver-popover-description {
+  white-space: pre-line;
+  line-height: 1.7;
+  font-size: 14px;
+}
+.guide-popover .driver-popover-title {
+  font-size: 16px;
+  font-weight: 700;
+}
