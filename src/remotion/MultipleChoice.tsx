@@ -125,12 +125,19 @@ export const MultipleChoice: React.FC<{
   const panelVisibleFrame = T.explanationStart > 0 ? T.explanationStart : T.tipStart > 0 ? T.tipStart : 0;
 
   const panelTop = 1920 * 0.52;
-  const qLines = Math.ceil(question.questionContent.replace(/【[^】]*】/g, "").replace(/[{｛][^}｝]*[}｝]/g, "").replace(/A[.:：][\s\S]*$/, "").length / 16);
-  const qHeight = 80 + qLines * 62 * 1.7 + 30;
+  const fq = fontSizeQuestion || 68;
+  const fo = fontSizeOption || 58;
+  const gap = optionGap ?? 12;
+  const charsPerLineQ = Math.max(8, Math.floor(980 / (fq * 0.55)));
+  const qText = question.questionContent.replace(/【[^】]*】/g, (m) => m.slice(1, -1)).replace(/[{｛][^}｝]*[}｝]/g, (m) => m.slice(1, -1)).replace(/A[.:：][\s\S]*$/, "");
+  const qLines = Math.max(1, Math.ceil(qText.length / charsPerLineQ));
+  const qHeight = 80 + qLines * fq * 1.7 + 30;
   const imgHeight = question.coverImage ? 350 : 0;
+  const charsPerLineO = Math.max(6, Math.floor(820 / (fo * 0.55)));
   const optHeight = question.options.reduce((sum, opt) => {
-    const lines = Math.max(1, Math.ceil(opt.replace(/【[^】]*】/g, "").length / 14));
-    return sum + lines * 52 * 1.5 + 64 + 12;
+    const text = opt.replace(/【[^】]*】/g, (m) => m.slice(1, -1));
+    const lines = Math.max(1, Math.ceil(text.length / charsPerLineO));
+    return sum + lines * fo * 1.5 + 64 + gap;
   }, 0);
   const contentBottom = 30 + qHeight + imgHeight + 40 + optHeight + 130;
   const overflow = Math.max(0, contentBottom - panelTop + 40);
