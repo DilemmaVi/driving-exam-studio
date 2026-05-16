@@ -54,7 +54,7 @@ function getEditorPageSteps() {
       element: "#tour-question-bank",
       popover: {
         title: "题库面板",
-        description: "左侧是题库，可以搜索和筛选题目。点击题目右侧的「+」按钮即可将题目添加到右侧的编排列表中。",
+        description: "左侧是题库。可以按关键字搜索、按分类筛选、按题型（判断/单选/多选）过滤。点击题目右侧的「+」将题目添加到编排列表。底部有翻页控制。",
         side: "right" as const,
       },
     },
@@ -62,23 +62,23 @@ function getEditorPageSteps() {
       element: "#tour-selected-list",
       popover: {
         title: "编排列表",
-        description: "右侧是当前系列已选的题目。可以拖拽排序，点击展开编辑每道题的详细配置。题目支持批量操作（全选后生成TTS等）。",
+        description: "右侧是已选题目列表。顶部显示系列名称、分类标签、题目数量和预估时长。题目支持拖拽排序（按住⋮⋮图标）。",
         side: "left" as const,
       },
     },
     {
-      element: "#tour-batch-bar",
+      element: "#tour-select-all",
       popover: {
-        title: "批量操作栏",
-        description: "全选/取消、批量生成TTS语音、保存编排、提交渲染——所有关键操作都在这里。",
+        title: "全选与批量操作",
+        description: "勾选「全选」或单独勾选题目后，可以在底部状态栏进行批量操作：批量设置是否显示解析/技巧、语速、思考时间，或批量删除。",
         side: "bottom" as const,
       },
     },
     {
-      element: "#tour-tts-btn",
+      element: "#tour-settings-btn",
       popover: {
-        title: "生成TTS语音",
-        description: "选择题目后点击「生成TTS」，系统会为题干、选项、答案、解析、技巧分别生成语音。语音生成完成后才能预览和渲染。",
+        title: "系列全局设置",
+        description: "点击齿轮图标打开全局设置面板，可以配置：\n\n• 片头/片尾标题和字幕\n• 默认思考时间\n• 默认语音风格和语速\n• 是否朗读选项（及字数阈值）\n• 是否显示题目转场\n• 视频首尾停顿时间\n• 下划线动画开关和颜色\n• 头像显示/大小/位置\n• 关键字闪动效果\n\n这些是系列级默认值，每道题可单独覆盖。",
         side: "bottom" as const,
       },
     },
@@ -86,15 +86,23 @@ function getEditorPageSteps() {
       element: "#tour-save-btn",
       popover: {
         title: "保存编排",
-        description: "修改了配置后记得保存。保存会将当前的题目顺序和所有配置写入数据库。",
+        description: "每次修改配置后需要手动保存。保存会将题目顺序、所有配置参数写入数据库。未保存的修改在刷新页面后会丢失。",
+        side: "bottom" as const,
+      },
+    },
+    {
+      element: "#tour-tts-btn",
+      popover: {
+        title: "生成语音 (TTS)",
+        description: "为所有「待生成」状态的题目批量生成 TTS 语音。系统会为每道题分别生成：题干朗读、各选项朗读、答案揭示、官方解析、答题技巧的语音文件。生成完成后状态变为「就绪」。",
         side: "bottom" as const,
       },
     },
     {
       element: "#tour-render-btn",
       popover: {
-        title: "提交渲染",
-        description: "所有TTS就绪后，点击提交渲染。系统会在后台调用 Remotion 生成最终的短视频文件。",
+        title: "生成视频",
+        description: "所有题目 TTS 就绪后才能点击。提交后系统在后台用 Remotion 渲染完整视频。渲染进度可在「渲染任务」页面查看。旁边的「只渲染技巧」按钮会生成只包含答题技巧部分的精简视频。",
         side: "bottom" as const,
       },
     },
@@ -102,7 +110,7 @@ function getEditorPageSteps() {
       element: "#tour-question-expand",
       popover: {
         title: "展开题目配置",
-        description: "点击题目可以展开详细配置面板，包含多种可自定义选项。点击「下一步」将自动展开配置面板。",
+        description: "点击「编排」按钮展开该题的详细配置面板。每道题都可以独立配置各种参数。点击「下一步」将自动展开。",
         side: "bottom" as const,
         onNextClick: () => {
           const btn = document.getElementById("tour-question-expand");
@@ -116,18 +124,34 @@ function getEditorPageSteps() {
       },
     },
     {
-      element: "#tour-config-section",
+      element: "#tour-teacher-exp",
       popover: {
-        title: "题目配置详情",
-        description: "每道题可独立配置：\n\n• 字体大小（题干/选项/解析）\n• 选项间距\n• 变色延迟 & 速率（控制文字变色与语音同步）\n• 弹窗适配（解析面板出现时内容如何调整）\n• 题干关键字红色波浪线\n• 触发阶段（读题/解析/技巧）",
-        side: "left" as const,
+        title: "老师讲解文本",
+        description: "这里编辑讲解文本。用【】包裹的文字会在视频中高亮显示并画红圈标注，用{}包裹的文字会以蓝色高亮。\n\n例如：注意【禁止标线】表示该区域{不允许}通行\n\n下方会实时预览高亮效果。",
+        side: "bottom" as const,
+      },
+    },
+    {
+      element: "#tour-show-toggles",
+      popover: {
+        title: "显示开关",
+        description: "控制视频中是否包含「答题解析」和「答题技巧」环节。取消勾选后，对应的底部面板和语音都不会出现在视频中，视频时长也会相应缩短。",
+        side: "bottom" as const,
+      },
+    },
+    {
+      element: "#tour-params-row",
+      popover: {
+        title: "音频与排版参数",
+        description: "• 思考时间：答案揭示前的等待秒数（给观众思考）\n• 语音风格：TTS 语气（教学/轻快/权威）\n• 选项朗读：是否朗读选项文字（长题干时可跳过）\n• 语速：TTS 朗读速度\n• 揭示停留：答案揭示后停留时间\n• 选项间距：选项之间的像素间距\n• 题干/选项/解析字号：各部分的字体大小",
+        side: "bottom" as const,
       },
     },
     {
       element: "#tour-prefix-delay",
       popover: {
         title: "变色延迟",
-        description: "控制文字开始变色的延迟帧数。如果变色比语音快，增加延迟；如果慢，减少延迟。默认8帧。",
+        description: "控制文字开始变色的延迟帧数（30帧=1秒）。\n\n当变色跑在语音前面时，增加延迟；当变色落后语音时，减少延迟。默认8帧。\n\n这是精调参数，建议配合预览反复调整。",
         side: "bottom" as const,
       },
     },
@@ -135,7 +159,7 @@ function getEditorPageSteps() {
       element: "#tour-speed-ratio",
       popover: {
         title: "变色速率",
-        description: "控制文字变色的整体速度。<1.0 变色更慢，>1.0 变色更快。配合延迟使用，让变色节奏完美匹配语音。",
+        description: "控制文字变色的整体速度倍率。\n\n• <1.0（如0.8）：变色更慢\n• >1.0（如1.2）：变色更快\n\n当变色在开头匹配但中间偏移时，调整此值。配合「变色延迟」一起使用效果最佳。",
         side: "bottom" as const,
       },
     },
@@ -143,7 +167,7 @@ function getEditorPageSteps() {
       element: "#tour-panel-adjust",
       popover: {
         title: "弹窗适配",
-        description: "当解析/技巧面板弹出时如何处理上方内容：\n\n• 自动上移：根据溢出量上移（推荐）\n• 自动缩小：等比缩放内容\n• 手动上移：指定上移像素\n• 不调整：保持原位",
+        description: "控制解析/技巧面板弹出时，上方题目内容如何调整：\n\n• 自动上移：计算溢出量，自动上移让选项可见（推荐）\n• 自动缩小：等比缩放内容到面板上方区域\n• 手动上移：自定义上移像素值\n• 不调整：保持原位（适合短题目）\n\n对于长题目建议用「自动上移」，短题目用「不调整」。",
         side: "bottom" as const,
       },
     },
@@ -151,7 +175,7 @@ function getEditorPageSteps() {
       element: "#tour-stem-keywords",
       popover: {
         title: "题干关键字波浪线",
-        description: "输入关键字（逗号分隔），这些关键字会在指定阶段显示红色波浪下划线，帮助观众注意重点。",
+        description: "输入关键字（逗号分隔多个），这些关键字会在视频中显示红色波浪下划线，帮助观众注意题干重点。\n\n例如输入：限速80km/h,105km/h\n\n下方「触发阶段」控制波浪线在哪些环节显示：\n• 读题：朗读题干时显示\n• 解析：解析面板时显示\n• 技巧：技巧面板时显示",
         side: "top" as const,
       },
     },
@@ -159,8 +183,14 @@ function getEditorPageSteps() {
       element: "#tour-preview-btn",
       popover: {
         title: "预览视频",
-        description: "TTS生成完成后，点击预览按钮可以实时查看视频效果，包括文字动画、语音同步、面板切换等。调整配置后可以反复预览直到满意。",
+        description: "TTS 就绪后点击可实时预览该题的视频效果。预览窗口支持播放、暂停、拖动进度条。可以反复调整配置后预览，直到效果满意再提交渲染。\n\n旁边的「试听」按钮可以只听语音不看视频。",
         side: "left" as const,
+      },
+    },
+    {
+      popover: {
+        title: "完整工作流程总结",
+        description: "1️⃣ 从题库选题添加到编排列表\n2️⃣ 展开配置，编辑讲解文本和参数\n3️⃣ 点击「生成语音」生成 TTS\n4️⃣ 用「预览」检查效果，调整参数\n5️⃣ 满意后「保存」再「生成视频」\n6️⃣ 到「渲染任务」页面下载成品\n\n💡 提示：修改讲解文本或语音参数后需要重新生成 TTS；修改视觉参数（字号/间距/弹窗适配等）只需保存后直接预览或渲染。",
       },
     },
   ];

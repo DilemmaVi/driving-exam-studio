@@ -203,7 +203,7 @@ function SortableItem({
 
       {item.expanded && (
         <div id={index === 0 ? "tour-config-section" : undefined} className="px-4 pb-4 pt-3 border-t border-gray-100 space-y-4 bg-gray-50/50 rounded-b-xl">
-          <div>
+          <div id={index === 0 ? "tour-teacher-exp" : undefined}>
             <label className="block text-xs font-medium text-gray-500 mb-1">老师讲解（用【】标记关键词高亮）</label>
             <textarea
               value={item.teacherExplanation}
@@ -215,7 +215,7 @@ function SortableItem({
             {item.teacherExplanation && <HighlightPreview text={item.teacherExplanation} />}
           </div>
 
-          <div className="flex items-center gap-6">
+          <div id={index === 0 ? "tour-show-toggles" : undefined} className="flex items-center gap-6">
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={item.showOfficialExplanation} onChange={(e) => onUpdate(item.id, { showOfficialExplanation: e.target.checked })} className="rounded" />
               答题解析
@@ -226,7 +226,7 @@ function SortableItem({
             </label>
           </div>
 
-          <div className="flex items-center gap-4 flex-wrap">
+          <div id={index === 0 ? "tour-params-row" : undefined} className="flex items-center gap-4 flex-wrap">
             <div>
               <label className="block text-xs text-gray-500 mb-1">思考时间</label>
               <select
@@ -874,7 +874,7 @@ export default function SeriesEditorPage() {
           </div>
           <div id="tour-batch-bar" className="flex items-center gap-2">
             <GuideTourButton page="editor" />
-            <button onClick={() => setShowSettings(true)} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition" title="设置">
+            <button id="tour-settings-btn" onClick={() => setShowSettings(true)} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition" title="设置">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
             </button>
             <button id="tour-save-btn" onClick={saveToServer} disabled={saving} className="px-3 py-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 transition">
@@ -897,7 +897,7 @@ export default function SeriesEditorPage() {
 
         {/* Select all */}
         {selected.length > 0 && (
-          <div className="px-6 py-2 border-b border-gray-100 bg-white flex items-center gap-3">
+          <div id="tour-select-all" className="px-6 py-2 border-b border-gray-100 bg-white flex items-center gap-3">
             <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
               <input type="checkbox" checked={allChecked} onChange={toggleAll} className="rounded border-gray-300 w-3.5 h-3.5" />
               全选
