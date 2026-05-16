@@ -78,8 +78,93 @@ function getEditorPageSteps() {
       element: "#tour-settings-btn",
       popover: {
         title: "系列全局设置",
-        description: "点击齿轮图标打开全局设置面板，可以配置：\n\n• 片头/片尾标题和字幕\n• 默认思考时间\n• 默认语音风格和语速\n• 是否朗读选项（及字数阈值）\n• 是否显示题目转场\n• 视频首尾停顿时间\n• 下划线动画开关和颜色\n• 头像显示/大小/位置\n• 关键字闪动效果\n\n这些是系列级默认值，每道题可单独覆盖。",
+        description: "点击齿轮图标打开全局设置面板。接下来将自动打开设置窗口，逐一介绍各个配置项。",
         side: "bottom" as const,
+        onNextClick: () => {
+          const btn = document.getElementById("tour-settings-btn");
+          if (btn && !document.getElementById("tour-settings-modal")) {
+            btn.click();
+          }
+          setTimeout(() => {
+            (window as any).__driverInstance?.moveNext();
+          }, 400);
+        },
+      },
+    },
+    {
+      element: "#tour-settings-modal",
+      popover: {
+        title: "设置 - 基本信息",
+        description: "「基本信息」标签页配置：\n\n• 片头标题/副标题：视频开头显示的文字\n• 片尾标题/副标题：视频结尾显示的文字\n• 分类标签：显示在视频中的科目标签\n• MIMO API Key：TTS 语音合成的密钥",
+        side: "bottom" as const,
+        onNextClick: () => {
+          const tab = document.getElementById("tour-settings-tab-视频风格");
+          if (tab) tab.click();
+          setTimeout(() => {
+            (window as any).__driverInstance?.moveNext();
+          }, 300);
+        },
+      },
+    },
+    {
+      element: "#tour-settings-modal",
+      popover: {
+        title: "设置 - 视频风格",
+        description: "「视频风格」标签页配置：\n\n• 主题风格：清新浅色/专业深色/时尚渐变\n• 字体大小：自适应/小/中/大/超大\n• 头像位置：右下角/左下角/不显示\n• 头像大小：拖动滑块调整（160-360px）\n• 关键词样式：红圈/下划线/高亮底色\n• 底部面板高度：自适应/小/中/大\n\n右侧有实时预览窗口可以即时看到效果。",
+        side: "bottom" as const,
+        onNextClick: () => {
+          const tab = document.getElementById("tour-settings-tab-语音设置");
+          if (tab) tab.click();
+          setTimeout(() => {
+            (window as any).__driverInstance?.moveNext();
+          }, 300);
+        },
+      },
+    },
+    {
+      element: "#tour-settings-modal",
+      popover: {
+        title: "设置 - 语音设置",
+        description: "「语音设置」标签页配置：\n\n• 语速：稍慢/适中/稍快（TTS 生成速度）\n• 默认思考时间：答案揭示前等待秒数\n• 默认语音风格：教学/轻快/权威\n• 语速倍率：0.8x~1.3x 精细调节\n• 选项朗读：总是读/不读/按题干字数决定\n• 答案朗读：单选/多选是否读选项内容\n• 过渡话术：每个环节间的衔接语（如「大家先想一想」「公布答案」），可开关和自定义文案",
+        side: "bottom" as const,
+        onNextClick: () => {
+          const tab = document.getElementById("tour-settings-tab-播放控制");
+          if (tab) tab.click();
+          setTimeout(() => {
+            (window as any).__driverInstance?.moveNext();
+          }, 300);
+        },
+      },
+    },
+    {
+      element: "#tour-settings-modal",
+      popover: {
+        title: "设置 - 播放控制",
+        description: "「播放控制」标签页配置：\n\n• 显示过场页（想一想）：题目之间是否显示过渡动画\n• 视频开头停顿：首帧停留时间（0-10秒）\n• 视频结尾停顿：尾帧停留时间（0-10秒）\n• 技巧前停顿：解析结束到技巧开始的等待时间",
+        side: "bottom" as const,
+        onNextClick: () => {
+          const tab = document.getElementById("tour-settings-tab-动画效果");
+          if (tab) tab.click();
+          setTimeout(() => {
+            (window as any).__driverInstance?.moveNext();
+          }, 300);
+        },
+      },
+    },
+    {
+      element: "#tour-settings-modal",
+      popover: {
+        title: "设置 - 动画效果",
+        description: "「动画效果」标签页配置：\n\n• 朗读下划线进度：选择在哪些环节显示（题干/选项/解析/技巧），以及下划线颜色\n• 关键字闪动：讲解文本中【】标记的关键词是否有闪烁动画\n\n设置完成后点击「保存」按钮生效。",
+        side: "bottom" as const,
+        onNextClick: () => {
+          // Close the settings modal
+          const overlay = document.querySelector(".fixed.inset-0.bg-black\\/40");
+          if (overlay instanceof HTMLElement) overlay.click();
+          setTimeout(() => {
+            (window as any).__driverInstance?.moveNext();
+          }, 300);
+        },
       },
     },
     {
