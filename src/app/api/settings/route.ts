@@ -6,13 +6,25 @@ export async function GET() {
   return NextResponse.json({
     mimoApiKey: settings.mimoApiKey ? "sk-****" + settings.mimoApiKey.slice(-6) : "",
     configured: !!settings.mimoApiKey,
+    watermarkEnabled: settings.watermarkEnabled || false,
+    watermarkText: settings.watermarkText || "",
+    watermarkPosition: settings.watermarkPosition || "bottom-right",
+    watermarkOpacity: settings.watermarkOpacity ?? 30,
+    watermarkFontSize: settings.watermarkFontSize || "medium",
   });
 }
 
 export async function POST(request: NextRequest) {
-  const { mimoApiKey } = await request.json();
+  const body = await request.json();
   const settings = getSettings();
-  settings.mimoApiKey = mimoApiKey;
+  if (body.mimoApiKey !== undefined) {
+    settings.mimoApiKey = body.mimoApiKey;
+  }
+  if (body.watermarkEnabled !== undefined) settings.watermarkEnabled = body.watermarkEnabled;
+  if (body.watermarkText !== undefined) settings.watermarkText = body.watermarkText;
+  if (body.watermarkPosition !== undefined) settings.watermarkPosition = body.watermarkPosition;
+  if (body.watermarkOpacity !== undefined) settings.watermarkOpacity = body.watermarkOpacity;
+  if (body.watermarkFontSize !== undefined) settings.watermarkFontSize = body.watermarkFontSize;
   saveSettings(settings);
   return NextResponse.json({ ok: true });
 }
