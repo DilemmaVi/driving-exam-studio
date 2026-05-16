@@ -4,6 +4,7 @@ import { COLORS, FONT, SPACING, RADIUS } from "./theme";
 import { RedCircle } from "./RedCircle";
 
 const KEYWORD_COLOR = "#FF6B4A";
+const BLUE_KEYWORD_COLOR = "#3B82F6";
 
 interface Props {
   title: string;
@@ -15,26 +16,34 @@ interface Props {
   borderColor?: string;
   readingDurationFrames?: number;
   keywords?: string[];
+  blueKeywords?: string[];
   panelHeight?: number;
   underlineEnabled?: boolean;
+  underlineColor?: string;
   phase?: "question" | "answer" | "explanation" | "tip";
   originalQuestion?: string;
   originalOptions?: string[];
   originalKeywords?: string[];
   correctOptionIndices?: number[];
   keywordFlashEnabled?: boolean;
+  fontSizeOverride?: number;
+  readingPrefixDelay?: number;
+  readingSpeedRatio?: number;
 }
 
 interface Segment {
   text: string;
   isKeyword: boolean;
+  isBlueKeyword?: boolean;
   startIdx: number;
 }
 
-function splitByKeywords(text: string, keywords: string[]): Segment[] {
-  if (!keywords.length) return [{ text, isKeyword: false, startIdx: 0 }];
-  const escaped = keywords.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+function splitByKeywords(text: string, keywords: string[], blueKeywords: string[] = []): Segment[] {
+  const allKws = [...keywords, ...blueKeywords];
+  if (!allKws.length) return [{ text, isKeyword: false, startIdx: 0 }];
+  const escaped = allKws.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
   const regex = new RegExp(`(${escaped.join("|")})`, "g");
+  const blueSet = new Set(blueKeywords);
   const segments: Segment[] = [];
   let lastIdx = 0;
   let match;
@@ -42,7 +51,8 @@ function splitByKeywords(text: string, keywords: string[]): Segment[] {
     if (match.index > lastIdx) {
       segments.push({ text: text.slice(lastIdx, match.index), isKeyword: false, startIdx: lastIdx });
     }
-    segments.push({ text: match[0], isKeyword: true, startIdx: match.index });
+    const isBlue = blueSet.has(match[0]);
+    segments.push({ text: match[0], isKeyword: true, isBlueKeyword: isBlue, startIdx: match.index });
     lastIdx = regex.lastIndex;
   }
   if (lastIdx < text.length) {
@@ -68,9 +78,10 @@ function renderWithKeywordUnderline(text: string, keywords: string[]): React.Rea
 
 export const BottomPanel: React.FC<Props> = ({
   title, titleColor, accentColor, content, startFrame, endFrame, borderColor,
-  readingDurationFrames, keywords, panelHeight: panelHeightProp,
+  readingDurationFrames, keywords, blueKeywords, panelHeight: panelHeightProp,
   underlineEnabled = true, phase, originalQuestion, originalOptions,
-  originalKeywords, correctOptionIndices, keywordFlashEnabled,
+  originalKeywords, correctOptionIndices, keywordFlashEnabled, fontSizeOverride, underlineColor,
+  readingPrefixDelay, readingSpeedRatio,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -78,7 +89,7 @@ export const BottomPanel: React.FC<Props> = ({
   if (frame < startFrame || frame >= endFrame) return null;
 
   const localFrame = frame - startFrame;
-  const exitStart = endFrame - startFrame - 15;
+  const exitStart = endFrame - startFrame - 25;
 
   const slideIn = spring({
     frame: localFrame,
@@ -93,7 +104,7 @@ export const BottomPanel: React.FC<Props> = ({
   const translateY = interpolate(slideIn, [0, 1], [900, 0]) + interpolate(slideOut, [0, 1], [0, 900]);
   const dimOpacity = interpolate(slideIn, [0, 1], [0, 0.35]) - interpolate(slideOut, [0, 1], [0, 0.35]);
 
-  const cleanContent = content.replace(/【/g, "").replace(/】/g, "");
+  const cleanContent = content.replace(/【/g, "").replace(/】/g, "").replace(/[{}｛｝]/g, "");
   const sentences = cleanContent.split(/(?<=[。！？；])/).filter(s => s.trim());
   const sentenceDelay = 12;
 
@@ -119,6 +130,8 @@ export const BottomPanel: React.FC<Props> = ({
     panelFontSize = fs;
   }
 
+  if (fontSizeOverride) panelFontSize = fontSizeOverride;
+
   // Recalculate at final font size
   const finalCharsPerLine = Math.floor(contentWidth / panelFontSize);
   let finalTotalLines = 0;
@@ -133,13 +146,17 @@ export const BottomPanel: React.FC<Props> = ({
     ? interpolate(localFrame, [0, readingDurationFrames], [0, estimatedTotalHeight - panelContentHeight + 40], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
     : 0;
 
-  const readProgress = readingDurationFrames && readingDurationFrames > 0
-    ? Math.min(1, Math.max(0, localFrame / readingDurationFrames))
+  const prefixDelay = readingPrefixDelay ?? 0;
+  const speedRatio = readingSpeedRatio ?? 1;
+  const effectiveDuration = readingDurationFrames ? readingDurationFrames / speedRatio : 0;
+  const readProgress = effectiveDuration > 0
+    ? Math.min(1, Math.max(0, (localFrame - prefixDelay) / effectiveDuration))
     : -1;
 
   const totalContentLen = sentences.reduce((s, t) => s + t.length, 0);
   let charCounter = 0;
   const kws = keywords || [];
+  const bkws = blueKeywords || [];
 
   const underlineProgress = readingDurationFrames && readingDurationFrames > 0
     ? Math.min(1, localFrame / readingDurationFrames)
@@ -191,13 +208,6 @@ export const BottomPanel: React.FC<Props> = ({
           <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
             <div style={{
               transform: `translateY(-${scrollOffset}px)`,
-              ...(underlineEnabled ? {
-                backgroundImage: `linear-gradient(to right, ${COLORS.accent} ${underlineProgress * 100}%, transparent ${underlineProgress * 100}%)`,
-                backgroundSize: "100% 3px",
-                backgroundPosition: "left bottom",
-                backgroundRepeat: "no-repeat",
-                paddingBottom: 6,
-              } : {}),
             }}>
             {sentences.map((sentence, i) => {
               const sentenceFrame = sentenceDelay * i;
@@ -210,7 +220,7 @@ export const BottomPanel: React.FC<Props> = ({
                 { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
               );
 
-              const segments = splitByKeywords(sentence, kws);
+              const segments = splitByKeywords(sentence, kws, bkws);
               const sentenceCharStart = charCounter;
 
               const rendered = segments.map((seg, si) => {
@@ -225,7 +235,7 @@ export const BottomPanel: React.FC<Props> = ({
 
                   let color = COLORS.text;
                   if (seg.isKeyword && isRead) {
-                    color = KEYWORD_COLOR;
+                    color = seg.isBlueKeyword ? BLUE_KEYWORD_COLOR : KEYWORD_COLOR;
                   } else if (isRead) {
                     color = titleColor;
                   }
@@ -234,6 +244,7 @@ export const BottomPanel: React.FC<Props> = ({
                     <span key={ci} style={{
                       color,
                       fontWeight: seg.isKeyword && isRead ? 700 : undefined,
+                      borderBottom: underlineEnabled && isRead ? `3px solid ${underlineColor || COLORS.accent}` : undefined,
                       transition: "color 0.15s",
                     }}>{ch}</span>
                   );
@@ -244,7 +255,7 @@ export const BottomPanel: React.FC<Props> = ({
                     ? startFrame + Math.round(segReadRatio * readingDurationFrames)
                     : startFrame;
                   return (
-                    <RedCircle key={`seg-${si}`} appearFrame={kwAppearFrame} flashEnabled={keywordFlashEnabled}>
+                    <RedCircle key={`seg-${si}`} appearFrame={kwAppearFrame} flashEnabled={keywordFlashEnabled} color={seg.isBlueKeyword ? "#3B82F6" : undefined}>
                       {chars}
                     </RedCircle>
                   );

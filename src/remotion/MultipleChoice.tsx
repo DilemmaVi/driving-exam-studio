@@ -28,19 +28,40 @@ export const MultipleChoice: React.FC<{
   avatarSize?: number;
   avatarPosition?: string;
   pauseBeforeTip?: number;
-}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip }) => {
+  optionGap?: number;
+  fontSizeQuestion?: number;
+  fontSizeOption?: number;
+  fontSizeExplanation?: number;
+  underlineQuestion?: boolean;
+  underlineOption?: boolean;
+  underlineExplanation?: boolean;
+  underlineTip?: boolean;
+  underlineColor?: string;
+  stemKeywords?: string[];
+  stemKeywordPhases?: string[];
+  readingPrefixDelay?: number;
+  readingSpeedRatio?: number;
+  subjectLabel?: string;
+}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, subjectLabel }) => {
   const labels = ["A", "B", "C", "D"];
   const correctIndices = question.correctIndices || [question.correctIndex];
   const correctLabel = correctIndices.map(i => labels[i]).join("");
-  const correctText = correctIndices.map(i => question.options[i]?.replace(/【/g, "").replace(/】/g, "")).join("、");
+  const correctText = correctIndices.map(i => question.options[i]?.replace(/【/g, "").replace(/】/g, "").replace(/[{}｛｝]/g, "")).join("、");
 
   const kwRegex = /【([^】]+)】/g;
   const keywords: string[] = [];
+  const blueKeywords: string[] = [];
   let m;
   while ((m = kwRegex.exec(question.questionContent)) !== null) keywords.push(m[1]);
   for (const opt of question.options) {
     const r = /【([^】]+)】/g;
     while ((m = r.exec(opt)) !== null) keywords.push(m[1]);
+  }
+  const bkRegex = /[{｛]([^}｝]+)[}｝]/g;
+  while ((m = bkRegex.exec(question.questionContent)) !== null) blueKeywords.push(m[1]);
+  for (const opt of question.options) {
+    const r = /[{｛]([^}｝]+)[}｝]/g;
+    while ((m = r.exec(opt)) !== null) blueKeywords.push(m[1]);
   }
 
   const hasTeacher = !!(teacherExplanation && audioDurations.teacherExplanation);
@@ -81,13 +102,13 @@ export const MultipleChoice: React.FC<{
   if (showOfficialExplanation !== false && expFrames > 0) {
     T.bridgeExplainStart = cursor; cursor += beFrames;
     T.explanationStart = cursor;
-    T.explanationEnd = cursor + expFrames + Math.round(1 * FPS);
+    T.explanationEnd = cursor + expFrames + Math.round(2.5 * FPS);
     cursor = T.explanationEnd;
   }
   if (showTip !== false && tFrames > 0) {
     T.bridgeTipStart = cursor; cursor += bpFrames;
     T.tipStart = cursor;
-    T.tipEnd = cursor + tFrames + Math.round(1.5 * FPS);
+    T.tipEnd = cursor + tFrames + Math.round(2.5 * FPS);
   }
 
   const optReadStarts: number[] = [];
@@ -102,7 +123,7 @@ export const MultipleChoice: React.FC<{
       <Background />
       <ProgressBar />
 
-      <div style={{ position: "absolute", top: 80, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column" }}>
+      <div style={{ position: "absolute", top: 30, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column" }}>
         <QuestionHeader
           text={question.questionContent}
           startFrame={T.questionStart}
@@ -111,6 +132,16 @@ export const MultipleChoice: React.FC<{
           tipFrame={T.tipStart > 0 ? T.tipStart : undefined}
           readingDurationFrames={qFrames}
           questionType={correctIndices.length > 1 ? "多选题" : "单选题"}
+          subjectLabel={subjectLabel}
+          fontSizeOverride={fontSizeQuestion}
+          underlineEnabled={underlineQuestion}
+          underlineColor={underlineColor}
+          stemKeywords={stemKeywords}
+          stemKeywordPhases={stemKeywordPhases}
+          explanationStartFrame={T.explanationStart > 0 ? T.explanationStart : undefined}
+          tipStartFrame={T.tipStart > 0 ? T.tipStart : undefined}
+          readingPrefixDelay={readingPrefixDelay}
+          readingSpeedRatio={readingSpeedRatio}
         />
         {question.coverImage && <QuestionImage src={question.coverImage} startFrame={T.imageStart} />}
         <div style={{ paddingTop: question.coverImage ? 0 : 40, paddingBottom: 60 }}>
@@ -122,6 +153,10 @@ export const MultipleChoice: React.FC<{
               circleFrame={T.explanationStart > 0 ? T.explanationStart : undefined}
               tipFrame={T.tipStart > 0 ? T.tipStart : undefined}
               readStartFrame={readOptions ? optReadStarts[i] : undefined}
+              optionGap={optionGap}
+              fontSizeOverride={fontSizeOption}
+              underlineEnabled={underlineOption}
+              underlineColor={underlineColor}
             />
           ))}
           <AnswerReveal correctLabel={correctLabel} correctText={correctText} startFrame={T.revealStart} />
@@ -133,10 +168,10 @@ export const MultipleChoice: React.FC<{
       )}
 
       {showOfficialExplanation !== false && T.explanationEnd > T.explanationStart && (
-        <BottomPanel title="答题解析" titleColor={COLORS.correct} accentColor={COLORS.correct} borderColor={COLORS.correctBorder} content={explanationText} startFrame={T.explanationStart} endFrame={T.explanationEnd} readingDurationFrames={expFrames} underlineEnabled={underlineProgressEnabled} keywordFlashEnabled={keywordFlashEnabled} phase="explanation" originalQuestion={question.questionContent} originalOptions={question.options} originalKeywords={keywords} correctOptionIndices={correctIndices} />
+        <BottomPanel title="答题解析" titleColor={COLORS.correct} accentColor={COLORS.correct} borderColor={COLORS.correctBorder} content={explanationText} startFrame={T.explanationStart} endFrame={T.explanationEnd} readingDurationFrames={expFrames} underlineEnabled={underlineExplanation ?? underlineProgressEnabled} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} phase="explanation" originalQuestion={question.questionContent} originalOptions={question.options} originalKeywords={keywords} correctOptionIndices={correctIndices} fontSizeOverride={fontSizeExplanation} />
       )}
       {showTip !== false && T.tipEnd > T.tipStart && (
-        <BottomPanel title="答题技巧" titleColor={COLORS.highlight} accentColor={COLORS.highlight} borderColor="rgba(252, 211, 77, 0.4)" content={question.tip} startFrame={T.tipStart} endFrame={T.tipEnd} readingDurationFrames={tFrames} keywords={keywords} underlineEnabled={underlineProgressEnabled} keywordFlashEnabled={keywordFlashEnabled} />
+        <BottomPanel title="答题技巧" titleColor={COLORS.highlight} accentColor={COLORS.highlight} borderColor="rgba(252, 211, 77, 0.4)" content={question.tip} startFrame={T.tipStart} endFrame={T.tipEnd} readingDurationFrames={tFrames} keywords={keywords} blueKeywords={blueKeywords} underlineEnabled={underlineTip ?? underlineProgressEnabled} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} />
       )}
 
       <Sequence from={0}><Audio src={`${audioServerUrl}/audio/q${question.id}_question.wav`} /></Sequence>

@@ -19,7 +19,7 @@ const OUTRO_DURATION = 4;
 function questionDuration(entry: QuestionEntry, tipOnly = false): number {
   const d = entry.durations;
   if (tipOnly) {
-    return d.question + PAUSE + d.answer + PAUSE + (d.bridgeTip || 0) + d.tip + 1.5;
+    return d.question + PAUSE + d.answer + PAUSE + (d.bridgeTip || 0) + d.tip + 2.5;
   }
   const think = entry.thinkTime ?? DEFAULT_THINK;
   const hasTeacher = !!(entry.teacherExplanation && d.teacherExplanation);
@@ -32,10 +32,10 @@ function questionDuration(entry: QuestionEntry, tipOnly = false): number {
   dur += d.answer + PAUSE;
   if (entry.showOfficialExplanation !== false) {
     const expDur = hasTeacher ? d.teacherExplanation! : d.explanation;
-    dur += (d.bridgeExplain || 0) + expDur + 1;
+    dur += (d.bridgeExplain || 0) + expDur + 2.5;
   }
   if (entry.showTip !== false) {
-    dur += (d.bridgeTip || 0) + d.tip + 1.5;
+    dur += (d.bridgeTip || 0) + d.tip + 2.5;
   }
   return dur;
 }
@@ -55,6 +55,11 @@ interface Props {
   pauseBeforeTip?: number;
   keywordFlashEnabled?: boolean;
   underlineProgressEnabled?: boolean;
+  underlineQuestion?: boolean;
+  underlineOption?: boolean;
+  underlineExplanation?: boolean;
+  underlineTip?: boolean;
+  underlineColor?: string;
   avatarEnabled?: boolean;
   avatarSize?: number;
   avatarPosition?: string;
@@ -63,7 +68,7 @@ interface Props {
 export const DynamicCombinedExam: React.FC<Props> = ({
   entries, audioServerUrl = "", introTitle, introSubtitle, introCategory, outroText, outroSubtitle, tipOnly,
   showTransition, pauseStart, pauseEnd, pauseBeforeTip,
-  keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition,
+  keywordFlashEnabled, underlineProgressEnabled, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, avatarEnabled, avatarSize, avatarPosition,
 }) => {
   let currentFrame = 0;
   const sequences: React.ReactElement[] = [];
@@ -97,11 +102,11 @@ export const DynamicCombinedExam: React.FC<Props> = ({
       readOptions: false,
     } : entry;
     const qDurSecs = questionDuration(effectiveEntry, tipOnly);
-    const qFrames = Math.ceil(qDurSecs * FPS);
+    const qFrames = Math.ceil(qDurSecs * FPS) + 10;
 
     if (showTransition && idx > 0) {
       const transFrames = Math.ceil(TRANS_DURATION * FPS);
-      const typeLabel = entry.question.type === "true-false" ? "判断题" : "单选题";
+      const typeLabel = entry.question.type === "true-false" ? "判断题" : (entry.question.correctIndices && entry.question.correctIndices.length > 1) ? "多选题" : "单选题";
       const audioFile = `q${entry.question.id}_transition.wav`;
 
       sequences.push(
@@ -134,12 +139,26 @@ export const DynamicCombinedExam: React.FC<Props> = ({
           showOfficialExplanation={effectiveEntry.showOfficialExplanation}
           showTip={effectiveEntry.showTip}
           readOptions={effectiveEntry.readOptions}
+          optionGap={effectiveEntry.optionGap}
+          fontSizeQuestion={effectiveEntry.fontSizeQuestion}
+          fontSizeOption={effectiveEntry.fontSizeOption}
+          fontSizeExplanation={effectiveEntry.fontSizeExplanation}
+          underlineQuestion={effectiveEntry.underlineQuestion ?? underlineQuestion}
+          underlineOption={effectiveEntry.underlineOption ?? underlineOption}
+          underlineExplanation={effectiveEntry.underlineExplanation ?? underlineExplanation}
+          underlineTip={effectiveEntry.underlineTip ?? underlineTip}
+          underlineColor={effectiveEntry.underlineColor || underlineColor}
           pauseBeforeTip={pauseBeforeTip}
           keywordFlashEnabled={keywordFlashEnabled}
           underlineProgressEnabled={underlineProgressEnabled}
           avatarEnabled={avatarEnabled}
           avatarSize={avatarSize}
           avatarPosition={avatarPosition}
+          stemKeywords={effectiveEntry.stemKeywords}
+          stemKeywordPhases={effectiveEntry.stemKeywordPhases}
+          readingPrefixDelay={effectiveEntry.readingPrefixDelay}
+          readingSpeedRatio={effectiveEntry.readingSpeedRatio}
+          subjectLabel={introCategory}
         />
       </Sequence>
     );
@@ -189,5 +208,5 @@ export function calcCombinedDuration(
   });
   if (hasOutro) total += OUTRO_DURATION;
   total += (pauseEnd || 0);
-  return Math.ceil(total * FPS);
+  return Math.ceil(total * FPS) + entries.length * 10;
 }
