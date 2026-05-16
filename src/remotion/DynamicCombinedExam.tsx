@@ -166,6 +166,10 @@ export const DynamicCombinedExam: React.FC<Props> = ({
           panelAdjust={effectiveEntry.panelAdjust}
           panelAdjustValue={effectiveEntry.panelAdjustValue}
           subjectLabel={introCategory}
+          watermarkText={watermarkText}
+          watermarkPosition={watermarkPosition}
+          watermarkOpacity={watermarkOpacity}
+          watermarkFontSize={watermarkFontSize}
         />
       </Sequence>
     );
@@ -195,7 +199,6 @@ export const DynamicCombinedExam: React.FC<Props> = ({
   return (
     <AbsoluteFill>
       {sequences}
-      {watermarkText && <Watermark text={watermarkText} position={watermarkPosition} opacity={watermarkOpacity} fontSize={watermarkFontSize} />}
     </AbsoluteFill>
   );
 };

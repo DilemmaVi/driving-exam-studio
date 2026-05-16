@@ -7,6 +7,7 @@ import { OptionItem } from "./OptionItem";
 import { AnswerReveal } from "./AnswerReveal";
 import { BottomPanel } from "./BottomPanel";
 import { TeacherAvatar } from "./TeacherAvatar";
+import { Watermark } from "./Watermark";
 import type { Question, AudioDurations } from "./types";
 import { COLORS } from "./theme";
 
@@ -43,7 +44,11 @@ export const TrueFalseQuestion: React.FC<{
   panelAdjust?: string;
   panelAdjustValue?: number;
   subjectLabel?: string;
-}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, readOptions = true, teacherExplanation, showOfficialExplanation, showTip, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel }) => {
+  watermarkText?: string;
+  watermarkPosition?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
+  watermarkOpacity?: number;
+  watermarkFontSize?: "small" | "medium" | "large";
+}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, readOptions = true, teacherExplanation, showOfficialExplanation, showTip, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize }) => {
   const labels = ["A", "B"];
   const correctLabel = labels[question.correctIndex];
   const correctText = question.options[question.correctIndex];
@@ -239,6 +244,6 @@ export const TrueFalseQuestion: React.FC<{
           <Sequence from={T.tipStart}><Audio src={`${audioServerUrl}/audio/q${question.id}_tip.wav`} /></Sequence>
         </>
       )}
-    </AbsoluteFill>
-  );
+      {watermarkText && <Watermark text={watermarkText} position={watermarkPosition} opacity={watermarkOpacity} fontSize={watermarkFontSize} />}
+    </AbsoluteFill>  );
 };

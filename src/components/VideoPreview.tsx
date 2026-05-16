@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Player } from "@remotion/player";
 import { TrueFalseQuestion } from "@/remotion/TrueFalseQuestion";
 import { MultipleChoice } from "@/remotion/MultipleChoice";
@@ -51,6 +51,18 @@ export function VideoPreview({
   underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor,
   stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel,
 }: Props) {
+  const [watermark, setWatermark] = useState<{ text?: string; position?: string; opacity?: number; fontSize?: string }>({});
+  useEffect(() => {
+    if (open) {
+      fetch("/api/settings").then(r => r.json()).then(d => {
+        if (d.watermarkEnabled && d.watermarkText) {
+          setWatermark({ text: d.watermarkText, position: d.watermarkPosition, opacity: d.watermarkOpacity, fontSize: d.watermarkFontSize });
+        } else {
+          setWatermark({});
+        }
+      });
+    }
+  }, [open]);
   const durationInFrames = useMemo(() => {
     if (!audioDurations) return 300;
     const d = audioDurations;
@@ -115,6 +127,10 @@ export function VideoPreview({
             panelAdjust,
             panelAdjustValue,
             subjectLabel,
+            watermarkText: watermark.text,
+            watermarkPosition: watermark.position as any,
+            watermarkOpacity: watermark.opacity,
+            watermarkFontSize: watermark.fontSize as any,
           }}
           durationInFrames={durationInFrames}
           compositionWidth={1080}
