@@ -1,0 +1,23 @@
+src/app/renders/page.tsx
+  a0016bb7d214ca0a 37,188-201,233-249
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.14",
+  "base_commit_sha": "ee6a9a8ee04840da131d1063d130445b8bbb3ce3",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 32,
+      "total_deletions": 6,
+      "accepted_lines": 4037,
+      "overriden_lines": 0
+    }
+  }
+}
