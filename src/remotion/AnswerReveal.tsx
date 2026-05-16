@@ -58,8 +58,8 @@ export const AnswerReveal: React.FC<Props> = ({ correctLabel, correctText, start
       transform: `scale(${scale})`,
     }}>
       <div style={{
-        background: COLORS.correctBg,
-        border: `2px solid ${COLORS.correctBorder}`,
+        background: "rgba(34, 197, 94, 0.15)",
+        border: `3px solid rgba(22, 163, 74, 0.6)`,
         borderRadius: RADIUS.xl,
         padding: `${SPACING.lg}px ${SPACING.xl}px`,
         display: "flex",
@@ -84,15 +84,15 @@ export const AnswerReveal: React.FC<Props> = ({ correctLabel, correctText, start
         <div style={{
           minWidth: 72, height: 72, borderRadius: 18,
           padding: "0 12px",
-          background: COLORS.correct,
+          background: "#16A34A",
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: correctLabel.length > 2 ? 30 : 48, fontWeight: 800, color: "#16A34A",
+          fontSize: correctLabel.length > 2 ? 30 : 48, fontWeight: 800, color: "#fff",
         }}>
           {correctLabel}
         </div>
         <span style={{
           fontSize: FONT.size.answer,
-          color: COLORS.correct,
+          color: "#15803D",
           fontFamily: FONT.main,
           fontWeight: 700,
           lineHeight: 1.8,
