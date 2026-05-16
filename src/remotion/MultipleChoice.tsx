@@ -142,26 +142,11 @@ export const MultipleChoice: React.FC<{
   const mode = panelAdjust || "auto-shift";
   let contentShift = 0;
   let contentScale = 1;
-  const topOffset = 30;
-  const safeMargin = 20;
-  const availableBottom = panelTop - safeMargin;
   if (mode === "auto-shift" && overflow > 0) {
-    // Shift up, but don't push content above screen top
-    const maxShift = topOffset;
-    if (overflow <= maxShift) {
-      contentShift = interpolate(panelProgress, [0, 1], [0, -overflow]);
-    } else {
-      // Shift as much as possible, then scale down the remainder
-      const remainingOverflow = overflow - maxShift;
-      const currentBottom = contentBottom - maxShift;
-      const targetScale = Math.max(0.5, availableBottom / currentBottom);
-      contentShift = interpolate(panelProgress, [0, 1], [0, -maxShift]);
-      contentScale = interpolate(panelProgress, [0, 1], [1, targetScale]);
-    }
+    contentShift = interpolate(panelProgress, [0, 1], [0, -overflow]);
   } else if (mode === "auto-scale" && overflow > 0) {
-    // Scale to fit content into available space above panel
-    const contentHeight = contentBottom - topOffset;
-    const targetScale = Math.max(0.5, (availableBottom - topOffset) / contentHeight);
+    const contentHeight = contentBottom - 30;
+    const targetScale = Math.max(0.5, (panelTop - 50) / contentHeight);
     contentScale = interpolate(panelProgress, [0, 1], [1, targetScale]);
   } else if (mode === "manual" && panelAdjustValue) {
     contentShift = interpolate(panelProgress, [0, 1], [0, -panelAdjustValue]);

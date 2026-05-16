@@ -184,22 +184,11 @@ export const ScrollableQuestion: React.FC<{
   const mode = panelAdjust || "auto-shift";
   let contentShift = 0;
   let contentScale = 1;
-  const topOffset = PADDING_TOP;
-  const safeMargin = 20;
-  const availableBottom = panelTop - safeMargin;
   if (mode === "auto-shift" && overflow > 0) {
-    const maxShift = topOffset;
-    if (overflow <= maxShift) {
-      contentShift = interpolate(panelProgress, [0, 1], [0, -overflow]);
-    } else {
-      const currentBottom = contentBottom - maxShift;
-      const targetScale = Math.max(0.5, availableBottom / currentBottom);
-      contentShift = interpolate(panelProgress, [0, 1], [0, -maxShift]);
-      contentScale = interpolate(panelProgress, [0, 1], [1, targetScale]);
-    }
+    contentShift = interpolate(panelProgress, [0, 1], [0, -overflow]);
   } else if (mode === "auto-scale" && overflow > 0) {
-    const contentHeight = contentBottom - topOffset;
-    const targetScale = Math.max(0.5, (availableBottom - topOffset) / contentHeight);
+    const contentHeight = contentBottom - PADDING_TOP;
+    const targetScale = Math.max(0.5, (panelTop - 50) / contentHeight);
     contentScale = interpolate(panelProgress, [0, 1], [1, targetScale]);
   } else if (mode === "manual" && panelAdjustValue) {
     contentShift = interpolate(panelProgress, [0, 1], [0, -panelAdjustValue]);
