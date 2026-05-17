@@ -1,0 +1,29 @@
+package.json
+  a0016bb7d214ca0a 34
+src/components/FluidBackground.tsx
+  a0016bb7d214ca0a 1-60
+src/app/page.tsx
+  a0016bb7d214ca0a 3,7-16,19,22,25
+src/components/ParticleBackground.tsx
+  a0016bb7d214ca0a 1-300
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.14",
+  "base_commit_sha": "cc524ae98dac2949f73219c5e3e4dfb691ffeb8f",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 677,
+      "total_deletions": 312,
+      "accepted_lines": 1407,
+      "overriden_lines": 0
+    }
+  }
+}
