@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import Link from "next/link";
+import Image from "next/image";
 import "./globals.css";
 
 const geist = Geist({
@@ -9,7 +10,7 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "驾考视频制作系统",
+  title: "全安驾考 · 教学视频制作系统",
   description: "选题、排序、预览、一键生成驾考教学视频",
 };
 
@@ -22,8 +23,9 @@ export default function RootLayout({
     <html lang="zh-CN" className={`${geist.variable} h-full`}>
       <body className="min-h-full bg-gray-50 text-gray-900 antialiased">
         <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-6">
-          <Link href="/" className="text-lg font-bold text-blue-600">
-            驾考视频工作台
+          <Link href="/" className="flex items-center gap-2">
+            <Image src="/brand-logo.png" alt="全安驾考" width={32} height={32} className="rounded" />
+            <span className="text-lg font-bold text-blue-600">全安驾考</span>
           </Link>
           <Link href="/series" className="text-sm text-gray-600 hover:text-gray-900">
             视频系列

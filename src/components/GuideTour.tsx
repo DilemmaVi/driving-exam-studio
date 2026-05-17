@@ -10,7 +10,7 @@ function getSeriesPageSteps() {
     {
       element: "#tour-header",
       popover: {
-        title: "欢迎使用驾考视频工作室",
+        title: "欢迎使用全安驾考教学视频制作系统",
         description: "这是一个驾考短视频自动生成工具。系统能将题库自动转化为带语音讲解的短视频，接下来带你了解完整流程。",
         side: "bottom" as const,
       },
@@ -281,6 +281,57 @@ function getEditorPageSteps() {
   ];
 }
 
+function getQuestionsPageSteps() {
+  return [
+    {
+      element: "#tour-q-header",
+      popover: {
+        title: "题库管理",
+        description: "这里集中管理所有题目。支持导入、搜索、筛选、分类管理和批量删除。",
+        side: "bottom" as const,
+      },
+    },
+    {
+      element: "#tour-q-import",
+      popover: {
+        title: "导入题目",
+        description: "点击「导入 Excel」将题目批量导入。如果不清楚模板格式，弹窗中有「下载导入模板」链接，下载后按模板填写即可。导入时需要选择目标分类。",
+        side: "bottom" as const,
+      },
+    },
+    {
+      element: "#tour-q-categories",
+      popover: {
+        title: "分类筛选与管理",
+        description: "通过分类标签快速筛选题目。点击末尾的「+ 管理分类」可以自定义添加、编辑、删除分类，不再局限于预设分类。",
+        side: "bottom" as const,
+      },
+    },
+    {
+      element: "#tour-q-search",
+      popover: {
+        title: "搜索与题型筛选",
+        description: "输入关键字搜索题目内容。右侧可按题型筛选：全部、判断题、选择题。两者可组合使用。",
+        side: "bottom" as const,
+      },
+    },
+    {
+      element: "#tour-q-table",
+      popover: {
+        title: "题目列表",
+        description: "展示题目 ID、题型、内容、分类和关键词。\n\n• 点击行可展开查看完整题目、选项、答案和解析\n• 勾选多题后可批量删除\n• 表头全选框可一键全选当前页",
+        side: "top" as const,
+      },
+    },
+    {
+      popover: {
+        title: "题库管理流程",
+        description: "推荐流程：\n\n① 下载导入模板，按格式填写题目\n② 点击「导入 Excel」选择分类并上传\n③ 用分类标签和搜索快速定位题目\n④ 需要新分类时点「+ 管理分类」添加\n⑤ 回到视频系列页面将题目编排成视频",
+      },
+    },
+  ];
+}
+
 function getRendersPageSteps() {
   return [
     {
@@ -302,7 +353,7 @@ function getRendersPageSteps() {
   ];
 }
 
-export function useGuideTour(page: "series" | "editor" | "renders") {
+export function useGuideTour(page: "series" | "editor" | "renders" | "questions") {
   const startTour = useCallback(() => {
     let steps;
     switch (page) {
@@ -314,6 +365,9 @@ export function useGuideTour(page: "series" | "editor" | "renders") {
         break;
       case "renders":
         steps = getRendersPageSteps();
+        break;
+      case "questions":
+        steps = getQuestionsPageSteps();
         break;
     }
 
@@ -343,7 +397,7 @@ export function useGuideTour(page: "series" | "editor" | "renders") {
   return { startTour };
 }
 
-export function GuideTourButton({ page }: { page: "series" | "editor" | "renders" }) {
+export function GuideTourButton({ page }: { page: "series" | "editor" | "renders" | "questions" }) {
   const { startTour } = useGuideTour(page);
 
   return (

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import { GuideTourButton } from "@/components/GuideTour";
 
 interface Category {
   id: string;
@@ -39,8 +40,9 @@ export default function QuestionsPage() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [showImport, setShowImport] = useState(false);
   const [importCategory, setImportCategory] = useState("");
+  const [importMode, setImportMode] = useState("append");
   const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<{ total: number; inserted: number; skipped: number } | null>(null);
+  const [importResult, setImportResult] = useState<{ total: number; inserted: number; skipped: number; updated?: number; deleted?: number } | null>(null);
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const [deleting, setDeleting] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -105,6 +107,7 @@ export default function QuestionsPage() {
     const fd = new FormData();
     fd.append("file", file);
     fd.append("categoryId", importCategory);
+    fd.append("importMode", importMode);
     const res = await fetch("/api/questions/import", { method: "POST", body: fd });
     const data = await res.json();
     setImportResult(data);
@@ -147,19 +150,20 @@ export default function QuestionsPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
-      <div className="flex items-center justify-between mb-6">
+      <div id="tour-q-header" className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">题库管理</h1>
           <p className="text-sm text-gray-500 mt-1">{total} 道题目</p>
         </div>
         <div className="flex gap-2">
           <Link href="/series" className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">返回系列</Link>
-          <button onClick={() => { setShowImport(true); setImportResult(null); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">导入 Excel</button>
+          <GuideTourButton page="questions" />
+          <button id="tour-q-import" onClick={() => { setShowImport(true); setImportResult(null); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">导入 Excel</button>
         </div>
       </div>
 
       {/* 分类 Tab */}
-      <div className="flex gap-2 mb-4 flex-wrap items-center">
+      <div id="tour-q-categories" className="flex gap-2 mb-4 flex-wrap items-center">
         <button onClick={() => { setActiveCategory("all"); setPage(1); }}
           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${activeCategory === "all" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
         >全部</button>
@@ -168,11 +172,11 @@ export default function QuestionsPage() {
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${activeCategory === c.id ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
           >{c.name}</button>
         ))}
-        <button onClick={() => setShowCategoryMgr(true)} className="px-2.5 py-1.5 rounded-lg text-sm text-gray-500 hover:bg-gray-100 transition" title="管理分类">⚙</button>
+        <button onClick={() => setShowCategoryMgr(true)} className="px-3 py-1.5 rounded-lg text-sm font-medium text-blue-600 border border-dashed border-blue-300 hover:bg-blue-50 transition">+ 管理分类</button>
       </div>
 
       {/* 搜索 + 筛选 */}
-      <div className="flex gap-3 mb-4">
+      <div id="tour-q-search" className="flex gap-3 mb-4">
         <input type="text" placeholder="搜索题目..." value={keyword}
           onChange={(e) => { setKeyword(e.target.value); setPage(1); }}
           className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -197,7 +201,7 @@ export default function QuestionsPage() {
       )}
 
       {/* 题目列表 */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div id="tour-q-table" className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
@@ -315,14 +319,24 @@ export default function QuestionsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Excel 文件</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">导入模式</label>
+                <div className="flex gap-2">
+                  <button onClick={() => setImportMode("append")} className={`flex-1 py-2 rounded-lg text-sm border transition ${importMode === "append" ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>追加</button>
+                  <button onClick={() => setImportMode("overwrite")} className={`flex-1 py-2 rounded-lg text-sm border transition ${importMode === "overwrite" ? "bg-amber-600 text-white border-amber-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>覆盖更新</button>
+                  <button onClick={() => setImportMode("replace")} className={`flex-1 py-2 rounded-lg text-sm border transition ${importMode === "replace" ? "bg-red-600 text-white border-red-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>替换</button>
+                </div>
+                {importMode === "append" && <p className="text-xs text-gray-500 mt-1">重复题目跳过，只插入新题</p>}
+                {importMode === "overwrite" && <p className="text-xs text-amber-600 mt-1">重复题目更新内容（解析、技巧等），新题插入</p>}
+                {importMode === "replace" && <p className="text-xs text-red-500 mt-1">⚠ 将清空该分类下所有题目，再全量导入</p>}
+              </div>
+              <div>
                 <input ref={fileRef} type="file" accept=".xlsx,.xls" className="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 file:font-medium file:cursor-pointer" />
                 <p className="text-xs text-gray-400 mt-1">支持 quanan 导出的标准模板格式 · <a href="/api/questions/template" className="text-blue-600 hover:underline">下载导入模板</a></p>
               </div>
               {importResult && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
                   <p className="text-green-800 font-medium">导入完成</p>
-                  <p className="text-green-700 mt-1">共 {importResult.total} 题，新增 {importResult.inserted} 题，跳过重复 {importResult.skipped} 题</p>
+                  <p className="text-green-700 mt-1">共 {importResult.total} 题，新增 {importResult.inserted} 题{importResult.updated ? `，更新 ${importResult.updated} 题` : ""}，跳过重复 {importResult.skipped} 题{importResult.deleted ? `，已清除旧题 ${importResult.deleted} 题` : ""}</p>
                 </div>
               )}
             </div>

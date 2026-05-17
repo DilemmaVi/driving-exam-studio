@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
   const categoryId = formData.get("categoryId") as string || "";
+  const importMode = formData.get("importMode") as string || "append";
 
   if (!file) {
     return NextResponse.json({ error: "未上传文件" }, { status: 400 });
@@ -52,8 +53,41 @@ export async function POST(request: NextRequest) {
 
   let inserted = 0;
   let skipped = 0;
+  let updated = 0;
+
+  const update = db.prepare(`
+    UPDATE questions SET type = ?, question_text = ?, question_content = ?,
+    option1 = ?, option2 = ?, option3 = ?, option4 = ?,
+    correct_answer = ?, explanation = ?, tip_text = ?, tip_display = ?,
+    cover_image = ?, gif_image = ?, explanation_images = ?, keywords = ?,
+    category_id = ?, source_id = ?, content_hash = ?
+    WHERE id = ?
+  `);
+
+  let deleted = 0;
 
   const tx = db.transaction(() => {
+    if (importMode === "replace" && categoryId) {
+      const qIds = db.prepare(
+        "SELECT question_id FROM question_categories WHERE category_id = ?"
+      ).all(categoryId) as { question_id: number }[];
+      const ids = qIds.map((r) => r.question_id);
+      if (ids.length > 0) {
+        const otherLinks = db.prepare(
+          "SELECT question_id, COUNT(*) as cnt FROM question_categories WHERE question_id IN (" +
+          ids.map(() => "?").join(",") + ") GROUP BY question_id"
+        ).all(...ids) as { question_id: number; cnt: number }[];
+        const multiLinked = new Set(otherLinks.filter((r) => r.cnt > 1).map((r) => r.question_id));
+        const toDelete = ids.filter((id) => !multiLinked.has(id));
+        if (toDelete.length > 0) {
+          db.prepare("DELETE FROM questions WHERE id IN (" + toDelete.map(() => "?").join(",") + ")").run(...toDelete);
+          db.prepare("DELETE FROM tts_cache WHERE question_id IN (" + toDelete.map(() => "?").join(",") + ")").run(...toDelete);
+        }
+        db.prepare("DELETE FROM question_categories WHERE category_id = ?").run(categoryId);
+        deleted = ids.length;
+      }
+    }
+
     for (const row of rows) {
       const sourceId = Number(row["题库ID"]) || 0;
       const questionText = String(row["题目"] || "").trim();
@@ -90,11 +124,24 @@ export async function POST(request: NextRequest) {
 
       const existing = db.prepare("SELECT id FROM questions WHERE content_hash = ? OR (source_id = ? AND source_id > 0)").get(hash, sourceId) as { id: number } | undefined;
       if (existing) {
-        // Still link to this category
+        if (importMode === "overwrite") {
+          update.run(
+            type, questionText, questionContent,
+            opts[0] || null, opts[1] || null, opts[2] || null, opts[3] || null,
+            correctAnswer, explanation, tipText, tipDisplay,
+            coverImage || null, gifImage || null,
+            explainImgs.length > 0 ? JSON.stringify(explainImgs) : null,
+            keywords || null, categoryId, sourceId || null, hash,
+            existing.id
+          );
+          db.prepare("DELETE FROM tts_cache WHERE question_id = ?").run(existing.id);
+          updated++;
+        } else {
+          skipped++;
+        }
         if (categoryId) {
           db.prepare("INSERT OR IGNORE INTO question_categories (question_id, category_id) VALUES (?, ?)").run(existing.id, categoryId);
         }
-        skipped++;
         continue;
       }
 
@@ -120,5 +167,7 @@ export async function POST(request: NextRequest) {
     total: rows.length,
     inserted,
     skipped,
+    updated,
+    deleted,
   });
 }
