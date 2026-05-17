@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { renderQueue } from "@/lib/render-queue";
+import { renderInBackground } from "../route";
 import { v4 as uuid } from "uuid";
 
 export async function POST(request: NextRequest) {
@@ -27,8 +28,6 @@ export async function POST(request: NextRequest) {
       db.prepare("INSERT INTO render_tasks (id, question_ids, series_id, status, phase, phase_label) VALUES (?, ?, ?, 'pending', '', '')")
         .run(taskId, JSON.stringify(qIds), seriesId);
 
-      // Dynamically import to avoid circular dependency issues at module load time
-      const { renderInBackground } = await import("../route");
       renderQueue.enqueue(taskId, () => renderInBackground(taskId, qIds, seriesData!, seriesQuestions, false));
       taskIds.push(taskId);
     }

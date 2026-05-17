@@ -10,6 +10,11 @@ interface Settings {
   watermarkPosition?: string;
   watermarkOpacity?: number;
   watermarkFontSize?: number;
+  watermarkLogoUrl?: string;
+  watermarkScale?: number;
+  watermarkColor?: string;
+  watermarkFont?: string;
+  watermarkStroke?: boolean;
 }
 
 export function getSettings(): Settings {

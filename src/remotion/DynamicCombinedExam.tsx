@@ -65,15 +65,20 @@ interface Props {
   avatarSize?: number;
   avatarPosition?: string;
   watermarkText?: string;
-  watermarkPosition?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
+  watermarkPosition?: "top-left" | "top-center" | "top-right" | "center-left" | "center" | "center-right" | "bottom-left" | "bottom-center" | "bottom-right";
   watermarkOpacity?: number;
   watermarkFontSize?: number;
+  watermarkLogoUrl?: string;
+  watermarkScale?: number;
+  watermarkColor?: string;
+  watermarkFont?: string;
+  watermarkStroke?: boolean;
 }
 
 export const DynamicCombinedExam: React.FC<Props> = ({
   entries, audioServerUrl = "", introTitle, introSubtitle, introCategory, outroText, outroSubtitle, tipOnly,
   showTransition, pauseStart, pauseEnd, pauseBeforeTip,
-  keywordFlashEnabled, underlineProgressEnabled, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, avatarEnabled, avatarSize, avatarPosition, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize,
+  keywordFlashEnabled, underlineProgressEnabled, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, avatarEnabled, avatarSize, avatarPosition, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke,
 }) => {
   let currentFrame = 0;
   const sequences: React.ReactElement[] = [];
@@ -170,6 +175,11 @@ export const DynamicCombinedExam: React.FC<Props> = ({
           watermarkPosition={watermarkPosition}
           watermarkOpacity={watermarkOpacity}
           watermarkFontSize={watermarkFontSize}
+          watermarkLogoUrl={watermarkLogoUrl}
+          watermarkScale={watermarkScale}
+          watermarkColor={watermarkColor}
+          watermarkFont={watermarkFont}
+          watermarkStroke={watermarkStroke}
         />
       </Sequence>
     );

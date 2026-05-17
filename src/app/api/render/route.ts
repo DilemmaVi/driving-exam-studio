@@ -52,6 +52,14 @@ export async function GET(request: NextRequest) {
   const taskId = searchParams.get("taskId");
   const db = getDb();
 
+  // Recover stale tasks: if a task is stuck in tts/rendering but not in the queue, mark as error
+  const stuckTasks = db.prepare("SELECT id FROM render_tasks WHERE status IN ('tts', 'rendering')").all() as { id: string }[];
+  for (const t of stuckTasks) {
+    if (renderQueue.getCurrentTaskId() !== t.id && renderQueue.getPosition(t.id) === 0) {
+      db.prepare("UPDATE render_tasks SET status = 'error', error = '进程重启，任务中断' WHERE id = ?").run(t.id);
+    }
+  }
+
   if (taskId) {
     const task = db.prepare("SELECT * FROM render_tasks WHERE id = ?").get(taskId) as Record<string, unknown> | undefined;
     if (!task) return NextResponse.json({ error: "not found" }, { status: 404 });
@@ -108,6 +116,7 @@ export async function DELETE(request: NextRequest) {
   const db = getDb();
 
   if (taskId) {
+    renderQueue.cancel(taskId);
     db.prepare("DELETE FROM render_tasks WHERE id = ?").run(taskId);
   } else if (clearDone === "1") {
     db.prepare("DELETE FROM render_tasks WHERE status IN ('done','error')").run();
@@ -115,10 +124,18 @@ export async function DELETE(request: NextRequest) {
   return NextResponse.json({ ok: true });
 }
 
+const ALLOWED_TASK_COLUMNS = new Set([
+  "status", "phase", "phase_label", "progress", "error",
+  "output_path", "file_size", "completed_at",
+  "rendered_frames", "total_frames",
+]);
+
 function updateTask(taskId: string, fields: Record<string, unknown>) {
   const db = getDb();
-  const sets = Object.keys(fields).map((k) => `${k} = ?`).join(", ");
-  const values = Object.values(fields);
+  const safeFields = Object.entries(fields).filter(([k]) => ALLOWED_TASK_COLUMNS.has(k));
+  if (safeFields.length === 0) return;
+  const sets = safeFields.map(([k]) => `${k} = ?`).join(", ");
+  const values = safeFields.map(([, v]) => v);
   db.prepare(`UPDATE render_tasks SET ${sets} WHERE id = ?`).run(...values, taskId);
 }
 
@@ -312,11 +329,16 @@ export async function renderInBackground(
     };
 
     const settings = getSettings();
-    if (settings.watermarkEnabled && settings.watermarkText) {
+    if (settings.watermarkEnabled && (settings.watermarkText || settings.watermarkLogoUrl)) {
       props.watermarkText = settings.watermarkText;
       props.watermarkPosition = settings.watermarkPosition || "bottom-right";
       props.watermarkOpacity = settings.watermarkOpacity ?? 30;
-      props.watermarkFontSize = settings.watermarkFontSize || "medium";
+      props.watermarkFontSize = settings.watermarkFontSize ?? 36;
+      props.watermarkLogoUrl = settings.watermarkLogoUrl;
+      props.watermarkScale = settings.watermarkScale ?? 100;
+      props.watermarkColor = settings.watermarkColor;
+      props.watermarkFont = settings.watermarkFont;
+      props.watermarkStroke = settings.watermarkStroke;
     }
     if (tipOnly) {
       props.tipOnly = true;
@@ -353,6 +375,8 @@ export async function renderInBackground(
         env: renderEnv,
         shell: !isPackaged,
       });
+
+      renderQueue.setCurrentProcess(child);
 
       let stderrBuf = "";
 

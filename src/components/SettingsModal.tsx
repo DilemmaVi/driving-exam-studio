@@ -123,6 +123,11 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
   const [watermarkPosition, setWatermarkPosition] = useState("bottom-right");
   const [watermarkOpacity, setWatermarkOpacity] = useState(30);
   const [watermarkFontSize, setWatermarkFontSize] = useState(36);
+  const [watermarkLogoUrl, setWatermarkLogoUrl] = useState("");
+  const [watermarkScale, setWatermarkScale] = useState(100);
+  const [watermarkColor, setWatermarkColor] = useState("#ffffff");
+  const [watermarkFont, setWatermarkFont] = useState("default");
+  const [watermarkStroke, setWatermarkStroke] = useState(true);
 
   useEffect(() => {
     if (open) {
@@ -133,6 +138,11 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
         setWatermarkPosition(d.watermarkPosition || "bottom-right");
         setWatermarkOpacity(d.watermarkOpacity ?? 30);
         setWatermarkFontSize(d.watermarkFontSize ?? 36);
+        setWatermarkLogoUrl(d.watermarkLogoUrl || "");
+        setWatermarkScale(d.watermarkScale ?? 100);
+        setWatermarkColor(d.watermarkColor || "#ffffff");
+        setWatermarkFont(d.watermarkFont || "default");
+        setWatermarkStroke(d.watermarkStroke !== false);
       });
       if (series) {
         setIntroTitle(series.intro_title || "");
@@ -184,7 +194,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
       await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mimoApiKey: apiKey.trim(), watermarkEnabled, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize }),
+        body: JSON.stringify({ mimoApiKey: apiKey.trim(), watermarkEnabled, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke }),
       });
       setMaskedKey("sk-****" + apiKey.trim().slice(-6));
       setApiKey("");
@@ -192,7 +202,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
       await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ watermarkEnabled, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize }),
+        body: JSON.stringify({ watermarkEnabled, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke }),
       });
     }
     onSave({
@@ -567,25 +577,83 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
                 {watermarkEnabled && (
                   <>
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">水印文案</label>
-                      <input type="text" value={watermarkText} onChange={(e) => setWatermarkText(e.target.value)} placeholder="如：@你的账号名" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                      <label className="block text-sm text-gray-600 mb-1">品牌 Logo</label>
+                      <div className="flex items-center gap-3">
+                        {watermarkLogoUrl && (
+                          <img src={watermarkLogoUrl} alt="logo" className="w-10 h-10 object-contain rounded border" />
+                        )}
+                        <label className="cursor-pointer text-sm text-blue-600 hover:text-blue-700 border border-blue-200 rounded-lg px-3 py-1.5">
+                          {watermarkLogoUrl ? "更换" : "上传 Logo"}
+                          <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const formData = new FormData();
+                            formData.append("file", file);
+                            formData.append("type", "watermark-logo");
+                            const res = await fetch("/api/upload", { method: "POST", body: formData });
+                            const data = await res.json();
+                            if (data.url) setWatermarkLogoUrl(data.url);
+                          }} />
+                        </label>
+                        {watermarkLogoUrl && (
+                          <button type="button" onClick={() => setWatermarkLogoUrl("")} className="text-xs text-red-500 hover:text-red-600">移除</button>
+                        )}
+                      </div>
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">位置</label>
-                      <select value={watermarkPosition} onChange={(e) => setWatermarkPosition(e.target.value)} className="border rounded-lg px-3 py-2 text-sm">
-                        <option value="top-left">左上角</option>
-                        <option value="top-right">右上角</option>
-                        <option value="bottom-left">左下角</option>
-                        <option value="bottom-right">右下角</option>
-                        <option value="center">居中</option>
-                      </select>
+                      <label className="block text-sm text-gray-600 mb-1">水印文案</label>
+                      <input type="text" value={watermarkText} onChange={(e) => setWatermarkText(e.target.value)} placeholder="如：全安驾考" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="flex-1">
+                        <label className="block text-sm text-gray-600 mb-1">字体风格</label>
+                        <select value={watermarkFont} onChange={(e) => setWatermarkFont(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm">
+                          <option value="default">黑体（默认）</option>
+                          <option value="bold">粗黑体</option>
+                          <option value="serif">宋体</option>
+                          <option value="kai">楷体</option>
+                          <option value="rounded">圆体</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-600 mb-1">文字颜色</label>
+                        <div className="flex items-center gap-2">
+                          <input type="color" value={watermarkColor} onChange={(e) => setWatermarkColor(e.target.value)} className="w-9 h-9 rounded border cursor-pointer" />
+                          <div className="flex gap-1">
+                            {["#ffffff", "#FFD700", "#00E5FF", "#FF6B6B", "#A78BFA"].map(c => (
+                              <button key={c} type="button" onClick={() => setWatermarkColor(c)}
+                                className={`w-6 h-6 rounded-full border-2 transition-all ${watermarkColor === c ? "border-blue-500 scale-110" : "border-gray-200"}`}
+                                style={{ backgroundColor: c }} />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" checked={watermarkStroke} onChange={(e) => setWatermarkStroke(e.target.checked)} className="rounded" />
+                      <span className="text-gray-600">文字描边（增强可读性）</span>
+                    </label>
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-2">位置</label>
+                      <div className="grid grid-cols-3 gap-1.5 w-40">
+                        {(["top-left","top-center","top-right","center-left","center","center-right","bottom-left","bottom-center","bottom-right"] as const).map((pos) => (
+                          <button key={pos} type="button" onClick={() => setWatermarkPosition(pos)}
+                            className={`w-11 h-9 rounded text-xs border transition-all ${watermarkPosition === pos ? "bg-blue-500 text-white border-blue-500" : "bg-gray-50 text-gray-400 border-gray-200 hover:border-blue-300"}`}>
+                            {pos === watermarkPosition ? "●" : "○"}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm text-gray-600 mb-1">透明度 ({watermarkOpacity}%)</label>
-                      <input type="range" min={10} max={80} value={watermarkOpacity} onChange={(e) => setWatermarkOpacity(Number(e.target.value))} className="w-full" />
+                      <input type="range" min={10} max={100} value={watermarkOpacity} onChange={(e) => setWatermarkOpacity(Number(e.target.value))} className="w-full" />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">字体大小 ({watermarkFontSize}px)</label>
+                      <label className="block text-sm text-gray-600 mb-1">整体缩放 ({watermarkScale}%)</label>
+                      <input type="range" min={30} max={200} value={watermarkScale} onChange={(e) => setWatermarkScale(Number(e.target.value))} className="w-full" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">文字大小 ({watermarkFontSize}px)</label>
                       <input type="range" min={16} max={80} value={watermarkFontSize} onChange={(e) => setWatermarkFontSize(Number(e.target.value))} className="w-full" />
                     </div>
                   </>

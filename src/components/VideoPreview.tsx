@@ -51,12 +51,12 @@ export function VideoPreview({
   underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor,
   stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel,
 }: Props) {
-  const [watermark, setWatermark] = useState<{ text?: string; position?: string; opacity?: number; fontSize?: string }>({});
+  const [watermark, setWatermark] = useState<{ text?: string; position?: string; opacity?: number; fontSize?: string; logoUrl?: string; scale?: number; color?: string; font?: string; stroke?: boolean }>({});
   useEffect(() => {
     if (open) {
       fetch("/api/settings").then(r => r.json()).then(d => {
-        if (d.watermarkEnabled && d.watermarkText) {
-          setWatermark({ text: d.watermarkText, position: d.watermarkPosition, opacity: d.watermarkOpacity, fontSize: d.watermarkFontSize });
+        if (d.watermarkEnabled && (d.watermarkText || d.watermarkLogoUrl)) {
+          setWatermark({ text: d.watermarkText, position: d.watermarkPosition, opacity: d.watermarkOpacity, fontSize: d.watermarkFontSize, logoUrl: d.watermarkLogoUrl, scale: d.watermarkScale, color: d.watermarkColor, font: d.watermarkFont, stroke: d.watermarkStroke });
         } else {
           setWatermark({});
         }
@@ -131,6 +131,11 @@ export function VideoPreview({
             watermarkPosition: watermark.position as any,
             watermarkOpacity: watermark.opacity,
             watermarkFontSize: watermark.fontSize as any,
+            watermarkLogoUrl: watermark.logoUrl,
+            watermarkScale: watermark.scale,
+            watermarkColor: watermark.color,
+            watermarkFont: watermark.font,
+            watermarkStroke: watermark.stroke,
           }}
           durationInFrames={durationInFrames}
           compositionWidth={1080}

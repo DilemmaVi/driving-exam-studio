@@ -86,10 +86,15 @@ export const ScrollableQuestion: React.FC<{
   panelAdjustValue?: number;
   subjectLabel?: string;
   watermarkText?: string;
-  watermarkPosition?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
+  watermarkPosition?: "top-left" | "top-center" | "top-right" | "center-left" | "center" | "center-right" | "bottom-left" | "bottom-center" | "bottom-right";
   watermarkOpacity?: number;
   watermarkFontSize?: number;
-}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize }) => {
+  watermarkLogoUrl?: string;
+  watermarkScale?: number;
+  watermarkColor?: string;
+  watermarkFont?: string;
+  watermarkStroke?: boolean;
+}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke }) => {
   const labels = ["A", "B", "C", "D"];
   const correctIndices = question.correctIndices || [question.correctIndex];
   const correctLabel = correctIndices.map(i => labels[i]).join("");
@@ -299,7 +304,7 @@ export const ScrollableQuestion: React.FC<{
           <Sequence from={T.tipStart}><Audio src={`${audioServerUrl}/audio/q${question.id}_tip.wav`} /></Sequence>
         </>
       )}
-      {watermarkText && <Watermark text={watermarkText} position={watermarkPosition} opacity={watermarkOpacity} fontSize={watermarkFontSize} />}
+      {(watermarkText || watermarkLogoUrl) && <Watermark text={watermarkText} logoUrl={watermarkLogoUrl} position={watermarkPosition} opacity={watermarkOpacity} fontSize={watermarkFontSize} scale={watermarkScale} color={watermarkColor} font={watermarkFont as any} stroke={watermarkStroke} />}
     </AbsoluteFill>
   );
 };
