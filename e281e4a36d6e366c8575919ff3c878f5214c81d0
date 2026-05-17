@@ -1,0 +1,31 @@
+src/app/questions/page.tsx
+  a0016bb7d214ca0a 5,43,45,110,153,160-161,166,175,179,204,322-332,339
+src/components/GuideTour.tsx
+  a0016bb7d214ca0a 13,284-334,356,369-370,400
+src/app/layout.tsx
+  a0016bb7d214ca0a 4,13,26-28
+src/app/api/questions/import/route.ts
+  a0016bb7d214ca0a 31,56-65,67,70-90,127-141,170-171
+src/app/page.tsx
+  a0016bb7d214ca0a 2,8-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.14",
+  "base_commit_sha": "e281e4a36d6e366c8575919ff3c878f5214c81d0",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 155,
+      "total_deletions": 27,
+      "accepted_lines": 1178,
+      "overriden_lines": 0
+    }
+  }
+}
