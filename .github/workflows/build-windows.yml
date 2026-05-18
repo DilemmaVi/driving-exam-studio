@@ -106,9 +106,11 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Module resolution test failed" }
 
           Write-Host "=== Test render script can be loaded ==="
-          $renderScript = "$standalone/scripts/render-video.js"
+          $renderScript = Resolve-Path "$standalone/scripts/render-video.js"
           if (!(Test-Path $renderScript)) { throw "render-video.js not found" }
-          & $nodeBin -e "try { require('$($renderScript.Replace('\','/'))')  } catch(e) { if(e.message.includes('Cannot find module')) { console.error(e.message); process.exit(1); } }"
+          $escapedPath = $renderScript.Path.Replace('\','/')
+          & $nodeBin -e "try { require('$escapedPath') } catch(e) { if(e.message.includes('Cannot find module')) { console.error(e.message); process.exit(1); } }"
+          if ($LASTEXITCODE -ne 0) { throw "Render script load test failed" }
           Write-Host "=== Smoke test PASSED ==="
 
       - name: Publish to GitHub Release
