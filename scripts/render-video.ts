@@ -78,9 +78,15 @@ async function main() {
   const propsWithAudioUrl = {
     ...inputProps,
     audioServerUrl: AUDIO_SERVER_URL,
-    entries: inputProps.entries.map((entry: { question: { id: number } }) => ({
+    entries: inputProps.entries.map((entry: { question: { id: number; coverImage?: string } }) => ({
       ...entry,
       audioServerUrl: AUDIO_SERVER_URL,
+      question: {
+        ...entry.question,
+        coverImage: entry.question.coverImage
+          ? `${AUDIO_SERVER_URL}${entry.question.coverImage}`
+          : undefined,
+      },
     })),
   };
 
