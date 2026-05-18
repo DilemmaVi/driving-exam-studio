@@ -364,7 +364,7 @@ export async function renderInBackground(
         cmd = process.env.NODE_EXEC || process.execPath;
         const nodeDepsPath = path.join(process.cwd(), "node_deps");
         args = [scriptPath, propsFile, outputPath];
-        renderEnv = { ...process.env, NODE_PATH: nodeDepsPath };
+        renderEnv = { ...process.env, NODE_PATH: nodeDepsPath, NODE_ENV: "production" };
       } else {
         cmd = "npx";
         args = ["tsx", "scripts/render-video.ts", propsFile, outputPath];
