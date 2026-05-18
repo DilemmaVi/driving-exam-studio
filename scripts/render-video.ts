@@ -74,18 +74,24 @@ async function main() {
 
   const inputProps = JSON.parse(fs.readFileSync(propsFile, "utf-8"));
 
+  // Resolve relative URLs to the local file server
+  function resolveUrl(url?: string): string | undefined {
+    if (!url) return undefined;
+    if (url.startsWith("http")) return url;
+    return `${AUDIO_SERVER_URL}${url}`;
+  }
+
   // Inject audio server URL into each entry's audio base
   const propsWithAudioUrl = {
     ...inputProps,
     audioServerUrl: AUDIO_SERVER_URL,
+    watermarkLogoUrl: resolveUrl(inputProps.watermarkLogoUrl),
     entries: inputProps.entries.map((entry: { question: { id: number; coverImage?: string } }) => ({
       ...entry,
       audioServerUrl: AUDIO_SERVER_URL,
       question: {
         ...entry.question,
-        coverImage: entry.question.coverImage
-          ? `${AUDIO_SERVER_URL}${entry.question.coverImage}`
-          : undefined,
+        coverImage: resolveUrl(entry.question.coverImage),
       },
     })),
   };
