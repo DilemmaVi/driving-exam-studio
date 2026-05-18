@@ -16,10 +16,15 @@ export function UpdateIndicator() {
   useEffect(() => {
     let timer: ReturnType<typeof setInterval>;
     const check = () => {
-      fetch("/api/update").then(r => r.json()).then(setStatus).catch(() => {});
+      fetch("/api/update").then(r => r.json()).then((data) => {
+        setStatus(data);
+        if (data.state === "up-to-date" || data.state === "unknown") {
+          clearInterval(timer);
+        }
+      }).catch(() => {});
     };
     check();
-    timer = setInterval(check, 2000);
+    timer = setInterval(check, 5000);
     return () => clearInterval(timer);
   }, []);
 
