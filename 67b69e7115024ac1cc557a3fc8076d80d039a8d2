@@ -1,0 +1,23 @@
+electron-builder.yml
+  a0016bb7d214ca0a 13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.14",
+  "base_commit_sha": "67b69e7115024ac1cc557a3fc8076d80d039a8d2",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 0,
+      "accepted_lines": 1058,
+      "overriden_lines": 0
+    }
+  }
+}
