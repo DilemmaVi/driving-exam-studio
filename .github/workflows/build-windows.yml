@@ -61,7 +61,57 @@ jobs:
           Write-Host "=== packed-standalone contents ==="
           Get-ChildItem packed-standalone -Depth 0
 
-      - name: Build Electron app
+      - name: Build Electron app (no publish)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --win --publish never
+
+      - name: Smoke test packaged app
+        shell: pwsh
+        run: |
+          $nodeBin = "dist-electron/win-unpacked/resources/node/node.exe"
+          $standalone = "dist-electron/win-unpacked/resources/standalone"
+          $nodeDeps = "$standalone/node_deps"
+
+          Write-Host "=== Verify node.exe exists ==="
+          if (!(Test-Path $nodeBin)) { throw "node.exe not found" }
+
+          Write-Host "=== Verify node_deps exists ==="
+          if (!(Test-Path $nodeDeps)) { throw "node_deps not found" }
+
+          Write-Host "=== Test module resolution (critical packages) ==="
+          $env:NODE_PATH = $nodeDeps
+          $testScript = @"
+          const mods = [
+            '@remotion/bundler',
+            '@remotion/renderer',
+            'react',
+            'react-dom',
+            'react-dom/client',
+            'webpack',
+            'better-sqlite3'
+          ];
+          const failed = [];
+          for (const m of mods) {
+            try { require.resolve(m); }
+            catch (e) { failed.push(m + ': ' + e.message); }
+          }
+          if (failed.length > 0) {
+            console.error('Failed to resolve:\\n' + failed.join('\\n'));
+            process.exit(1);
+          }
+          console.log('All ' + mods.length + ' modules resolved OK');
+          "@
+          & $nodeBin -e $testScript
+          if ($LASTEXITCODE -ne 0) { throw "Module resolution test failed" }
+
+          Write-Host "=== Test render script can be loaded ==="
+          $renderScript = "$standalone/scripts/render-video.js"
+          if (!(Test-Path $renderScript)) { throw "render-video.js not found" }
+          & $nodeBin -e "try { require('$($renderScript.Replace('\','/'))')  } catch(e) { if(e.message.includes('Cannot find module')) { console.error(e.message); process.exit(1); } }"
+          Write-Host "=== Smoke test PASSED ==="
+
+      - name: Publish to GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx electron-builder --win --publish always
