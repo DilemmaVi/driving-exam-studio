@@ -81,23 +81,23 @@ function startServer() {
   if (!serverPath) return;
 
   const nodePath = getNodePath();
+  const standaloneDir = path.dirname(serverPath);
   log(`nodePath: ${nodePath}, exists: ${fs.existsSync(nodePath)}`);
   log(`serverPath: ${serverPath}, exists: ${fs.existsSync(serverPath)}`);
 
-  // List resources dir to debug
-  try {
-    const resDir = getResourcesPath();
-    const items = fs.readdirSync(resDir);
-    log(`resources dir contents: ${items.join(", ")}`);
-    if (fs.existsSync(path.join(resDir, "standalone"))) {
-      const standaloneItems = fs.readdirSync(path.join(resDir, "standalone"));
-      log(`standalone dir contents: ${standaloneItems.slice(0, 20).join(", ")}`);
+  // Create node_modules junction pointing to node_deps so standard module resolution works
+  const nodeModulesLink = path.join(standaloneDir, "node_modules");
+  const nodeDepsDir = path.join(standaloneDir, "node_deps");
+  if (fs.existsSync(nodeDepsDir) && !fs.existsSync(nodeModulesLink)) {
+    try {
+      fs.symlinkSync(nodeDepsDir, nodeModulesLink, "junction");
+      log(`Created junction: node_modules -> node_deps`);
+    } catch (e) {
+      log(`Failed to create junction: ${e.message}`);
     }
-  } catch (e) {
-    log(`Error listing resources: ${e.message}`);
   }
 
-  const nodeDepsPath = path.join(path.dirname(serverPath), "node_modules");
+  const nodeDepsPath = nodeDepsDir;
   const env = {
     ...process.env,
     PORT: String(PORT),

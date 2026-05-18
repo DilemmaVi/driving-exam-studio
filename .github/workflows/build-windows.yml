@@ -39,9 +39,11 @@ jobs:
         shell: pwsh
         run: |
           Copy-Item -Recurse .next/standalone packed-standalone
-          # Merge ALL production node_modules (standalone only has partial server-side deps)
+          # Rename node_modules to node_deps to bypass electron-builder filtering
+          Rename-Item packed-standalone/node_modules node_deps
+          # Merge ALL production node_modules into node_deps (standalone has partial copies)
           Get-ChildItem node_modules -Directory | ForEach-Object {
-            $dst = "packed-standalone/node_modules/$($_.Name)"
+            $dst = "packed-standalone/node_deps/$($_.Name)"
             if (!(Test-Path $dst)) {
               Copy-Item -Recurse $_.FullName $dst
             } else {
@@ -58,8 +60,6 @@ jobs:
           # Verify
           Write-Host "=== packed-standalone contents ==="
           Get-ChildItem packed-standalone -Depth 0
-          Write-Host "=== node_modules exists ==="
-          Test-Path packed-standalone/node_modules
 
       - name: Build Electron app
         env:
