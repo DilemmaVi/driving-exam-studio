@@ -379,9 +379,12 @@ export async function renderInBackground(
       renderQueue.setCurrentProcess(child);
 
       let stderrBuf = "";
+      let stdoutBuf = "";
 
       child.stdout.on("data", (data: Buffer) => {
-        const lines = data.toString().split("\n").filter(Boolean);
+        const text = data.toString();
+        stdoutBuf += text;
+        const lines = text.split("\n").filter(Boolean);
         for (const line of lines) {
           try { const msg = JSON.parse(line); handleRenderMessage(taskId, msg); } catch {}
         }
@@ -391,7 +394,10 @@ export async function renderInBackground(
 
       child.on("close", (code) => {
         if (code === 0) resolve();
-        else reject(new Error(stderrBuf || `render process exited with code ${code}`));
+        else {
+          const errMsg = stderrBuf || stdoutBuf.slice(-2000) || `render process exited with code ${code}`;
+          reject(new Error(errMsg));
+        }
       });
 
       child.on("error", reject);
