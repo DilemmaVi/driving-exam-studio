@@ -140,6 +140,14 @@ function initTables(db: Database.Database) {
     ["reveal_pause", "REAL"],
     ["panel_adjust", "TEXT"],
     ["panel_adjust_value", "INTEGER"],
+    ["option_gap", "REAL"],
+    ["font_size_question", "INTEGER"],
+    ["font_size_option", "INTEGER"],
+    ["font_size_explanation", "INTEGER"],
+    ["stem_keywords", "TEXT"],
+    ["stem_keyword_phases", "TEXT"],
+    ["reading_prefix_delay", "REAL"],
+    ["reading_speed_ratio", "REAL"],
   ];
   for (const [col, typedef] of sqNewCols) {
     if (!sqCols.some((c) => c.name === col)) {
