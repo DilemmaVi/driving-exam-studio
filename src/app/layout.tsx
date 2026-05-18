@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import "./globals.css";
 import packageJson from "../../package.json";
+import { UpdateIndicator } from "@/components/UpdateIndicator";
 
 const geist = Geist({
   variable: "--font-geist",
@@ -41,6 +42,7 @@ export default function RootLayout({
             发音词典
           </Link>
           <span className="ml-auto text-xs text-gray-400">v{packageJson.version}</span>
+          <UpdateIndicator />
         </nav>
         <main className="flex-1">{children}</main>
       </body>

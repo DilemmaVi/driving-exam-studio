@@ -105,6 +105,7 @@ function startServer() {
     NODE_ENV: "production",
     NODE_PATH: nodeDepsPath,
     NODE_EXEC: nodePath,
+    UPDATE_STATUS_FILE: path.join(getUserDataPath(), "update-status.json"),
   };
 
   serverProcess = spawn(nodePath, [serverPath], {
@@ -204,28 +205,47 @@ app.on("activate", () => {
 function setupAutoUpdater() {
   if (!app.isPackaged) return;
 
+  const statusFile = path.join(getUserDataPath(), "update-status.json");
+  process.env.UPDATE_STATUS_FILE = statusFile;
+
+  function writeStatus(status) {
+    try { fs.writeFileSync(statusFile, JSON.stringify(status)); } catch {}
+  }
+
+  writeStatus({ state: "checking" });
+
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
   autoUpdater.logger = { info: log, warn: log, error: log, debug: log };
 
   autoUpdater.on("checking-for-update", () => {
     log("[updater] 检查更新...");
+    writeStatus({ state: "checking" });
   });
 
   autoUpdater.on("update-available", (info) => {
     log(`[updater] 发现新版本: ${info.version}`);
+    writeStatus({ state: "downloading", version: info.version, percent: 0 });
   });
 
   autoUpdater.on("update-not-available", () => {
     log("[updater] 当前已是最新版本");
+    writeStatus({ state: "up-to-date" });
   });
 
   autoUpdater.on("download-progress", (progress) => {
     log(`[updater] 下载进度: ${Math.round(progress.percent)}% (${(progress.transferred / 1048576).toFixed(1)}/${(progress.total / 1048576).toFixed(1)} MB)`);
+    writeStatus({
+      state: "downloading",
+      percent: Math.round(progress.percent),
+      transferred: (progress.transferred / 1048576).toFixed(1),
+      total: (progress.total / 1048576).toFixed(1),
+    });
   });
 
   autoUpdater.on("update-downloaded", (info) => {
     log(`[updater] 下载完成: ${info.version}`);
+    writeStatus({ state: "ready", version: info.version });
     const choice = dialog.showMessageBoxSync(mainWindow, {
       type: "info",
       title: "更新就绪",
@@ -240,9 +260,11 @@ function setupAutoUpdater() {
 
   autoUpdater.on("error", (err) => {
     log(`[updater] 更新出错: ${err.message}`);
+    writeStatus({ state: "error", message: err.message });
   });
 
   autoUpdater.checkForUpdates().catch((err) => {
     log(`[updater] 检查更新失败: ${err.message}`);
+    writeStatus({ state: "error", message: err.message });
   });
 }
