@@ -97,7 +97,7 @@ function startServer() {
     log(`Error listing resources: ${e.message}`);
   }
 
-  const nodeDepsPath = path.join(path.dirname(serverPath), "node_deps");
+  const nodeDepsPath = path.join(path.dirname(serverPath), "node_modules");
   const env = {
     ...process.env,
     PORT: String(PORT),

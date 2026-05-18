@@ -362,7 +362,7 @@ export async function renderInBackground(
       if (isPackaged) {
         const scriptPath = path.join(process.cwd(), "scripts", "render-video.js");
         cmd = process.env.NODE_EXEC || process.execPath;
-        const nodeDepsPath = path.join(process.cwd(), "node_deps");
+        const nodeDepsPath = path.join(process.cwd(), "node_modules");
         args = [scriptPath, propsFile, outputPath];
         renderEnv = { ...process.env, NODE_PATH: nodeDepsPath, NODE_ENV: "production" };
       } else {
