@@ -63,8 +63,20 @@ async function main() {
 
   const entryPoint = path.join(__dirname, "..", "src", "remotion", "index.ts");
 
+  const nodeDepsDir = path.join(PROJECT_ROOT, "node_deps");
+  const nodeModulesDir = path.join(PROJECT_ROOT, "node_modules");
+  const moduleDirs = [nodeModulesDir, nodeDepsDir].filter(d => fs.existsSync(d));
+
   const bundleLocation = await bundle({
     entryPoint,
+    webpackOverride: (config) => {
+      config.resolve = config.resolve || {};
+      config.resolve.modules = [
+        ...(config.resolve.modules || []),
+        ...moduleDirs,
+      ];
+      return config;
+    },
     onProgress: (progress: number) => {
       console.log(JSON.stringify({ type: "progress", phase: "bundling", progress: Math.min(100, Math.round(progress / 100)) }));
     },
