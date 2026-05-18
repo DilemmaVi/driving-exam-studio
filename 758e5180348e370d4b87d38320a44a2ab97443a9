@@ -1,0 +1,35 @@
+src/app/api/tts-dictionary/route.ts
+  a0016bb7d214ca0a 1-50
+src/app/layout.tsx
+  a0016bb7d214ca0a 39-41
+src/lib/tts.ts
+  a0016bb7d214ca0a 35-48,50
+src/lib/db.ts
+  a0016bb7d214ca0a 245-256
+src/app/tts-dictionary/page.tsx
+  a0016bb7d214ca0a 1-173
+src/app/api/render/route.ts
+  a0016bb7d214ca0a 412-414
+scripts/render-video.ts
+  a0016bb7d214ca0a 6-18,47,139-168,172
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.14",
+  "base_commit_sha": "758e5180348e370d4b87d38320a44a2ab97443a9",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 307,
+      "total_deletions": 9,
+      "accepted_lines": 1358,
+      "overriden_lines": 0
+    }
+  }
+}
