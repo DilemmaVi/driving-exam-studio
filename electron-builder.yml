@@ -5,6 +5,7 @@ directories:
 npmRebuild: false
 files:
   - "electron/**/*"
+  - "!node_modules"
 extraResources:
   - from: "packed-standalone"
     to: "standalone"

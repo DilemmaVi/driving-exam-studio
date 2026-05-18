@@ -41,7 +41,7 @@ jobs:
           Copy-Item -Recurse .next/standalone packed-standalone
           # Rename node_modules to node_deps to bypass electron-builder filtering
           Rename-Item packed-standalone/node_modules node_deps
-          # Merge ALL production node_modules into node_deps (standalone has partial copies)
+          # Merge full node_modules into node_deps (standalone only has partial server deps)
           Get-ChildItem node_modules -Directory | ForEach-Object {
             $dst = "packed-standalone/node_deps/$($_.Name)"
             if (!(Test-Path $dst)) {
