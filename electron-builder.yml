@@ -10,6 +10,7 @@ extraResources:
     to: "standalone"
     filter:
       - "**/*"
+      - "**/node_modules/**"
   - from: "data"
     to: "data"
     filter:
