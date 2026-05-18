@@ -41,11 +41,14 @@ jobs:
           Copy-Item -Recurse .next/standalone packed-standalone
           # Rename node_modules to avoid electron-builder filtering it
           Rename-Item packed-standalone/node_modules node_deps
-          # Copy ALL production node_modules into node_deps (standalone only has Next.js deps)
+          # Merge ALL production node_modules into node_deps (standalone has partial copies)
           Get-ChildItem node_modules -Directory | ForEach-Object {
             $dst = "packed-standalone/node_deps/$($_.Name)"
             if (!(Test-Path $dst)) {
               Copy-Item -Recurse $_.FullName $dst
+            } else {
+              # Merge: copy missing files from full node_modules into existing dir
+              Copy-Item -Recurse -Force "$($_.FullName)\*" $dst
             }
           }
           Copy-Item -Recurse .next/static packed-standalone/.next/static
