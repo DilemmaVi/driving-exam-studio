@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { getDb, nowBeijing } from "@/lib/db";
 import { v4 as uuid } from "uuid";
 
 export async function GET(request: NextRequest) {
@@ -50,9 +50,9 @@ export async function POST(request: NextRequest) {
     const id = uuid();
     const db = getDb();
     db.prepare(`
-      INSERT INTO video_series (id, name, category, intro_title, intro_subtitle, default_think_time, default_voice_style, default_transition)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(id, name, category || "", introTitle || "", introSubtitle || "", defaultThinkTime ?? 3, defaultVoiceStyle || "教学", defaultTransition || "fade");
+      INSERT INTO video_series (id, name, category, intro_title, intro_subtitle, default_think_time, default_voice_style, default_transition, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(id, name, category || "", introTitle || "", introSubtitle || "", defaultThinkTime ?? 3, defaultVoiceStyle || "教学", defaultTransition || "fade", nowBeijing(), nowBeijing());
 
     return NextResponse.json({ id });
   } catch (e: unknown) {

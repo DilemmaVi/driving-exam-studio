@@ -212,8 +212,8 @@ export default function RendersPage() {
 
                 {/* Footer */}
                 <div className="mt-2 text-xs text-gray-400">
-                  {new Date(task.created_at).toLocaleString("zh-CN")}
-                  {task.completed_at && <span className="ml-3">完成于 {new Date(task.completed_at).toLocaleString("zh-CN")}</span>}
+                  {task.created_at}
+                  {task.completed_at && <span className="ml-3">完成于 {task.completed_at}</span>}
                 </div>
               </div>
             );

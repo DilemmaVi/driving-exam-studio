@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { getDb, nowBeijing } from "@/lib/db";
 
 interface QuestionInput {
   questionId: number;
@@ -72,7 +72,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   });
 
   insertMany(questions);
-  db.prepare("UPDATE video_series SET updated_at = CURRENT_TIMESTAMP WHERE id = ?").run(id);
+  db.prepare("UPDATE video_series SET updated_at = ? WHERE id = ?").run(nowBeijing(), id);
 
   return NextResponse.json({ ok: true, count: questions.length });
 }

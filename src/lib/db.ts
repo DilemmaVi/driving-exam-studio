@@ -2,6 +2,10 @@ import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
 
+export function nowBeijing(): string {
+  return new Date(Date.now() + 8 * 3600000).toISOString().replace("T", " ").slice(0, 19);
+}
+
 const DB_PATH = process.env.DB_PATH || path.join(process.cwd(), "data", "exam.db");
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { getDb, nowBeijing } from "@/lib/db";
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -52,7 +52,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 
   if (fields.length > 0) {
-    fields.push("updated_at = CURRENT_TIMESTAMP");
+    fields.push("updated_at = ?");
+    values.push(nowBeijing());
     db.prepare(`UPDATE video_series SET ${fields.join(", ")} WHERE id = ?`).run(...values, id);
   }
 

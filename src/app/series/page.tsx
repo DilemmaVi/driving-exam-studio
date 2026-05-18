@@ -192,7 +192,7 @@ export default function SeriesPage() {
               </div>
               <div className="mt-3 flex items-center gap-4 text-xs text-gray-400">
                 <span className="font-medium text-gray-600">{s.question_count} 题</span>
-                <span>{new Date(s.updated_at).toLocaleDateString("zh-CN")}</span>
+                <span>{(s.updated_at || "").slice(0, 10)}</span>
               </div>
             </div>
           ))}

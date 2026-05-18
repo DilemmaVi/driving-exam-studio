@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { getDb, nowBeijing } from "@/lib/db";
 import { generateTTSForQuestion, generateBridgeAudios, type QuestionRow } from "@/lib/tts";
 import { getOutputDir } from "@/lib/paths";
 import { getSettings } from "@/lib/settings";
@@ -35,8 +35,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "seriesId or questionIds required" }, { status: 400 });
     }
 
-    db.prepare("INSERT INTO render_tasks (id, question_ids, series_id, status, phase, phase_label) VALUES (?, ?, ?, 'pending', '', '')")
-      .run(taskId, JSON.stringify(qIds), seriesId || null);
+    db.prepare("INSERT INTO render_tasks (id, question_ids, series_id, status, phase, phase_label, created_at) VALUES (?, ?, ?, 'pending', '', '', ?)")
+      .run(taskId, JSON.stringify(qIds), seriesId || null, nowBeijing());
 
     renderQueue.enqueue(taskId, () => renderInBackground(taskId, qIds, seriesData, seriesQuestions, !!tipOnly));
 
@@ -441,7 +441,7 @@ function handleRenderMessage(taskId: string, msg: Record<string, unknown>) {
         status: "done", progress: 1, phase: "done", phase_label: "渲染完成",
         output_path: msg.outputPath as string,
         file_size: `${msg.fileSizeMB}MB`,
-        completed_at: new Date().toISOString(),
+        completed_at: nowBeijing(),
       });
       break;
     case "error":
