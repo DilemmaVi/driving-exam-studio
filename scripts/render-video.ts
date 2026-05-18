@@ -3,7 +3,19 @@ import { renderMedia, selectComposition } from "@remotion/renderer";
 import path from "path";
 import fs from "fs";
 import http from "http";
-import mime from "mime";
+const MIME_TYPES: Record<string, string> = {
+  ".wav": "audio/wav", ".mp3": "audio/mpeg", ".ogg": "audio/ogg",
+  ".mp4": "video/mp4", ".webm": "video/webm",
+  ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+  ".gif": "image/gif", ".webp": "image/webp", ".svg": "image/svg+xml",
+  ".json": "application/json", ".js": "application/javascript",
+  ".css": "text/css", ".html": "text/html", ".txt": "text/plain",
+};
+function getMimeType(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase();
+  return MIME_TYPES[ext] || "application/octet-stream";
+}
+import { execSync } from "child_process";
 
 const args = process.argv.slice(2);
 const propsFile = args[0];
@@ -32,7 +44,7 @@ function createAudioServer(port: number): Promise<http.Server> {
       }
 
       if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-        res.setHeader("Content-Type", mime.getType(filePath) || "application/octet-stream");
+        res.setHeader("Content-Type", getMimeType(filePath));
         res.setHeader("Access-Control-Allow-Origin", "*");
         fs.createReadStream(filePath).pipe(res);
       } else {
@@ -124,10 +136,40 @@ async function main() {
   }
 
   const stat = fs.statSync(outputPath);
+
+  // HD post-processing: 2-pass encoding + sharpening
+  const hdEnabled = inputProps.hdExport !== false;
+  if (hdEnabled) {
+    console.log(JSON.stringify({ type: "status", phase: "hd", message: "高清化处理中..." }));
+    const tempPath = outputPath.replace(/\.mp4$/, "_raw.mp4");
+    fs.renameSync(outputPath, tempPath);
+    try {
+      const bitrate = Math.max(8000, Math.round(stat.size / 1024 * 8 / (composition.durationInFrames / composition.fps) * 1.2 / 1000));
+      const passLogFile = outputPath.replace(/\.mp4$/, "_passlog");
+      execSync(
+        `ffmpeg -y -i "${tempPath}" -c:v libx264 -b:v ${bitrate}k -pass 1 -an -f null /dev/null -passlogfileprefix "${passLogFile}"`,
+        { stdio: "ignore" }
+      );
+      execSync(
+        `ffmpeg -y -i "${tempPath}" -c:v libx264 -b:v ${bitrate}k -pass 2 -c:a aac -b:a 192k -vf "unsharp=5:5:0.5:5:5:0.5" "${outputPath}" -passlogfileprefix "${passLogFile}"`,
+        { stdio: "ignore" }
+      );
+      fs.unlinkSync(tempPath);
+      try { fs.unlinkSync(`${passLogFile}-0.log`); } catch {}
+      try { fs.unlinkSync(`${passLogFile}-0.log.mbtree`); } catch {}
+    } catch (e) {
+      if (!fs.existsSync(outputPath) && fs.existsSync(tempPath)) {
+        fs.renameSync(tempPath, outputPath);
+      }
+      console.log(JSON.stringify({ type: "status", phase: "hd", message: "高清化失败，使用原始输出" }));
+    }
+  }
+
+  const finalStat = fs.statSync(outputPath);
   console.log(JSON.stringify({
     type: "done",
     outputPath,
-    fileSizeMB: (stat.size / 1024 / 1024).toFixed(1),
+    fileSizeMB: (finalStat.size / 1024 / 1024).toFixed(1),
   }));
 }
 

@@ -242,4 +242,16 @@ function initTables(db: Database.Database) {
       } catch { /* skip */ }
     }
   }
+
+  // TTS dictionary table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS tts_dictionary (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      original TEXT NOT NULL UNIQUE,
+      replacement TEXT NOT NULL,
+      enabled INTEGER DEFAULT 1,
+      note TEXT DEFAULT '',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
 }

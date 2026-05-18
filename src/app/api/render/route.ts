@@ -409,6 +409,9 @@ function handleRenderMessage(taskId: string, msg: Record<string, unknown>) {
   switch (msg.type) {
     case "status":
       updateTask(taskId, { phase: msg.phase, phase_label: msg.message });
+      if (msg.phase === "hd") {
+        updateTask(taskId, { progress: 0.95 });
+      }
       break;
     case "progress":
       if (msg.phase === "bundling") {

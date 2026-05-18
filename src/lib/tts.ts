@@ -32,7 +32,22 @@ export const MIMO_VOICES = [
   { id: "Dean", name: "Dean", gender: "male", lang: "en" },
 ] as const;
 
+function applyDictionary(text: string): string {
+  try {
+    const db = getDb();
+    const entries = db.prepare("SELECT original, replacement FROM tts_dictionary WHERE enabled = 1").all() as { original: string; replacement: string }[];
+    let result = text;
+    for (const { original, replacement } of entries) {
+      result = result.split(original).join(replacement);
+    }
+    return result;
+  } catch {
+    return text;
+  }
+}
+
 async function generateSegment(questionId: number, segment: string, text: string, style: string, speed: string = "medium", force = false, voice: string = "冰糖"): Promise<TTSResult> {
+  text = applyDictionary(text);
   const speedPrefix = speed === "slow" ? "语速稍慢，节奏从容。"
     : speed === "fast" ? "语速比正常稍快。"
     : "语速适中自然。";

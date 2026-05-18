@@ -36,6 +36,9 @@ export default function RootLayout({
           <Link href="/renders" className="text-sm text-gray-600 hover:text-gray-900">
             渲染任务
           </Link>
+          <Link href="/tts-dictionary" className="text-sm text-gray-600 hover:text-gray-900">
+            发音词典
+          </Link>
         </nav>
         <main className="flex-1">{children}</main>
       </body>
