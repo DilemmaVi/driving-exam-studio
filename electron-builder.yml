@@ -25,3 +25,7 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
 asar: false
+publish:
+  provider: github
+  owner: DilemmaVi
+  repo: driving-exam-studio

@@ -9,6 +9,8 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -40,7 +42,6 @@ jobs:
           # Rename node_modules to avoid electron-builder filtering it
           Rename-Item packed-standalone/node_modules node_deps
           # Copy ALL production node_modules into node_deps (standalone only has Next.js deps)
-          # This ensures render-video.js can find @remotion, mime, etc.
           Get-ChildItem node_modules -Directory | ForEach-Object {
             $dst = "packed-standalone/node_deps/$($_.Name)"
             if (!(Test-Path $dst)) {
@@ -61,17 +62,16 @@ jobs:
           Test-Path packed-standalone/node_deps
 
       - name: Build Electron app
-        run: npx electron-builder --win --publish never
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --win --publish always
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-installer
-          path: dist-electron/*.exe
+          path: |
+            dist-electron/*.exe
+            dist-electron/*.yml
+            dist-electron/*.blockmap
           retention-days: 3
-
-      - name: Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist-electron/*.exe

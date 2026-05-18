@@ -1,4 +1,5 @@
 const { app, BrowserWindow, dialog } = require("electron");
+const { autoUpdater } = require("electron-updater");
 const path = require("path");
 const fs = require("fs");
 const { spawn } = require("child_process");
@@ -177,6 +178,7 @@ app.whenReady().then(async () => {
     }
 
     createWindow();
+    setupAutoUpdater();
   } catch (err) {
     log(`FATAL: ${err.message}\n${err.stack}`);
     dialog.showErrorBox(
@@ -198,3 +200,49 @@ app.on("window-all-closed", () => {
 app.on("activate", () => {
   if (mainWindow === null) createWindow();
 });
+
+function setupAutoUpdater() {
+  if (!app.isPackaged) return;
+
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.logger = { info: log, warn: log, error: log, debug: log };
+
+  autoUpdater.on("checking-for-update", () => {
+    log("[updater] 检查更新...");
+  });
+
+  autoUpdater.on("update-available", (info) => {
+    log(`[updater] 发现新版本: ${info.version}`);
+  });
+
+  autoUpdater.on("update-not-available", () => {
+    log("[updater] 当前已是最新版本");
+  });
+
+  autoUpdater.on("download-progress", (progress) => {
+    log(`[updater] 下载进度: ${Math.round(progress.percent)}% (${(progress.transferred / 1048576).toFixed(1)}/${(progress.total / 1048576).toFixed(1)} MB)`);
+  });
+
+  autoUpdater.on("update-downloaded", (info) => {
+    log(`[updater] 下载完成: ${info.version}`);
+    const choice = dialog.showMessageBoxSync(mainWindow, {
+      type: "info",
+      title: "更新就绪",
+      message: `新版本 ${info.version} 已下载完成，是否立即重启更新？`,
+      buttons: ["立即更新", "稍后"],
+      defaultId: 0,
+    });
+    if (choice === 0) {
+      autoUpdater.quitAndInstall(false, true);
+    }
+  });
+
+  autoUpdater.on("error", (err) => {
+    log(`[updater] 更新出错: ${err.message}`);
+  });
+
+  autoUpdater.checkForUpdates().catch((err) => {
+    log(`[updater] 检查更新失败: ${err.message}`);
+  });
+}
