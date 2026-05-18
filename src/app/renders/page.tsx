@@ -48,13 +48,17 @@ export default function RendersPage() {
     setTotal(data.total || 0);
   }, [page, statusFilter, keyword]);
 
+  const hasActive = tasks.some((t) => ["pending", "tts", "rendering"].includes(t.status));
+
   useEffect(() => {
     fetchTasks();
-    const hasActive = tasks.some((t) => ["pending", "tts", "rendering"].includes(t.status));
+  }, [fetchTasks]);
+
+  useEffect(() => {
     if (!hasActive) return;
-    const interval = setInterval(fetchTasks, 2000);
+    const interval = setInterval(fetchTasks, 3000);
     return () => clearInterval(interval);
-  }, [fetchTasks, tasks]);
+  }, [hasActive, fetchTasks]);
 
   const totalPages = Math.ceil(total / pageSize);
 
