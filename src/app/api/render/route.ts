@@ -381,16 +381,30 @@ export async function renderInBackground(
       let stderrBuf = "";
       let stdoutBuf = "";
 
+      const logToFile = (prefix: string, text: string) => {
+        const logDir = process.env.LOG_DIR;
+        if (!logDir) return;
+        const today = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
+        const logPath = path.join(logDir, `render-${today}.log`);
+        const timestamp = new Date(Date.now() + 8 * 3600000).toISOString().replace("T", " ").slice(0, 19);
+        try { fs.appendFileSync(logPath, `[${timestamp}][${taskId.slice(0,8)}][${prefix}] ${text}`); } catch {}
+      };
+
       child.stdout.on("data", (data: Buffer) => {
         const text = data.toString();
         stdoutBuf += text;
+        logToFile("out", text);
         const lines = text.split("\n").filter(Boolean);
         for (const line of lines) {
           try { const msg = JSON.parse(line); handleRenderMessage(taskId, msg); } catch {}
         }
       });
 
-      child.stderr.on("data", (data: Buffer) => { stderrBuf += data.toString(); });
+      child.stderr.on("data", (data: Buffer) => {
+        const text = data.toString();
+        stderrBuf += text;
+        logToFile("err", text);
+      });
 
       child.on("close", (code) => {
         if (code === 0) resolve();

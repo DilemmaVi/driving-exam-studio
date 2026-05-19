@@ -8,12 +8,52 @@ let mainWindow = null;
 let serverProcess = null;
 const PORT = 3456;
 
-// Log to file in userData for debugging
+// --- Logging system: daily rotation, 7-day retention ---
+let logDir = null;
 let logFile = null;
+let currentLogDate = null;
+
+function getLogDate() {
+  return new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
+}
+
+function setupLogging() {
+  const userData = getUserDataPath();
+  logDir = path.join(userData, "logs");
+  fs.mkdirSync(logDir, { recursive: true });
+  rotateLog();
+  cleanOldLogs();
+}
+
+function rotateLog() {
+  const today = getLogDate();
+  if (currentLogDate === today) return;
+  currentLogDate = today;
+  logFile = path.join(logDir, `app-${today}.log`);
+}
+
+function cleanOldLogs() {
+  try {
+    const files = fs.readdirSync(logDir).filter(f => f.startsWith("app-") && f.endsWith(".log"));
+    const cutoff = new Date(Date.now() - 7 * 86400000);
+    for (const f of files) {
+      const dateStr = f.replace("app-", "").replace(".log", "");
+      const fileDate = new Date(dateStr);
+      if (fileDate < cutoff) {
+        fs.unlinkSync(path.join(logDir, f));
+      }
+    }
+  } catch {}
+}
+
 function log(msg) {
-  const line = `[${new Date().toISOString()}] ${msg}\n`;
+  rotateLog();
+  const timestamp = new Date(Date.now() + 8 * 3600000).toISOString().replace("T", " ").slice(0, 19);
+  const line = `[${timestamp}] ${msg}\n`;
   console.log(msg);
-  if (logFile) fs.appendFileSync(logFile, line);
+  if (logFile) {
+    try { fs.appendFileSync(logFile, line); } catch {}
+  }
 }
 
 function getUserDataPath() {
@@ -22,9 +62,7 @@ function getUserDataPath() {
 
 function setupPaths() {
   const userData = getUserDataPath();
-  logFile = path.join(userData, "app.log");
-  // Clear old log
-  fs.writeFileSync(logFile, "");
+  setupLogging();
   log(`userData: ${userData}`);
   log(`resourcesPath: ${app.isPackaged ? process.resourcesPath : "dev"}`);
 
@@ -106,6 +144,7 @@ function startServer() {
     NODE_PATH: nodeDepsPath,
     NODE_EXEC: nodePath,
     UPDATE_STATUS_FILE: path.join(getUserDataPath(), "update-status.json"),
+    LOG_DIR: logDir,
   };
 
   serverProcess = spawn(nodePath, [serverPath], {
