@@ -138,11 +138,11 @@ export const TrueFalseQuestion: React.FC<{
   const fq = fontSizeQuestion || 68;
   const fo = fontSizeOption || 58;
   const gap = optionGap ?? 12;
-  const charsPerLineQ = Math.max(8, Math.floor(980 / (fq * 0.55)));
+  const charsPerLineQ = Math.max(8, Math.floor(980 / (fq * 1.0)));
   const qText = question.questionContent.replace(/【[^】]*】/g, (m) => m.slice(1, -1)).replace(/[{｛][^}｝]*[}｝]/g, (m) => m.slice(1, -1));
   const qLines = Math.max(1, Math.ceil(qText.length / charsPerLineQ));
-  const qHeight = 80 + qLines * fq * 1.7 + 30;
-  const charsPerLineO = Math.max(6, Math.floor(820 / (fo * 0.55)));
+  const qHeight = 146 + qLines * fq * 1.7 + 20;
+  const charsPerLineO = Math.max(6, Math.floor(820 / (fo * 1.0)));
   const optHeight = question.options.reduce((sum, opt) => {
     const text = opt.replace(/【[^】]*】/g, (m) => m.slice(1, -1));
     const lines = Math.max(1, Math.ceil(text.length / charsPerLineO));
@@ -176,7 +176,7 @@ export const TrueFalseQuestion: React.FC<{
       <Background />
       <ProgressBar />
 
-      <div style={{ position: "absolute", top: 30, left: 0, right: 0, transform: `translateY(${contentShift}px) scale(${contentScale})`, transformOrigin: "top center", width: contentScale < 1 ? `${100 / contentScale}%` : undefined, marginLeft: contentScale < 1 ? `${-(100 / contentScale - 100) / 2}%` : undefined }}>
+      <div style={{ position: "absolute", top: 30, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", transform: `translateY(${contentShift}px) scale(${contentScale})`, transformOrigin: "top center", width: contentScale < 1 ? `${100 / contentScale}%` : undefined, marginLeft: contentScale < 1 ? `${-(100 / contentScale - 100) / 2}%` : undefined }}>
         <QuestionHeader
           text={question.questionContent}
           startFrame={T.questionStart}
@@ -196,9 +196,8 @@ export const TrueFalseQuestion: React.FC<{
           readingPrefixDelay={readingPrefixDelay}
           readingSpeedRatio={readingSpeedRatio}
         />
-      </div>
 
-      <div style={{ position: "absolute", top: 540, left: 0, right: 0, transform: `translateY(${contentShift}px) scale(${contentScale})`, transformOrigin: "top center", width: contentScale < 1 ? `${100 / contentScale}%` : undefined, marginLeft: contentScale < 1 ? `${-(100 / contentScale - 100) / 2}%` : undefined }}>
+        <div style={{ marginTop: 20 }}>
         {question.options.map((opt, i) => (
           <OptionItem
             key={i} label={labels[i]} text={opt} index={i}
@@ -214,6 +213,7 @@ export const TrueFalseQuestion: React.FC<{
           />
         ))}
         <AnswerReveal correctLabel={correctLabel} correctText={correctText} startFrame={T.revealStart} />
+        </div>
       </div>
 
       {avatarEnabled !== false && (
