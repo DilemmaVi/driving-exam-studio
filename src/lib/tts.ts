@@ -287,11 +287,21 @@ export async function generateBridgeAudios(seriesData?: {
     bridge_tip: seriesData?.bridge_tip || DEFAULT_BRIDGES.bridge_tip,
   };
 
+  const keys = Object.keys(texts) as Array<keyof typeof texts>;
   const results = await Promise.all(
-    Object.entries(texts).map(([key, text]) =>
-      generateSegment(0, key, text, BRIDGE_STYLES[key], ttsSpeed || "medium", false, ttsVoice || "冰糖")
+    keys.map((key) =>
+      generateSegment(0, key, texts[key], BRIDGE_STYLES[key], ttsSpeed || "medium", false, ttsVoice || "冰糖")
     )
   );
+
+  // Copy to fixed filenames that Remotion components expect
+  for (let i = 0; i < keys.length; i++) {
+    const actualFile = path.join(AUDIO_DIR, path.basename(results[i].filePath));
+    const fixedFile = path.join(AUDIO_DIR, `q0_${keys[i]}.wav`);
+    if (fs.existsSync(actualFile) && actualFile !== fixedFile) {
+      fs.copyFileSync(actualFile, fixedFile);
+    }
+  }
 
   return {
     bridgeThink: results[0].duration,
