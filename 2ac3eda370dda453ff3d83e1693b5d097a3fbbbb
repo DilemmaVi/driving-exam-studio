@@ -1,0 +1,27 @@
+electron/main.js
+  a0016bb7d214ca0a 11-12,14-48,50-52,54-56,65,147
+src/app/api/logs/route.ts
+  a0016bb7d214ca0a 1-38
+src/app/api/render/route.ts
+  a0016bb7d214ca0a 384-392,396,403-407
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.16",
+  "base_commit_sha": "2ac3eda370dda453ff3d83e1693b5d097a3fbbbb",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 98,
+      "total_deletions": 7,
+      "accepted_lines": 1155,
+      "overriden_lines": 0
+    }
+  }
+}
