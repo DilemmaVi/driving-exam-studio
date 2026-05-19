@@ -55,6 +55,9 @@ jobs:
           Copy-Item -Recurse scripts packed-standalone/scripts
           # Compile render-video.ts to JS for production use
           npx esbuild scripts/render-video.ts --bundle --platform=node --outfile=packed-standalone/scripts/render-video.js --packages=external
+          # Bundle electron main.js with electron-updater included
+          npx esbuild electron/main.js --bundle --platform=node --outfile=electron/main.bundle.js --external:electron
+          Move-Item -Force electron/main.bundle.js electron/main.js
           New-Item -ItemType Directory -Force -Path packed-standalone/src
           Copy-Item -Recurse src/remotion packed-standalone/src/remotion
           # Verify
@@ -109,6 +112,14 @@ jobs:
           $renderScript = Resolve-Path "$standalone/scripts/render-video.js"
           if (!(Test-Path $renderScript)) { throw "render-video.js not found" }
           Write-Host "render-video.js exists at $renderScript"
+
+          Write-Host "=== Verify electron main.js is bundled ==="
+          $mainJs = "dist-electron/win-unpacked/resources/app/electron/main.js"
+          if (!(Test-Path $mainJs)) { throw "electron/main.js not found in app" }
+          $content = Get-Content $mainJs -Raw
+          if ($content -match "electron-updater") { Write-Host "electron-updater is bundled in main.js" }
+          else { throw "electron-updater NOT found in bundled main.js" }
+
           Write-Host "=== Smoke test PASSED ==="
 
       - name: Publish to GitHub Release
