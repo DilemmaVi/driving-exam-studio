@@ -395,7 +395,8 @@ export async function renderInBackground(
       child.on("close", (code) => {
         if (code === 0) resolve();
         else {
-          const errMsg = stderrBuf || stdoutBuf.slice(-2000) || `render process exited with code ${code}`;
+          const filteredStderr = stderrBuf.split("\n").filter(l => !l.includes("DeprecationWarning")).join("\n").trim();
+          const errMsg = filteredStderr || stdoutBuf.slice(-2000) || `render process exited with code ${code}`;
           reject(new Error(errMsg));
         }
       });
