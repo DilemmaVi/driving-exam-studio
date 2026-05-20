@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb, nowBeijing } from "@/lib/db";
+import { getStaticUrl } from "@/lib/static-url";
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -14,7 +15,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     JOIN questions q ON q.id = sq.question_id
     WHERE sq.series_id = ?
     ORDER BY sq.sort_order
-  `).all(id);
+  `).all(id) as Record<string, unknown>[];
+
+  for (const q of questions) {
+    if (q.cover_image) q.cover_image = getStaticUrl(q.cover_image as string);
+  }
 
   return NextResponse.json({ series, questions });
 }

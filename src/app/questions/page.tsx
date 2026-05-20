@@ -271,7 +271,7 @@ export default function QuestionsPage() {
                             {q.cover_image && (
                               <div>
                                 <h4 className="text-xs font-medium text-gray-500 mb-1">题目图片</h4>
-                                <img src={q.cover_image} alt="" className="max-h-32 rounded-lg border border-gray-200" />
+                                <img src={q.cover_image.startsWith("http") ? q.cover_image : `https://file.yxjky.com/${q.cover_image}`} alt="" className="max-h-32 rounded-lg border border-gray-200" />
                               </div>
                             )}
                             <div className="flex gap-4 text-xs text-gray-400">
