@@ -1,5 +1,6 @@
 appId: com.driving-exam-studio.app
 productName: "驾考视频工作室"
+artifactName: "driving-exam-studio-setup-${version}.${ext}"
 directories:
   output: dist-electron
 npmRebuild: false
