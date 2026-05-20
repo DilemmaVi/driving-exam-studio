@@ -1,0 +1,25 @@
+.github/workflows/build-windows.yml
+  a0016bb7d214ca0a 130-171
+electron-builder.yml
+  a0016bb7d214ca0a 30-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.16",
+  "base_commit_sha": "b2f98616f25300abfb848e80e84849252b03708e",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 55,
+      "total_deletions": 11,
+      "accepted_lines": 1108,
+      "overriden_lines": 0
+    }
+  }
+}
