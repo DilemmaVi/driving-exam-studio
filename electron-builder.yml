@@ -27,7 +27,9 @@ nsis:
   createDesktopShortcut: true
 asar: false
 publish:
-  provider: github
-  owner: DilemmaVi
-  repo: driving-exam-studio
-  releaseType: release
+  - provider: generic
+    url: https://file.yxjky.com/studio-releases/
+  - provider: github
+    owner: DilemmaVi
+    repo: driving-exam-studio
+    releaseType: release

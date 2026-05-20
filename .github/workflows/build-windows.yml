@@ -127,6 +127,48 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx electron-builder --win --publish always
 
+      - name: Upload to Aliyun OSS (overwrite latest)
+        shell: pwsh
+        env:
+          OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
+          OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+          OSS_BUCKET: ${{ secrets.OSS_BUCKET }}
+          OSS_REGION: ${{ secrets.OSS_REGION }}
+        run: |
+          $ossPrefix = "studio-releases"
+
+          # Safety checks - abort if any env is empty
+          if (!$env:OSS_BUCKET) { throw "OSS_BUCKET is empty, aborting" }
+          if (!$env:OSS_ACCESS_KEY_ID) { throw "OSS_ACCESS_KEY_ID is empty, aborting" }
+
+          # Install aliyun CLI
+          Invoke-WebRequest -Uri "https://aliyuncli.alicdn.com/aliyun-cli-windows-latest-amd64.zip" -OutFile aliyun-cli.zip
+          Expand-Archive aliyun-cli.zip -DestinationPath aliyun-cli
+          $env:Path += ";$PWD\aliyun-cli"
+
+          # Configure aliyun CLI
+          aliyun configure set --profile default --mode AK --access-key-id $env:OSS_ACCESS_KEY_ID --access-key-secret $env:OSS_ACCESS_KEY_SECRET --region $env:OSS_REGION
+
+          # List existing files in studio-releases/ and delete only .exe and .blockmap (large files)
+          # latest.yml is small and will be overwritten anyway
+          Write-Host "=== Cleaning old installer files ==="
+          $listing = aliyun oss ls "oss://$env:OSS_BUCKET/$ossPrefix/" 2>&1
+          $oldFiles = ($listing | Select-String -Pattern "$ossPrefix/.*\.(exe|blockmap)$" -AllMatches).Matches.Value
+          foreach ($old in $oldFiles) {
+            if ($old) {
+              Write-Host "Removing old file: $old"
+              aliyun oss rm "oss://$env:OSS_BUCKET/$old" --force
+            }
+          }
+
+          # Upload new release files
+          $files = Get-ChildItem dist-electron -Include *.exe,*.yml,*.blockmap -File
+          foreach ($f in $files) {
+            Write-Host "Uploading $($f.Name) to oss://$env:OSS_BUCKET/$ossPrefix/$($f.Name)"
+            aliyun oss cp $f.FullName "oss://$env:OSS_BUCKET/$ossPrefix/$($f.Name)" --force
+          }
+          Write-Host "=== OSS upload complete ==="
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
