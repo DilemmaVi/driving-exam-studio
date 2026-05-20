@@ -1,5 +1,5 @@
 import React from "react";
-import { useCurrentFrame, useVideoConfig, spring, interpolate, Img } from "remotion";
+import { useCurrentFrame, useVideoConfig, spring, interpolate, Img, getRemotionEnvironment } from "remotion";
 import { COLORS, SPACING, RADIUS } from "./theme";
 
 interface Props {
@@ -10,6 +10,7 @@ interface Props {
 export const QuestionImage: React.FC<Props> = ({ src, startFrame }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const env = getRemotionEnvironment();
 
   const enter = spring({
     frame: frame - startFrame,
@@ -20,6 +21,7 @@ export const QuestionImage: React.FC<Props> = ({ src, startFrame }) => {
   });
 
   const scale = interpolate(enter, [0, 1], [0.85, 1]);
+  const isRendering = env.isRendering;
 
   return (
     <div
@@ -41,15 +43,27 @@ export const QuestionImage: React.FC<Props> = ({ src, startFrame }) => {
           padding: SPACING.md,
         }}
       >
-        <Img
-          src={src}
-          style={{
-            maxWidth: 850,
-            maxHeight: 500,
-            objectFit: "contain",
-            borderRadius: RADIUS.lg,
-          }}
-        />
+        {isRendering ? (
+          <Img
+            src={src}
+            style={{
+              maxWidth: 850,
+              maxHeight: 500,
+              objectFit: "contain",
+              borderRadius: RADIUS.lg,
+            }}
+          />
+        ) : (
+          <img
+            src={src}
+            style={{
+              maxWidth: 850,
+              maxHeight: 500,
+              objectFit: "contain",
+              borderRadius: RADIUS.lg,
+            }}
+          />
+        )}
       </div>
     </div>
   );
