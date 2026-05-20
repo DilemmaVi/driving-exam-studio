@@ -162,7 +162,8 @@ jobs:
           }
 
           # Upload new release files
-          $files = Get-ChildItem dist-electron -Include *.exe,*.yml,*.blockmap -File
+          $files = Get-ChildItem dist-electron\* -Include *.exe,*.yml,*.blockmap
+          if ($files.Count -eq 0) { throw "No release files found in dist-electron/" }
           foreach ($f in $files) {
             Write-Host "Uploading $($f.Name) to oss://$env:OSS_BUCKET/$ossPrefix/$($f.Name)"
             aliyun oss cp $f.FullName "oss://$env:OSS_BUCKET/$ossPrefix/$($f.Name)" --force
