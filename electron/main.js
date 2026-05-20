@@ -241,15 +241,47 @@ app.on("activate", () => {
   if (mainWindow === null) createWindow();
 });
 
+function checkMinVersion(writeStatus) {
+  const https = require("https");
+  const options = {
+    hostname: "api.github.com",
+    path: "/repos/DilemmaVi/driving-exam-studio/releases/latest",
+    headers: { "User-Agent": "driving-exam-studio" },
+  };
+  https.get(options, (res) => {
+    let data = "";
+    res.on("data", (chunk) => { data += chunk; });
+    res.on("end", () => {
+      try {
+        const release = JSON.parse(data);
+        const match = (release.body || "").match(/min_version:\s*([\d.]+)/);
+        if (match) {
+          log(`[updater] min_version from release: ${match[1]}`);
+          writeStatus({ state: "checking", minVersion: match[1] });
+        }
+      } catch (e) {
+        log(`[updater] Failed to parse release info: ${e.message}`);
+      }
+    });
+  }).on("error", (e) => {
+    log(`[updater] Failed to check min_version: ${e.message}`);
+  });
+}
+
 function setupAutoUpdater() {
   if (!app.isPackaged) return;
 
   const statusFile = path.join(getUserDataPath(), "update-status.json");
   process.env.UPDATE_STATUS_FILE = statusFile;
 
+  const currentVersion = app.getVersion();
+
   function writeStatus(status) {
-    try { fs.writeFileSync(statusFile, JSON.stringify(status)); } catch {}
+    try { fs.writeFileSync(statusFile, JSON.stringify({ ...status, currentVersion })); } catch {}
   }
+
+  // Check min_version from latest GitHub release
+  checkMinVersion(writeStatus);
 
   writeStatus({ state: "checking" });
 
@@ -306,4 +338,14 @@ function setupAutoUpdater() {
     log(`[updater] 检查更新失败: ${err.message}`);
     writeStatus({ state: "error", message: err.message });
   });
+
+  // Watch for restart request from web UI
+  const restartFile = path.join(getUserDataPath(), "restart-requested");
+  setInterval(() => {
+    if (fs.existsSync(restartFile)) {
+      try { fs.unlinkSync(restartFile); } catch {}
+      log("[updater] Restart requested from web UI, quitting and installing...");
+      autoUpdater.quitAndInstall(false, true);
+    }
+  }, 2000);
 }

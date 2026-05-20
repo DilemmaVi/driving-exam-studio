@@ -5,6 +5,7 @@ import Image from "next/image";
 import "./globals.css";
 import packageJson from "../../package.json";
 import { UpdateIndicator } from "@/components/UpdateIndicator";
+import { ForceUpdateOverlay } from "@/components/ForceUpdateOverlay";
 
 const geist = Geist({
   variable: "--font-geist",
@@ -45,6 +46,7 @@ export default function RootLayout({
           <UpdateIndicator />
         </nav>
         <main className="flex-1">{children}</main>
+        <ForceUpdateOverlay />
       </body>
     </html>
   );

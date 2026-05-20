@@ -16,6 +16,7 @@ import { SettingsModal } from "@/components/SettingsModal";
 import { AudioPreview } from "@/components/AudioPreview";
 import { BatchActionBar } from "@/components/BatchActionBar";
 import { VideoPreview } from "@/components/VideoPreview";
+import { getStaticUrl } from "@/lib/static-url";
 import type { Question, AudioDurations } from "@/remotion/types";
 
 interface QuestionRow {
@@ -448,7 +449,7 @@ function rowToQuestion(row: QuestionRow): Question {
     correctIndices: correctIndices.length > 1 ? correctIndices : undefined,
     explanation: row.explanation || "",
     tip: row.tip_display || row.tip_text || "",
-    coverImage: row.cover_image || undefined,
+    coverImage: getStaticUrl(row.cover_image) || undefined,
   };
 }
 

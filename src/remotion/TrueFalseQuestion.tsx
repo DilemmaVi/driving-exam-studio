@@ -3,6 +3,7 @@ import { AbsoluteFill, Audio, Sequence, useCurrentFrame, useVideoConfig, spring,
 import { Background } from "./Background";
 import { ProgressBar } from "./ProgressBar";
 import { QuestionHeader } from "./QuestionHeader";
+import { QuestionImage } from "./QuestionImage";
 import { OptionItem } from "./OptionItem";
 import { AnswerReveal } from "./AnswerReveal";
 import { BottomPanel } from "./BottomPanel";
@@ -196,6 +197,8 @@ export const TrueFalseQuestion: React.FC<{
           readingPrefixDelay={readingPrefixDelay}
           readingSpeedRatio={readingSpeedRatio}
         />
+
+        {question.coverImage && <QuestionImage src={question.coverImage} startFrame={T.questionStart + Math.round(1 * fps)} />}
 
         <div style={{ marginTop: 20 }}>
         {question.options.map((opt, i) => (

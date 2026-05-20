@@ -3,6 +3,7 @@ import { getDb, nowBeijing } from "@/lib/db";
 import { generateTTSForQuestion, generateBridgeAudios, type QuestionRow } from "@/lib/tts";
 import { getOutputDir } from "@/lib/paths";
 import { getSettings } from "@/lib/settings";
+import { getStaticUrl } from "@/lib/static-url";
 import { renderQueue } from "@/lib/render-queue";
 import { v4 as uuid } from "uuid";
 import { spawn } from "child_process";
@@ -282,7 +283,7 @@ export async function renderInBackground(
           correctIndices: correctIndices.length > 1 ? correctIndices : undefined,
           explanation: row.explanation || "",
           tip: row.tip_text || row.tip_display || "",
-          coverImage: row.cover_image || undefined,
+          coverImage: getStaticUrl(row.cover_image) || undefined,
         },
         durations: { ...ttsResult.durations, ...effectiveBridges },
         component,
