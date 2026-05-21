@@ -219,7 +219,6 @@ export function calcCombinedDuration(
     const optAnimTime = entry.component === "tf" ? 1.5 : 2;
     const extraPause = idx === 0 ? (pauseStart || 0) : 0;
     let qDur = optAnimTime + extraPause + questionDuration(entry, tipOnly);
-    if (entry.showTip !== false && pauseBeforeTip) qDur += pauseBeforeTip;
     total += qDur;
   });
   if (hasOutro) total += OUTRO_DURATION;

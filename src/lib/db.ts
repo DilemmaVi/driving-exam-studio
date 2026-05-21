@@ -222,6 +222,12 @@ function initTables(db: Database.Database) {
       db.exec(`ALTER TABLE video_series ADD COLUMN ${col} ${typedef}`);
     }
   }
+  for (const [col, typedef] of newVsCols) {
+    const match = typedef.match(/DEFAULT\s+(.+)/i);
+    if (match) {
+      db.exec(`UPDATE video_series SET ${col} = ${match[1]} WHERE ${col} IS NULL`);
+    }
+  }
 
   // migrate: add style enhancement columns to video_series
   const vsColsV3 = db.prepare("PRAGMA table_info(video_series)").all() as { name: string }[];
@@ -245,6 +251,13 @@ function initTables(db: Database.Database) {
   for (const [col, typedef] of styleEnhanceCols) {
     if (!vsColsV3.some((c) => c.name === col)) {
       db.exec(`ALTER TABLE video_series ADD COLUMN ${col} ${typedef}`);
+    }
+  }
+  // backfill NULLs with defaults for columns added via ALTER TABLE
+  for (const [col, typedef] of styleEnhanceCols) {
+    const match = typedef.match(/DEFAULT\s+(.+)/i);
+    if (match) {
+      db.exec(`UPDATE video_series SET ${col} = ${match[1]} WHERE ${col} IS NULL`);
     }
   }
 

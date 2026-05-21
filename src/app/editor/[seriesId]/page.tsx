@@ -801,20 +801,20 @@ export default function SeriesEditorPage() {
           const stemLen = (previewItem.row.question_text || "").replace(/【|】/g, "").length;
           return stemLen <= threshold;
         })()}
-        keywordFlashEnabled={series?.keyword_flash_enabled !== 0}
-        underlineProgressEnabled={series?.underline_progress_enabled !== 0}
-        avatarEnabled={series?.avatar_enabled !== 0}
-        avatarSize={series?.avatar_size ?? 80}
+        keywordFlashEnabled={(series?.keyword_flash_enabled ?? 1) !== 0}
+        underlineProgressEnabled={(series?.underline_progress_enabled ?? 1) !== 0}
+        avatarEnabled={(series?.avatar_enabled ?? 1) !== 0}
+        avatarSize={series?.avatar_size ?? 260}
         avatarPosition={series?.avatar_position || "bottom-right"}
-        pauseBeforeTip={series?.pause_before_tip as number | undefined}
+        pauseBeforeTip={(series?.pause_before_tip as number) ?? 2.0}
         optionGap={previewItem?.optionGap ?? undefined}
         fontSizeQuestion={previewItem?.fontSizeQuestion ?? undefined}
         fontSizeOption={previewItem?.fontSizeOption ?? undefined}
         fontSizeExplanation={previewItem?.fontSizeExplanation ?? undefined}
-        underlineQuestion={series?.underline_question !== 0}
-        underlineOption={series?.underline_option === 1}
-        underlineExplanation={series?.underline_explanation !== 0}
-        underlineTip={series?.underline_tip !== 0}
+        underlineQuestion={(series?.underline_question ?? 1) !== 0}
+        underlineOption={(series?.underline_option ?? 0) === 1}
+        underlineExplanation={(series?.underline_explanation ?? 1) !== 0}
+        underlineTip={(series?.underline_tip ?? 1) !== 0}
         underlineColor={series?.underline_color || "#6366F1"}
         stemKeywords={previewItem?.stemKeywords ? previewItem.stemKeywords.split(",").filter(Boolean) : undefined}
         stemKeywordPhases={previewItem?.stemKeywordPhases ? previewItem.stemKeywordPhases.split(",").filter(Boolean) : undefined}
@@ -823,6 +823,7 @@ export default function SeriesEditorPage() {
         panelAdjust={previewItem?.panelAdjust || undefined}
         panelAdjustValue={previewItem?.panelAdjustValue ?? undefined}
         subjectLabel={series?.category || undefined}
+        pauseStart={(series?.pause_start as number) ?? 2.0}
       />
 
       {/* 左侧题库 */}

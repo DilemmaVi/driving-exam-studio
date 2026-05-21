@@ -40,6 +40,7 @@ interface Props {
   panelAdjust?: string;
   panelAdjustValue?: number;
   subjectLabel?: string;
+  pauseStart?: number;
 }
 
 export function VideoPreview({
@@ -49,7 +50,7 @@ export function VideoPreview({
   avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap,
   fontSizeQuestion, fontSizeOption, fontSizeExplanation,
   underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor,
-  stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel,
+  stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, pauseStart,
 }: Props) {
   const [watermark, setWatermark] = useState<{ text?: string; position?: string; opacity?: number; fontSize?: string; logoUrl?: string; scale?: number; color?: string; font?: string; stroke?: boolean }>({});
   useEffect(() => {
@@ -67,7 +68,8 @@ export function VideoPreview({
     if (!audioDurations) return 300;
     const d = audioDurations;
     const think = thinkTime ?? 0;
-    let dur = d.question + 0.3;
+    const optAnimSecs = 2;
+    let dur = optAnimSecs + (pauseStart || 0) + d.question + 0.3;
     if (readOptions !== false) {
       dur += (d.optionDurations || []).reduce((s, v) => s + v, 0);
     }
@@ -80,7 +82,7 @@ export function VideoPreview({
       dur += (d.bridgeTip || 0) + d.tip + 2.5;
     }
     return Math.ceil(dur * 30) + 10;
-  }, [audioDurations, thinkTime, showOfficialExplanation, showTip, teacherExplanation, readOptions]);
+  }, [audioDurations, thinkTime, showOfficialExplanation, showTip, teacherExplanation, readOptions, pauseStart]);
 
   if (!open || !question || !audioDurations) return null;
 
@@ -127,6 +129,7 @@ export function VideoPreview({
             panelAdjust,
             panelAdjustValue,
             subjectLabel,
+            startDelay: pauseStart ? Math.round(pauseStart * 30) : 0,
             watermarkText: watermark.text,
             watermarkPosition: watermark.position as any,
             watermarkOpacity: watermark.opacity,

@@ -79,7 +79,7 @@ function renderWithKeywordUnderline(text: string, keywords: string[]): React.Rea
 export const BottomPanel: React.FC<Props> = ({
   title, titleColor, accentColor, content, startFrame, endFrame, borderColor,
   readingDurationFrames, keywords, blueKeywords, panelHeight: panelHeightProp,
-  underlineEnabled = true, phase, originalQuestion, originalOptions,
+  underlineEnabled = false, phase, originalQuestion, originalOptions,
   originalKeywords, correctOptionIndices, keywordFlashEnabled, fontSizeOverride, underlineColor,
   readingPrefixDelay, readingSpeedRatio,
 }) => {
