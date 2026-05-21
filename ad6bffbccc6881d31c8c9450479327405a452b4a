@@ -1,0 +1,51 @@
+src/app/api/render/route.ts
+  a0016bb7d214ca0a 311,313-327,342,345-375,377-379,387,392,396,449-460,472-473,484,487,511-513
+src/remotion/OptionItem.tsx
+  a0016bb7d214ca0a 69
+src/app/api/render/download/route.ts
+  a0016bb7d214ca0a 31-35,38-39
+scripts/render-video.ts
+  a0016bb7d214ca0a 62-172,197-198
+src/remotion/QuestionHeader.tsx
+  a0016bb7d214ca0a 9,51,119-121,128,269
+src/app/editor/[seriesId]/page.tsx
+  a0016bb7d214ca0a 110,364,511,564,656
+src/app/renders/page.tsx
+  a0016bb7d214ca0a 206-217
+src/remotion/ScrollableQuestion.tsx
+  a0016bb7d214ca0a 66,98,139,148,170,203,209,237-238,288
+src/app/api/series/[id]/route.ts
+  a0016bb7d214ca0a 53-58
+src/remotion/MultipleChoice.tsx
+  a0016bb7d214ca0a 26,58,100,109,131,163,169,185-186,234
+src/components/SettingsModal.tsx
+  a0016bb7d214ca0a 50,85,121-122,162,189,236,518-521
+src/app/api/render/open-folder/route.ts
+  a0016bb7d214ca0a 1-35
+src/lib/db.ts
+  a0016bb7d214ca0a 123,134-135,238-243
+src/remotion/DynamicCombinedExam.tsx
+  a0016bb7d214ca0a 96-97,100-101,110-112,138-139,141,151,186,219-221
+src/remotion/TrueFalseQuestion.tsx
+  a0016bb7d214ca0a 23,58,98,107,130,161,167,183-184,235
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.16",
+  "base_commit_sha": "ad6bffbccc6881d31c8c9450479327405a452b4a",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 432,
+      "total_deletions": 208,
+      "accepted_lines": 347,
+      "overriden_lines": 0
+    }
+  }
+}
