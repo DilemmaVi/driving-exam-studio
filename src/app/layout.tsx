@@ -6,6 +6,7 @@ import "./globals.css";
 import packageJson from "../../package.json";
 import { UpdateIndicator } from "@/components/UpdateIndicator";
 import { ForceUpdateOverlay } from "@/components/ForceUpdateOverlay";
+import { VersionBadge } from "@/components/VersionBadge";
 
 const geist = Geist({
   variable: "--font-geist",
@@ -42,7 +43,7 @@ export default function RootLayout({
           <Link href="/tts-dictionary" className="text-sm text-gray-600 hover:text-gray-900">
             发音词典
           </Link>
-          <span className="ml-auto text-xs text-gray-400">v{packageJson.version}</span>
+          <div className="ml-auto"><VersionBadge version={packageJson.version} /></div>
           <UpdateIndicator />
         </nav>
         <main className="flex-1">{children}</main>
