@@ -1,12 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-
-interface VersionEntry {
-  version: string;
-  date: string;
-  changes: string[];
-}
+import { useState } from "react";
+import { changelog } from "@/lib/changelog";
+import packageJson from "../../package.json";
 
 interface Props {
   open: boolean;
@@ -15,27 +11,14 @@ interface Props {
 }
 
 export function ChangelogModal({ open, onClose, currentOnly }: Props) {
-  const [versions, setVersions] = useState<VersionEntry[]>([]);
-  const [currentVersion, setCurrentVersion] = useState("");
   const [showAll, setShowAll] = useState(!currentOnly);
-
-  useEffect(() => {
-    if (!open) return;
-    fetch("/api/changelog")
-      .then((r) => r.json())
-      .then((data) => {
-        setVersions(data.versions || []);
-        setCurrentVersion(data.currentVersion || "");
-        setShowAll(!currentOnly);
-      })
-      .catch(() => {});
-  }, [open, currentOnly]);
+  const currentVersion = packageJson.version;
 
   if (!open) return null;
 
   const displayVersions = showAll
-    ? versions
-    : versions.filter((v) => v.version === currentVersion);
+    ? changelog
+    : changelog.filter((v) => v.version === currentVersion);
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={onClose}>
@@ -67,7 +50,7 @@ export function ChangelogModal({ open, onClose, currentOnly }: Props) {
               </ul>
             </div>
           ))}
-          {!showAll && versions.length > 1 && (
+          {!showAll && changelog.length > 1 && (
             <button
               onClick={() => setShowAll(true)}
               className="text-sm text-blue-600 hover:text-blue-700 font-medium"
