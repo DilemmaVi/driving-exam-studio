@@ -47,6 +47,7 @@ interface SeriesData {
   underline_tip?: number;
   underline_color?: string;
   avatar_enabled?: number;
+  split_render?: number;
 }
 
 interface Props {
@@ -81,7 +82,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
   const [defaultThinkTime, setDefaultThinkTime] = useState(3);
   const [defaultVoiceStyle, setDefaultVoiceStyle] = useState("教学");
   const [speechRate, setSpeechRate] = useState(1.0);
-  const [readOptions, setReadOptions] = useState(1);
+  const [readOptions, setReadOptions] = useState(999);
   const [bridgeThink, setBridgeThink] = useState("");
   const [bridgeReveal, setBridgeReveal] = useState("");
   const [bridgeExplain, setBridgeExplain] = useState("");
@@ -117,7 +118,8 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
   // Avatar
   const [avatarEnabled, setAvatarEnabled] = useState(1);
 
-  // Watermark
+  // Render
+  const [splitRender, setSplitRender] = useState(0);
   const [watermarkEnabled, setWatermarkEnabled] = useState(false);
   const [watermarkText, setWatermarkText] = useState("");
   const [watermarkPosition, setWatermarkPosition] = useState("bottom-right");
@@ -157,7 +159,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
         setDefaultThinkTime(series.default_think_time ?? 3);
         setDefaultVoiceStyle(series.default_voice_style || "教学");
         setSpeechRate(series.speech_rate ?? 1.0);
-        setReadOptions(series.read_options ?? 1);
+        setReadOptions(series.read_options ?? 999);
         setBridgeThink(series.bridge_think || "");
         setBridgeReveal(series.bridge_reveal || "");
         setBridgeExplain(series.bridge_explain || "");
@@ -184,6 +186,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
         setUnderlineTip(series.underline_tip ?? 1);
         setUnderlineColor(series.underline_color || "#6366F1");
         setAvatarEnabled(series.avatar_enabled ?? 1);
+        setSplitRender(series.split_render ?? 0);
       }
     }
   }, [open, series]);
@@ -230,6 +233,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
       underlineTip,
       underlineColor,
       avatarEnabled: avatarPosition === "none" ? 0 : 1,
+      splitRender,
     });
     setSaving(false);
     onClose();
@@ -509,6 +513,12 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
 
           {tab === "播放控制" && (
             <>
+              <div>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={splitRender === 1} onChange={(e) => setSplitRender(e.target.checked ? 1 : 0)} className="rounded" />
+                  逐题渲染（每道题生成独立视频，打包 zip 下载）
+                </label>
+              </div>
               <div>
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" checked={showTransition === 1} onChange={(e) => setShowTransition(e.target.checked ? 1 : 0)} className="rounded" />

@@ -107,6 +107,7 @@ interface SeriesData {
   underline_explanation?: number;
   underline_tip?: number;
   underline_color?: string;
+  split_render?: number;
 }
 
 function HighlightPreview({ text }: { text: string }) {
@@ -360,7 +361,7 @@ function SortableItem({
             <div id={index === 0 ? "tour-panel-adjust" : undefined}>
               <label className="block text-xs text-gray-500 mb-1">弹窗适配</label>
               <select
-                value={item.panelAdjust || "auto-shift"}
+                value={item.panelAdjust || "auto-scale"}
                 onChange={(e) => onUpdate(item.id, { panelAdjust: e.target.value })}
                 className="border border-gray-300 rounded-lg px-2 py-1 text-sm"
               >
@@ -507,7 +508,7 @@ export default function SeriesEditorPage() {
           stemKeywordPhases: (sq.stem_keyword_phases as string) || "question",
           readingPrefixDelay: (sq.reading_prefix_delay as number | null) ?? null,
           readingSpeedRatio: (sq.reading_speed_ratio as number | null) ?? null,
-          panelAdjust: (sq.panel_adjust as string) || "auto-shift",
+          panelAdjust: (sq.panel_adjust as string) || "auto-scale",
           panelAdjustValue: (sq.panel_adjust_value as number | null) ?? null,
         }));
         setSelected(items);
@@ -560,7 +561,7 @@ export default function SeriesEditorPage() {
       stemKeywords: "", stemKeywordPhases: "question",
       readingPrefixDelay: null,
       readingSpeedRatio: null,
-      panelAdjust: "auto-shift",
+      panelAdjust: "auto-scale",
       panelAdjustValue: null,
     }]);
   };
@@ -652,6 +653,7 @@ export default function SeriesEditorPage() {
       underlineQuestion: "underline_question", underlineOption: "underline_option",
       underlineExplanation: "underline_explanation", underlineTip: "underline_tip",
       underlineColor: "underline_color",
+      splitRender: "split_render",
     };
     const snakeUpdates: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(updates)) {

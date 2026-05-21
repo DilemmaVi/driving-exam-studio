@@ -308,11 +308,23 @@ export async function renderInBackground(
     updateTask(taskId, { status: "rendering", phase: "bundling", phase_label: "打包项目...", progress: 0.3 });
 
     const outputDir = getOutputDir();
-    const outputPath = path.join(outputDir, `${taskId}.mp4`);
-    const propsFile = path.join(outputDir, `${taskId}.json`);
+    const isSplitRender = seriesData?.split_render === 1;
 
-    const props: Record<string, unknown> = {
-      entries,
+    const settings = getSettings();
+    const watermarkProps: Record<string, unknown> = {};
+    if (settings.watermarkEnabled && (settings.watermarkText || settings.watermarkLogoUrl)) {
+      watermarkProps.watermarkText = settings.watermarkText;
+      watermarkProps.watermarkPosition = settings.watermarkPosition || "bottom-right";
+      watermarkProps.watermarkOpacity = settings.watermarkOpacity ?? 30;
+      watermarkProps.watermarkFontSize = settings.watermarkFontSize ?? 36;
+      watermarkProps.watermarkLogoUrl = settings.watermarkLogoUrl;
+      watermarkProps.watermarkScale = settings.watermarkScale ?? 100;
+      watermarkProps.watermarkColor = settings.watermarkColor;
+      watermarkProps.watermarkFont = settings.watermarkFont;
+      watermarkProps.watermarkStroke = settings.watermarkStroke;
+    }
+
+    const sharedProps: Record<string, unknown> = {
       showTransition,
       pauseStart,
       pauseEnd,
@@ -327,48 +339,61 @@ export async function renderInBackground(
       avatarEnabled,
       avatarSize,
       avatarPosition,
+      ...watermarkProps,
     };
 
-    const settings = getSettings();
-    if (settings.watermarkEnabled && (settings.watermarkText || settings.watermarkLogoUrl)) {
-      props.watermarkText = settings.watermarkText;
-      props.watermarkPosition = settings.watermarkPosition || "bottom-right";
-      props.watermarkOpacity = settings.watermarkOpacity ?? 30;
-      props.watermarkFontSize = settings.watermarkFontSize ?? 36;
-      props.watermarkLogoUrl = settings.watermarkLogoUrl;
-      props.watermarkScale = settings.watermarkScale ?? 100;
-      props.watermarkColor = settings.watermarkColor;
-      props.watermarkFont = settings.watermarkFont;
-      props.watermarkStroke = settings.watermarkStroke;
-    }
-    if (tipOnly) {
-      props.tipOnly = true;
-    } else if (seriesData) {
-      props.introTitle = seriesData.intro_title || "";
-      props.introSubtitle = seriesData.intro_subtitle || "";
-      props.introCategory = seriesData.category || "";
-      if (seriesData.outro_text) {
-        props.outroText = seriesData.outro_text;
-        props.outroSubtitle = seriesData.outro_subtitle || "";
-      }
-    }
+    let propsFile: string;
+    let outputPath: string;
 
-    fs.writeFileSync(propsFile, JSON.stringify(props));
+    if (isSplitRender) {
+      const splitDir = path.join(outputDir, taskId);
+      fs.mkdirSync(splitDir, { recursive: true });
+
+      const batchItems = entries.map((entry, i) => {
+        const nameSlug = (entry.question.questionContent || "").replace(/[\\/:*?"<>|]/g, "").slice(0, 15).trim();
+        const fileName = `${String(i + 1).padStart(2, "0")}-${nameSlug}.mp4`;
+        return {
+          props: { ...sharedProps, entries: [entry] },
+          outputPath: path.join(splitDir, fileName),
+        };
+      });
+
+      propsFile = path.join(outputDir, `${taskId}_batch.json`);
+      fs.writeFileSync(propsFile, JSON.stringify({ batch: true, items: batchItems }));
+      outputPath = "batch"; // not used for split render
+    } else {
+      const props: Record<string, unknown> = { ...sharedProps, entries };
+      if (tipOnly) {
+        props.tipOnly = true;
+      } else if (seriesData) {
+        props.introTitle = seriesData.intro_title || "";
+        props.introSubtitle = seriesData.intro_subtitle || "";
+        props.introCategory = seriesData.category || "";
+        if (seriesData.outro_text) {
+          props.outroText = seriesData.outro_text;
+          props.outroSubtitle = seriesData.outro_subtitle || "";
+        }
+      }
+      propsFile = path.join(outputDir, `${taskId}.json`);
+      outputPath = path.join(outputDir, `${taskId}.mp4`);
+      fs.writeFileSync(propsFile, JSON.stringify(props));
+    }
 
     await new Promise<void>((resolve, reject) => {
       const isPackaged = !!process.env.NODE_PATH;
       let cmd: string;
       let args: string[];
       let renderEnv = { ...process.env };
+      const renderOutputArg = isSplitRender ? "batch" : outputPath;
       if (isPackaged) {
         const scriptPath = path.join(process.cwd(), "scripts", "render-video.js");
         cmd = process.env.NODE_EXEC || process.execPath;
         const nodeDepsPath = path.join(process.cwd(), "node_deps");
-        args = [scriptPath, propsFile, outputPath];
+        args = [scriptPath, propsFile, renderOutputArg];
         renderEnv = { ...process.env, NODE_PATH: nodeDepsPath, NODE_ENV: "production" };
       } else {
         cmd = "npx";
-        args = ["tsx", "scripts/render-video.ts", propsFile, outputPath];
+        args = ["tsx", "scripts/render-video.ts", propsFile, renderOutputArg];
       }
       const child = spawn(cmd, args, {
         cwd: process.cwd(),
@@ -421,6 +446,18 @@ export async function renderInBackground(
 
     try { fs.unlinkSync(propsFile); } catch {}
 
+    if (isSplitRender) {
+      const splitDir = path.join(outputDir, taskId);
+      const files = fs.readdirSync(splitDir).filter(f => f.endsWith(".mp4"));
+      const totalSize = files.reduce((acc, f) => acc + fs.statSync(path.join(splitDir, f)).size, 0);
+      updateTask(taskId, {
+        status: "done", progress: 1, phase: "done", phase_label: `渲染完成 (${files.length}个视频)`,
+        output_path: splitDir,
+        file_size: `${(totalSize / 1024 / 1024).toFixed(1)}MB`,
+        completed_at: nowBeijing(),
+      });
+    }
+
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     updateTask(taskId, { status: "error", error: msg.slice(0, 2000) });
@@ -432,7 +469,8 @@ function handleRenderMessage(taskId: string, msg: Record<string, unknown>) {
     case "status":
       updateTask(taskId, { phase: msg.phase, phase_label: msg.message });
       if (msg.phase === "hd") {
-        updateTask(taskId, { progress: 0.95 });
+        const hdLabel = msg.currentItem ? `高清化第${msg.currentItem}/${msg.totalItems}题` : "高清化处理中";
+        updateTask(taskId, { progress: 0.95, phase_label: hdLabel });
       }
       break;
     case "progress":
@@ -443,9 +481,10 @@ function handleRenderMessage(taskId: string, msg: Record<string, unknown>) {
           progress: 0.3 + (msg.progress as number) / 100 * 0.15,
         });
       } else if (msg.phase === "rendering") {
+        const itemLabel = msg.currentItem ? `第${msg.currentItem}/${msg.totalItems}题 ` : "";
         updateTask(taskId, {
           phase: "rendering",
-          phase_label: `渲染帧 ${msg.renderedFrames}/${msg.totalFrames}`,
+          phase_label: `${itemLabel}渲染帧 ${msg.renderedFrames}/${msg.totalFrames}`,
           progress: 0.45 + (msg.progress as number) / 100 * 0.55,
           rendered_frames: msg.renderedFrames as number,
           total_frames: msg.totalFrames as number,
@@ -468,6 +507,9 @@ function handleRenderMessage(taskId: string, msg: Record<string, unknown>) {
       break;
     case "error":
       updateTask(taskId, { status: "error", error: msg.message as string });
+      break;
+    case "batch_done":
+      // zip packaging handled in renderInBackground
       break;
   }
 }

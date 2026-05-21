@@ -93,17 +93,12 @@ export const DynamicCombinedExam: React.FC<Props> = ({
     currentFrame += introFrames;
   }
 
-  if (pauseStart && pauseStart > 0) {
-    const pauseFrames = Math.round(pauseStart * FPS);
-    sequences.push(
-      <Sequence key="pause-start" from={currentFrame} durationInFrames={pauseFrames}>
-        <AbsoluteFill style={{ backgroundColor: "transparent" }} />
-      </Sequence>
-    );
-    currentFrame += pauseFrames;
-  }
+  const pauseStartFrames = (pauseStart && pauseStart > 0) ? Math.round(pauseStart * FPS) : 0;
+  const pauseEndFrames = (pauseEnd && pauseEnd > 0) ? Math.round(pauseEnd * FPS) : 0;
 
   entries.forEach((entry, idx) => {
+    const isFirst = idx === 0;
+    const isLast = idx === entries.length - 1;
     const effectiveEntry = tipOnly ? {
       ...entry,
       showOfficialExplanation: false,
@@ -112,7 +107,9 @@ export const DynamicCombinedExam: React.FC<Props> = ({
       readOptions: false,
     } : entry;
     const qDurSecs = questionDuration(effectiveEntry, tipOnly);
-    const qFrames = Math.ceil(qDurSecs * FPS) + 10;
+    const optAnimSecs = entry.component === "tf" ? 1.5 : 2;
+    const extraPause = isFirst ? (pauseStart || 0) : 0;
+    const qFrames = Math.round(optAnimSecs * FPS) + Math.round(extraPause * FPS) + Math.ceil(qDurSecs * FPS) + 10;
 
     if (showTransition && idx > 0) {
       const transFrames = Math.ceil(TRANS_DURATION * FPS);
@@ -138,8 +135,10 @@ export const DynamicCombinedExam: React.FC<Props> = ({
         : entry.component === "scroll" ? ScrollableQuestion
           : MultipleChoice;
 
+    const extraEnd = isLast ? pauseEndFrames : 0;
+
     sequences.push(
-      <Sequence key={`q-${idx}`} from={currentFrame} durationInFrames={qFrames}>
+      <Sequence key={`q-${idx}`} from={currentFrame} durationInFrames={qFrames + extraEnd}>
         <QuestionComponent
           question={entry.question}
           audioDurations={entry.durations}
@@ -149,6 +148,7 @@ export const DynamicCombinedExam: React.FC<Props> = ({
           showOfficialExplanation={effectiveEntry.showOfficialExplanation}
           showTip={effectiveEntry.showTip}
           readOptions={effectiveEntry.readOptions}
+          startDelay={isFirst ? pauseStartFrames : 0}
           optionGap={effectiveEntry.optionGap}
           fontSizeQuestion={effectiveEntry.fontSizeQuestion}
           fontSizeOption={effectiveEntry.fontSizeOption}
@@ -183,7 +183,7 @@ export const DynamicCombinedExam: React.FC<Props> = ({
         />
       </Sequence>
     );
-    currentFrame += qFrames;
+    currentFrame += qFrames + extraEnd;
   });
 
   if (outroText) {
@@ -194,16 +194,6 @@ export const DynamicCombinedExam: React.FC<Props> = ({
       </Sequence>
     );
     currentFrame += outroFrames;
-  }
-
-  if (pauseEnd && pauseEnd > 0) {
-    const pauseFrames = Math.round(pauseEnd * FPS);
-    sequences.push(
-      <Sequence key="pause-end" from={currentFrame} durationInFrames={pauseFrames}>
-        <AbsoluteFill style={{ backgroundColor: "transparent" }} />
-      </Sequence>
-    );
-    currentFrame += pauseFrames;
   }
 
   return (
@@ -224,10 +214,11 @@ export function calcCombinedDuration(
   pauseBeforeTip?: number,
 ): number {
   let total = hasIntro ? INTRO_DURATION : 0;
-  total += (pauseStart || 0);
   entries.forEach((entry, idx) => {
     if (showTransition && idx > 0) total += TRANS_DURATION;
-    let qDur = questionDuration(entry, tipOnly);
+    const optAnimTime = entry.component === "tf" ? 1.5 : 2;
+    const extraPause = idx === 0 ? (pauseStart || 0) : 0;
+    let qDur = optAnimTime + extraPause + questionDuration(entry, tipOnly);
     if (entry.showTip !== false && pauseBeforeTip) qDur += pauseBeforeTip;
     total += qDur;
   });

@@ -203,6 +203,18 @@ export default function RendersPage() {
                       >
                         下载
                       </a>
+                      <button
+                        onClick={async () => {
+                          await fetch("/api/render/open-folder", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ taskId: task.id }),
+                          });
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition"
+                      >
+                        📂 打开文件夹
+                      </button>
                     </div>
                   </div>
                 )}

@@ -120,7 +120,7 @@ function initTables(db: Database.Database) {
     ["avatar_image", "TEXT DEFAULT ''"],
     ["avatar_position", "TEXT DEFAULT 'bottom-right'"],
     ["avatar_size", "INTEGER DEFAULT 260"],
-    ["read_options", "INTEGER DEFAULT 1"],
+    ["read_options", "INTEGER DEFAULT 999"],
     ["keyword_style", "TEXT DEFAULT 'circle'"],
     ["speech_rate", "REAL DEFAULT 1.0"],
     ["reveal_pause", "REAL DEFAULT 0.3"],
@@ -131,7 +131,8 @@ function initTables(db: Database.Database) {
       db.exec(`ALTER TABLE video_series ADD COLUMN ${col} ${typedef}`);
     }
   }
-
+  // Fix: read_options=1 was a wrong default, should be 999 (always read)
+  db.exec("UPDATE video_series SET read_options = 999 WHERE read_options = 1");
   // migrate: add per-question override columns to series_questions
   const sqCols = db.prepare("PRAGMA table_info(series_questions)").all() as { name: string }[];
   const sqNewCols: [string, string][] = [
@@ -234,6 +235,12 @@ function initTables(db: Database.Database) {
     ["keyword_flash_enabled", "INTEGER DEFAULT 1"],
     ["underline_progress_enabled", "INTEGER DEFAULT 1"],
     ["avatar_enabled", "INTEGER DEFAULT 1"],
+    ["split_render", "INTEGER DEFAULT 0"],
+    ["underline_question", "INTEGER DEFAULT 1"],
+    ["underline_option", "INTEGER DEFAULT 0"],
+    ["underline_explanation", "INTEGER DEFAULT 1"],
+    ["underline_tip", "INTEGER DEFAULT 1"],
+    ["underline_color", "TEXT DEFAULT '#6366F1'"],
   ];
   for (const [col, typedef] of styleEnhanceCols) {
     if (!vsColsV3.some((c) => c.name === col)) {

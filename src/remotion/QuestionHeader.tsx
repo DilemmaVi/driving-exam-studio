@@ -6,6 +6,7 @@ import { RedCircle } from "./RedCircle";
 interface Props {
   text: string;
   startFrame: number;
+  readingStartFrame?: number;
   highlightPhaseFrame?: number;
   circleFrame?: number;
   tipFrame?: number;
@@ -47,7 +48,7 @@ const parseSegments = (text: string): { text: string; highlight: boolean; blue?:
 };
 
 export const QuestionHeader: React.FC<Props> = ({
-  text, startFrame, highlightPhaseFrame, circleFrame, tipFrame,
+  text, startFrame, readingStartFrame, highlightPhaseFrame, circleFrame, tipFrame,
   readingDurationFrames, questionType, subjectLabel, fontScale = 1, fontSizeOverride, underlineEnabled, underlineColor,
   stemKeywords, stemKeywordPhases, explanationStartFrame, tipStartFrame, readingPrefixDelay, readingSpeedRatio,
 }) => {
@@ -115,14 +116,16 @@ export const QuestionHeader: React.FC<Props> = ({
   }
 
   const totalChars = allChars.length;
-  const visibleChars = Math.floor((frame - startFrame) * 2);
+  const rStart = readingStartFrame ?? startFrame;
+  // Before readingStart: all chars visible (static). After: typewriter reveal synced with audio.
+  const visibleChars = frame >= rStart ? totalChars : Math.floor((frame - startFrame) * 2);
 
   // Reading progress based on actual TTS audio duration
   const speedRatio = readingSpeedRatio ?? 1;
   const sweepDurationFrames = (readingDurationFrames || (totalChars / 5) * 30) / speedRatio;
   const prefixDelay = readingPrefixDelay ?? 8;
   const readingProgress = sweepDurationFrames > 0
-    ? Math.min(1, Math.max(0, (frame - startFrame - prefixDelay) / sweepDurationFrames))
+    ? Math.min(1, Math.max(0, (frame - rStart - prefixDelay) / sweepDurationFrames))
     : -1;
   const readChars = readingProgress >= 0 ? Math.floor(readingProgress * totalChars) : -1;
 
@@ -263,7 +266,7 @@ export const QuestionHeader: React.FC<Props> = ({
           fontWeight: 500,
           letterSpacing: 1,
         }}>
-          {subjectLabel || "科目一"} · {questionType || "判断题"}
+          {subjectLabel ? `${subjectLabel} · ` : ""}{questionType || "判断题"}
         </span>
       </div>
       <div style={{

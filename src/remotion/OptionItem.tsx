@@ -66,7 +66,7 @@ export const OptionItem: React.FC<Props> = ({
     ? spring({
         frame: frame - revealFrame,
         fps,
-        config: { damping: 15, stiffness: 100 },
+        config: { damping: 30, stiffness: 100 },
         from: 0,
         to: 1,
       })

@@ -28,10 +28,15 @@ export async function GET(request: NextRequest) {
     },
   });
 
+  const isZip = task.output_path.endsWith(".zip");
+  const contentType = isZip ? "application/zip" : "video/mp4";
+  const ext = isZip ? "zip" : "mp4";
+  const fileName = `exam-${taskId.slice(0, 8)}.${ext}`;
+
   return new NextResponse(webStream, {
     headers: {
-      "Content-Type": "video/mp4",
-      "Content-Disposition": `attachment; filename="exam-${taskId.slice(0, 8)}.mp4"`,
+      "Content-Type": contentType,
+      "Content-Disposition": `attachment; filename="${fileName}"`,
       "Content-Length": String(stat.size),
     },
   });

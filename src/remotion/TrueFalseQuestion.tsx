@@ -20,6 +20,7 @@ export const TrueFalseQuestion: React.FC<{
   audioServerUrl?: string;
   thinkTime?: number;
   readOptions?: boolean;
+  startDelay?: number;
   teacherExplanation?: string;
   showOfficialExplanation?: boolean;
   showTip?: boolean;
@@ -54,7 +55,7 @@ export const TrueFalseQuestion: React.FC<{
   watermarkColor?: string;
   watermarkFont?: string;
   watermarkStroke?: boolean;
-}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, readOptions = true, teacherExplanation, showOfficialExplanation, showTip, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke }) => {
+}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, readOptions = true, startDelay = 0, teacherExplanation, showOfficialExplanation, showTip, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke }) => {
   const labels = ["A", "B"];
   const correctLabel = labels[question.correctIndex];
   const correctText = question.options[question.correctIndex];
@@ -94,6 +95,7 @@ export const TrueFalseQuestion: React.FC<{
   const T = {
     questionStart: 0,
     optionsStart: Math.round(1.5 * FPS),
+    audioStart: Math.round(1.5 * FPS) + startDelay,
     highlightPhaseFrame: 0,
     bridgeRevealStart: 0, revealStart: 0,
     bridgeExplainStart: 0, explanationStart: 0, explanationEnd: 0,
@@ -102,7 +104,7 @@ export const TrueFalseQuestion: React.FC<{
 
   const effectiveOptFrames = readOptions ? totalOptFrames : 0;
 
-  let cursor = qFrames + effectiveOptFrames + Math.round(0.3 * FPS);
+  let cursor = T.audioStart + qFrames + effectiveOptFrames + Math.round(0.3 * FPS);
   cursor += Math.round((thinkTime || 0) * FPS);
   T.highlightPhaseFrame = cursor;
   T.bridgeRevealStart = cursor;
@@ -125,7 +127,7 @@ export const TrueFalseQuestion: React.FC<{
 
   // Each option's read start = after stem audio + cumulative previous option durations
   const optReadStarts: number[] = [];
-  let optCursor = qFrames;
+  let optCursor = T.audioStart + qFrames;
   for (let i = 0; i < question.options.length; i++) {
     optReadStarts.push(optCursor);
     optCursor += optFramesArr[i] || 0;
@@ -156,15 +158,13 @@ export const TrueFalseQuestion: React.FC<{
     ? spring({ frame: frame - panelVisibleFrame, fps, config: { damping: 28, stiffness: 90 } })
     : 0;
 
-  const mode = panelAdjust || "auto-shift";
+  const mode = panelAdjust || "auto-scale";
   let contentShift = 0;
   let contentScale = 1;
   if (mode === "auto-shift" && overflow > 0) {
     contentShift = interpolate(panelProgress, [0, 1], [0, -overflow]);
   } else if (mode === "auto-scale" && overflow > 0) {
-    const contentHeight = contentBottom - 30;
-    const targetScale = Math.max(0.5, (panelTop - 80) / contentHeight);
-    contentScale = interpolate(panelProgress, [0, 1], [1, targetScale]);
+    contentScale = interpolate(panelProgress, [0, 1], [1, 0.9]);
   } else if (mode === "manual" && panelAdjustValue) {
     contentShift = interpolate(panelProgress, [0, 1], [0, -panelAdjustValue]);
   } else if (mode === "manual-scale" && panelAdjustValue) {
@@ -180,7 +180,8 @@ export const TrueFalseQuestion: React.FC<{
       <div style={{ position: "absolute", top: 30, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", transform: `translateY(${contentShift}px) scale(${contentScale})`, transformOrigin: "top center", width: contentScale < 1 ? `${100 / contentScale}%` : undefined, marginLeft: contentScale < 1 ? `${-(100 / contentScale - 100) / 2}%` : undefined }}>
         <QuestionHeader
           text={question.questionContent}
-          startFrame={T.questionStart}
+          startFrame={0}
+          readingStartFrame={T.audioStart}
           highlightPhaseFrame={T.highlightPhaseFrame}
           circleFrame={T.explanationStart > 0 ? T.explanationStart : undefined}
           tipFrame={T.tipStart > 0 ? T.tipStart : undefined}
@@ -231,7 +232,7 @@ export const TrueFalseQuestion: React.FC<{
       )}
 
       {/* Stem audio */}
-      <Sequence from={0}><Audio src={`${audioServerUrl}/audio/q${question.id}_question.wav`} /></Sequence>
+      <Sequence from={T.audioStart}><Audio src={`${audioServerUrl}/audio/q${question.id}_question.wav`} /></Sequence>
       {/* Per-option audio */}
       {readOptions && question.options.map((_, i) => (
         <Sequence key={`opt-audio-${i}`} from={optReadStarts[i]}>

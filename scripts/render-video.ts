@@ -59,6 +59,117 @@ function createAudioServer(port: number): Promise<http.Server> {
 async function main() {
   const AUDIO_SERVER_URL = "http://127.0.0.1:3033";
 
+  const inputRaw = JSON.parse(fs.readFileSync(propsFile, "utf-8"));
+
+  if (inputRaw.batch) {
+    await runBatch(inputRaw, AUDIO_SERVER_URL);
+  } else {
+    await runSingle(inputRaw, AUDIO_SERVER_URL);
+  }
+}
+
+async function runBatch(input: { items: Array<{ props: Record<string, unknown>; outputPath: string }> }, AUDIO_SERVER_URL: string) {
+  const totalItems = input.items.length;
+
+  console.log(JSON.stringify({ type: "status", phase: "bundling", message: "正在打包 Remotion 项目..." }));
+
+  const entryPoint = path.join(__dirname, "..", "src", "remotion", "index.ts");
+  const bundleLocation = await bundle({
+    entryPoint,
+    onProgress: (progress: number) => {
+      console.log(JSON.stringify({ type: "progress", phase: "bundling", progress: Math.min(100, Math.round(progress / 100)) }));
+    },
+  });
+
+  console.log(JSON.stringify({ type: "status", phase: "server", message: "启动音频服务器..." }));
+  const audioServer = await createAudioServer(3033);
+
+  try {
+    for (let i = 0; i < totalItems; i++) {
+      const item = input.items[i];
+      console.log(JSON.stringify({ type: "status", phase: "rendering", message: `渲染第 ${i + 1}/${totalItems} 题...`, currentItem: i + 1, totalItems }));
+
+      function resolveUrl(url?: string): string | undefined {
+        if (!url) return undefined;
+        if (url.startsWith("http")) return url;
+        return `${AUDIO_SERVER_URL}${url}`;
+      }
+
+      const propsWithAudioUrl = {
+        ...item.props,
+        audioServerUrl: AUDIO_SERVER_URL,
+        watermarkLogoUrl: resolveUrl(item.props.watermarkLogoUrl as string | undefined),
+        entries: (item.props.entries as Array<{ question: { id: number; coverImage?: string } }>).map((entry) => ({
+          ...entry,
+          audioServerUrl: AUDIO_SERVER_URL,
+          question: {
+            ...entry.question,
+            coverImage: resolveUrl(entry.question.coverImage),
+          },
+        })),
+      };
+
+      const composition = await selectComposition({
+        serveUrl: bundleLocation,
+        id: "DynamicExam",
+        inputProps: propsWithAudioUrl,
+      });
+
+      await renderMedia({
+        composition,
+        serveUrl: bundleLocation,
+        codec: "h264",
+        outputLocation: item.outputPath,
+        inputProps: propsWithAudioUrl,
+        timeoutInMilliseconds: 120000,
+        onProgress: ({ progress, renderedFrames }: {
+          progress: number;
+          renderedFrames: number;
+          renderedDoneIn: number | null;
+          encodedDoneIn: number | null;
+        }) => {
+          console.log(JSON.stringify({
+            type: "progress",
+            phase: "rendering",
+            progress: Math.round(progress * 100),
+            renderedFrames,
+            totalFrames: composition.durationInFrames,
+            currentItem: i + 1,
+            totalItems,
+          }));
+        },
+      });
+
+      // HD post-processing per item
+      const stat = fs.statSync(item.outputPath);
+      const hdEnabled = item.props.hdExport !== false;
+      if (hdEnabled) {
+        console.log(JSON.stringify({ type: "status", phase: "hd", message: `高清化处理第 ${i + 1}/${totalItems} 题...`, currentItem: i + 1, totalItems }));
+        const tempPath = item.outputPath.replace(/\.mp4$/, "_raw.mp4");
+        fs.renameSync(item.outputPath, tempPath);
+        try {
+          const bitrate = Math.max(8000, Math.round(stat.size / 1024 * 8 / (composition.durationInFrames / composition.fps) * 1.2 / 1000));
+          const passLogFile = item.outputPath.replace(/\.mp4$/, "_passlog");
+          execSync(`ffmpeg -y -i "${tempPath}" -c:v libx264 -b:v ${bitrate}k -pass 1 -an -f null /dev/null -passlogfileprefix "${passLogFile}"`, { stdio: "ignore" });
+          execSync(`ffmpeg -y -i "${tempPath}" -c:v libx264 -b:v ${bitrate}k -pass 2 -c:a aac -b:a 192k -vf "unsharp=5:5:0.5:5:5:0.5" "${item.outputPath}" -passlogfileprefix "${passLogFile}"`, { stdio: "ignore" });
+          fs.unlinkSync(tempPath);
+          try { fs.unlinkSync(`${passLogFile}-0.log`); } catch {}
+          try { fs.unlinkSync(`${passLogFile}-0.log.mbtree`); } catch {}
+        } catch {
+          if (!fs.existsSync(item.outputPath) && fs.existsSync(tempPath)) {
+            fs.renameSync(tempPath, item.outputPath);
+          }
+        }
+      }
+    }
+  } finally {
+    audioServer.close();
+  }
+
+  console.log(JSON.stringify({ type: "batch_done", totalItems }));
+}
+
+async function runSingle(inputProps: Record<string, unknown>, AUDIO_SERVER_URL: string) {
   console.log(JSON.stringify({ type: "status", phase: "bundling", message: "正在打包 Remotion 项目..." }));
 
   const entryPoint = path.join(__dirname, "..", "src", "remotion", "index.ts");
@@ -72,8 +183,6 @@ async function main() {
 
   console.log(JSON.stringify({ type: "status", phase: "composition", message: "正在解析视频参数..." }));
 
-  const inputProps = JSON.parse(fs.readFileSync(propsFile, "utf-8"));
-
   // Resolve relative URLs to the local file server
   function resolveUrl(url?: string): string | undefined {
     if (!url) return undefined;
@@ -85,8 +194,8 @@ async function main() {
   const propsWithAudioUrl = {
     ...inputProps,
     audioServerUrl: AUDIO_SERVER_URL,
-    watermarkLogoUrl: resolveUrl(inputProps.watermarkLogoUrl),
-    entries: inputProps.entries.map((entry: { question: { id: number; coverImage?: string } }) => ({
+    watermarkLogoUrl: resolveUrl(inputProps.watermarkLogoUrl as string | undefined),
+    entries: (inputProps.entries as Array<{ question: { id: number; coverImage?: string } }>).map((entry) => ({
       ...entry,
       audioServerUrl: AUDIO_SERVER_URL,
       question: {
