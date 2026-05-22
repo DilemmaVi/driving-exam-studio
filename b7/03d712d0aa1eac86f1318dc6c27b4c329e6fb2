@@ -1,0 +1,49 @@
+src/remotion/Background.tsx
+  a0016bb7d214ca0a 29,31,34,38
+src/app/editor/[seriesId]/page.tsx
+  a0016bb7d214ca0a 804-806,814-817,827,954
+src/remotion/TrueFalseQuestion.tsx
+  a0016bb7d214ca0a 14,59-60,179
+src/lib/db.ts
+  a0016bb7d214ca0a 135,259,262,264-265,281-289
+package.json
+  a0016bb7d214ca0a 3
+src/remotion/BottomPanel.tsx
+  a0016bb7d214ca0a 165-171,180
+src/remotion/ScrollableQuestion.tsx
+  a0016bb7d214ca0a 13,99-100,221
+src/remotion/theme.ts
+  a0016bb7d214ca0a 64,79-89,120
+src/remotion/DynamicCombinedExam.tsx
+  a0016bb7d214ca0a 12,77,83,185
+src/components/SettingsModal.tsx
+  a0016bb7d214ca0a 74,111-112,114-115,153,182-186,298
+src/lib/changelog.ts
+  a0016bb7d214ca0a 3-9
+src/remotion/MultipleChoice.tsx
+  a0016bb7d214ca0a 14,59-60,181
+src/components/VideoPreview.tsx
+  a0016bb7d214ca0a 8,45,55,144
+src/app/api/render/route.ts
+  a0016bb7d214ca0a 153,159-164,166,179-182,185-186,311,342
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.16",
+  "base_commit_sha": "b703d712d0aa1eac86f1318dc6c27b4c329e6fb2",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 118,
+      "total_deletions": 80,
+      "accepted_lines": 105,
+      "overriden_lines": 0
+    }
+  }
+}
