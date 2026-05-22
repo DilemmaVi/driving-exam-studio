@@ -59,6 +59,8 @@ interface Props {
   introCategory?: string;
   outroText?: string;
   outroSubtitle?: string;
+  introDuration?: number;
+  outroDuration?: number;
   tipOnly?: boolean;
   showTransition?: boolean;
   pauseStart?: number;
@@ -87,7 +89,7 @@ interface Props {
 }
 
 export const DynamicCombinedExam: React.FC<Props> = ({
-  entries, audioServerUrl = "", introTitle, introSubtitle, introCategory, outroText, outroSubtitle, tipOnly,
+  entries, audioServerUrl = "", introTitle, introSubtitle, introCategory, outroText, outroSubtitle, introDuration: introDurationProp, outroDuration: outroDurationProp, tipOnly,
   showTransition, pauseStart, pauseEnd, pauseBeforeTip,
   keywordFlashEnabled, underlineProgressEnabled, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, avatarEnabled, avatarSize, avatarPosition, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, theme,
 }) => {
@@ -95,7 +97,8 @@ export const DynamicCombinedExam: React.FC<Props> = ({
   const sequences: React.ReactElement[] = [];
 
   if (introTitle) {
-    const introFrames = Math.ceil(INTRO_DURATION * FPS);
+    const introSecs = introDurationProp || INTRO_DURATION;
+    const introFrames = Math.ceil(introSecs * FPS);
     sequences.push(
       <Sequence key="intro" from={currentFrame} durationInFrames={introFrames}>
         <IntroCard title={introTitle} subtitle={introSubtitle} category={introCategory} audioServerUrl={audioServerUrl} />
@@ -197,7 +200,8 @@ export const DynamicCombinedExam: React.FC<Props> = ({
   });
 
   if (outroText) {
-    const outroFrames = Math.ceil(OUTRO_DURATION * FPS);
+    const outroSecs = outroDurationProp || OUTRO_DURATION;
+    const outroFrames = Math.ceil(outroSecs * FPS);
     sequences.push(
       <Sequence key="outro" from={currentFrame} durationInFrames={outroFrames}>
         <OutroCard title={outroText} subtitle={outroSubtitle} audioServerUrl={audioServerUrl} />
@@ -222,8 +226,10 @@ export function calcCombinedDuration(
   pauseStart?: number,
   pauseEnd?: number,
   pauseBeforeTip?: number,
+  introDuration?: number,
+  outroDuration?: number,
 ): number {
-  let total = hasIntro ? INTRO_DURATION : 0;
+  let total = hasIntro ? (introDuration || INTRO_DURATION) : 0;
   entries.forEach((entry, idx) => {
     if (showTransition && idx > 0) total += TRANS_DURATION;
     const optAnimTime = entry.component === "tf" ? 1.5 : 2;
@@ -231,7 +237,7 @@ export function calcCombinedDuration(
     let qDur = optAnimTime + extraPause + questionDuration(entry, tipOnly);
     total += qDur;
   });
-  if (hasOutro) total += OUTRO_DURATION;
+  if (hasOutro) total += (outroDuration || OUTRO_DURATION);
   total += (pauseEnd || 0);
   return Math.ceil(total * FPS) + entries.length * 10;
 }

@@ -367,12 +367,18 @@ export async function renderInBackground(
       if (tipOnly) {
         props.tipOnly = true;
       } else if (seriesData) {
-        props.introTitle = seriesData.intro_title || "";
-        props.introSubtitle = seriesData.intro_subtitle || "";
-        props.introCategory = seriesData.category || "";
-        if (seriesData.outro_text) {
+        const introOn = Number(seriesData.intro_enabled ?? 0) === 1;
+        const outroOn = Number(seriesData.outro_enabled ?? 0) === 1;
+        if (introOn && seriesData.intro_title) {
+          props.introTitle = seriesData.intro_title;
+          props.introSubtitle = seriesData.intro_subtitle || "";
+          props.introCategory = seriesData.category || "";
+          props.introDuration = Number(seriesData.intro_duration ?? 4);
+        }
+        if (outroOn && seriesData.outro_text) {
           props.outroText = seriesData.outro_text;
           props.outroSubtitle = seriesData.outro_subtitle || "";
+          props.outroDuration = Number(seriesData.outro_duration ?? 4);
         }
       }
       propsFile = path.join(outputDir, `${taskId}.json`);

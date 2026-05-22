@@ -654,6 +654,10 @@ export default function SeriesEditorPage() {
       underlineExplanation: "underline_explanation", underlineTip: "underline_tip",
       underlineColor: "underline_color",
       splitRender: "split_render",
+      introEnabled: "intro_enabled",
+      outroEnabled: "outro_enabled",
+      introDuration: "intro_duration",
+      outroDuration: "outro_duration",
     };
     const snakeUpdates: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(updates)) {

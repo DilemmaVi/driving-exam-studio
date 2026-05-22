@@ -264,6 +264,10 @@ function initTables(db: Database.Database) {
     ["underline_explanation", "INTEGER DEFAULT 0"],
     ["underline_tip", "INTEGER DEFAULT 0"],
     ["underline_color", "TEXT DEFAULT '#6366F1'"],
+    ["intro_enabled", "INTEGER DEFAULT 0"],
+    ["outro_enabled", "INTEGER DEFAULT 0"],
+    ["intro_duration", "REAL DEFAULT 4.0"],
+    ["outro_duration", "REAL DEFAULT 4.0"],
   ];
   for (const [col, typedef] of styleEnhanceCols) {
     if (!vsColsV3.some((c) => c.name === col)) {

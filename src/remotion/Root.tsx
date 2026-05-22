@@ -28,6 +28,8 @@ export const RemotionRoot: React.FC = () => {
           props.pauseStart as number | undefined,
           props.pauseEnd as number | undefined,
           props.pauseBeforeTip as number | undefined,
+          props.introDuration as number | undefined,
+          props.outroDuration as number | undefined,
         );
         return { durationInFrames: Math.max(1, dur) };
       }}

@@ -56,6 +56,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       underlineColor: "underline_color",
       avatarEnabled: "avatar_enabled",
       splitRender: "split_render",
+      introEnabled: "intro_enabled",
+      outroEnabled: "outro_enabled",
+      introDuration: "intro_duration",
+      outroDuration: "outro_duration",
     };
     const col = colMap[key];
     if (col) { fields.push(`${col} = ?`); values.push(val); }

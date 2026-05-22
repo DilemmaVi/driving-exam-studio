@@ -33,6 +33,10 @@ interface SeriesData {
   bridge_tip_enabled?: number;
   outro_text?: string;
   outro_subtitle?: string;
+  intro_enabled?: number;
+  outro_enabled?: number;
+  intro_duration?: number;
+  outro_duration?: number;
   show_transition?: number;
   pause_start?: number;
   pause_end?: number;
@@ -95,6 +99,10 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
   const [bridgeTipEnabled, setBridgeTipEnabled] = useState(1);
   const [outroText, setOutroText] = useState("");
   const [outroSubtitle, setOutroSubtitle] = useState("");
+  const [introEnabled, setIntroEnabled] = useState(0);
+  const [outroEnabled, setOutroEnabled] = useState(0);
+  const [introDuration, setIntroDuration] = useState(4.0);
+  const [outroDuration, setOutroDuration] = useState(4.0);
 
   // Playback control
   const [showTransition, setShowTransition] = useState(0);
@@ -172,6 +180,10 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
         setBridgeTipEnabled(series.bridge_tip_enabled ?? 1);
         setOutroText(series.outro_text || "");
         setOutroSubtitle(series.outro_subtitle || "");
+        setIntroEnabled(Number(series.intro_enabled ?? 0));
+        setOutroEnabled(Number(series.outro_enabled ?? 0));
+        setIntroDuration(Number(series.intro_duration ?? 4.0));
+        setOutroDuration(Number(series.outro_duration ?? 4.0));
         setShowTransition(series.show_transition ?? 0);
         setPauseStart(series.pause_start ?? 2.0);
         setPauseEnd(series.pause_end ?? 2.0);
@@ -215,6 +227,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
       answerReadOption, answerReadMulti,
       bridgeThinkEnabled, bridgeRevealEnabled, bridgeExplainEnabled, bridgeTipEnabled,
       outroText: outroText || undefined, outroSubtitle: outroSubtitle || undefined,
+      introEnabled, outroEnabled, introDuration, outroDuration,
       bridgeThink: bridgeThink || undefined,
       bridgeReveal: bridgeReveal || undefined,
       bridgeExplain: bridgeExplain || undefined,
@@ -258,26 +271,54 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
           <div className={`p-6 space-y-4 ${tab === "视频风格" ? "flex-1 min-w-0 overflow-y-auto" : ""}`}>
           {tab === "基本信息" && (
             <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">片头标题</label>
-                <input value={introTitle} onChange={(e) => setIntroTitle(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">片头副标题</label>
-                <input value={introSubtitle} onChange={(e) => setIntroSubtitle(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <input type="checkbox" checked={introEnabled === 1} onChange={(e) => setIntroEnabled(e.target.checked ? 1 : 0)} className="rounded" />
+                  启用片头
+                </label>
+                {introEnabled === 1 && (
+                  <div className="ml-6 space-y-3">
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">片头标题</label>
+                      <input value={introTitle} onChange={(e) => setIntroTitle(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">片头副标题</label>
+                      <input value={introSubtitle} onChange={(e) => setIntroSubtitle(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">片头时长（秒）</label>
+                      <input type="number" min={2} max={15} step={0.5} value={introDuration} onChange={(e) => setIntroDuration(Number(e.target.value))} className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">分类标签</label>
                 <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="如: 交通标志" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <hr />
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">片尾标题</label>
-                <input value={outroText} onChange={(e) => setOutroText(e.target.value)} placeholder="如: 关注我，带你轻松过驾考" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">片尾副标题</label>
-                <input value={outroSubtitle} onChange={(e) => setOutroSubtitle(e.target.value)} placeholder="如: 每天5题，轻松拿证" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <input type="checkbox" checked={outroEnabled === 1} onChange={(e) => setOutroEnabled(e.target.checked ? 1 : 0)} className="rounded" />
+                  启用片尾
+                </label>
+                {outroEnabled === 1 && (
+                  <div className="ml-6 space-y-3">
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">片尾标题</label>
+                      <input value={outroText} onChange={(e) => setOutroText(e.target.value)} placeholder="如: 关注我，带你轻松过驾考" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">片尾副标题</label>
+                      <input value={outroSubtitle} onChange={(e) => setOutroSubtitle(e.target.value)} placeholder="如: 每天5题，轻松拿证" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">片尾时长（秒）</label>
+                      <input type="number" min={2} max={15} step={0.5} value={outroDuration} onChange={(e) => setOutroDuration(Number(e.target.value))} className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+                )}
               </div>
               <hr />
               <div>

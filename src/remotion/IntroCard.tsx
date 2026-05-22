@@ -12,7 +12,7 @@ interface Props {
 
 export const IntroCard: React.FC<Props> = ({ title, subtitle, category, audioServerUrl }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, durationInFrames } = useVideoConfig();
 
   const bgOpacity = interpolate(frame, [0, 20], [0, 1], { extrapolateRight: "clamp" });
 
@@ -26,7 +26,8 @@ export const IntroCard: React.FC<Props> = ({ title, subtitle, category, audioSer
 
   const subtitleOpacity = interpolate(frame, [55, 70], [0, 1], { extrapolateRight: "clamp" });
 
-  const fadeOut = interpolate(frame, [100, 120], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOutStart = Math.max(60, durationInFrames - 20);
+  const fadeOut = interpolate(frame, [fadeOutStart, durationInFrames], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   const logoSrc = audioServerUrl ? `${audioServerUrl}/logo.png` : staticFile("logo.png");
 
