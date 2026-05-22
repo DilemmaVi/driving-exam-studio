@@ -132,7 +132,7 @@ function initTables(db: Database.Database) {
 
   // migrate: add video style columns to video_series
   const styleColsDef: [string, string][] = [
-    ["theme", "TEXT DEFAULT 'dark'"],
+    ["theme", "TEXT DEFAULT 'light'"],
     ["font_scale", "REAL DEFAULT 1.0"],
     ["avatar_image", "TEXT DEFAULT ''"],
     ["avatar_position", "TEXT DEFAULT 'bottom-right'"],
@@ -256,13 +256,13 @@ function initTables(db: Database.Database) {
     ["tts_speed", "TEXT DEFAULT 'medium'"],
     ["tts_voice", "TEXT DEFAULT '冰糖'"],
     ["keyword_flash_enabled", "INTEGER DEFAULT 1"],
-    ["underline_progress_enabled", "INTEGER DEFAULT 1"],
+    ["underline_progress_enabled", "INTEGER DEFAULT 0"],
     ["avatar_enabled", "INTEGER DEFAULT 1"],
     ["split_render", "INTEGER DEFAULT 0"],
-    ["underline_question", "INTEGER DEFAULT 1"],
+    ["underline_question", "INTEGER DEFAULT 0"],
     ["underline_option", "INTEGER DEFAULT 0"],
-    ["underline_explanation", "INTEGER DEFAULT 1"],
-    ["underline_tip", "INTEGER DEFAULT 1"],
+    ["underline_explanation", "INTEGER DEFAULT 0"],
+    ["underline_tip", "INTEGER DEFAULT 0"],
     ["underline_color", "TEXT DEFAULT '#6366F1'"],
   ];
   for (const [col, typedef] of styleEnhanceCols) {
@@ -277,6 +277,15 @@ function initTables(db: Database.Database) {
       db.exec(`UPDATE video_series SET ${col} = ${match[1]} WHERE ${col} IS NULL`);
     }
   }
+
+  // migrate: rename old "dark" theme to "light" (dark theme removed)
+  db.exec(`UPDATE video_series SET theme = 'light' WHERE theme = 'dark'`);
+
+  // migrate: change underline defaults from 1 to 0 (previously backfilled as 1)
+  db.exec(`UPDATE video_series SET underline_question = 0 WHERE underline_question = 1`);
+  db.exec(`UPDATE video_series SET underline_explanation = 0 WHERE underline_explanation = 1`);
+  db.exec(`UPDATE video_series SET underline_tip = 0 WHERE underline_tip = 1`);
+  db.exec(`UPDATE video_series SET underline_progress_enabled = 0 WHERE underline_progress_enabled = 1`);
 
   // migrate: fix old JSON-format correct_answer (["1"] → "A")
   const oldFmt = (db.prepare("SELECT COUNT(*) as c FROM questions WHERE correct_answer LIKE '[%'").get() as { c: number }).c;

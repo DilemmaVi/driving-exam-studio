@@ -9,6 +9,7 @@ import { IntroCard } from "./IntroCard";
 import { OutroCard } from "./OutroCard";
 import { Watermark } from "./Watermark";
 import type { QuestionEntry } from "./types";
+import type { ThemeName } from "./theme";
 
 const FPS = 30;
 const PAUSE = 0.3;
@@ -73,12 +74,13 @@ interface Props {
   watermarkColor?: string;
   watermarkFont?: string;
   watermarkStroke?: boolean;
+  theme?: ThemeName;
 }
 
 export const DynamicCombinedExam: React.FC<Props> = ({
   entries, audioServerUrl = "", introTitle, introSubtitle, introCategory, outroText, outroSubtitle, tipOnly,
   showTransition, pauseStart, pauseEnd, pauseBeforeTip,
-  keywordFlashEnabled, underlineProgressEnabled, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, avatarEnabled, avatarSize, avatarPosition, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke,
+  keywordFlashEnabled, underlineProgressEnabled, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, avatarEnabled, avatarSize, avatarPosition, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, theme,
 }) => {
   let currentFrame = 0;
   const sequences: React.ReactElement[] = [];
@@ -180,6 +182,7 @@ export const DynamicCombinedExam: React.FC<Props> = ({
           watermarkColor={watermarkColor}
           watermarkFont={watermarkFont}
           watermarkStroke={watermarkStroke}
+          theme={theme}
         />
       </Sequence>
     );

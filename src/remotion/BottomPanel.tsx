@@ -162,6 +162,13 @@ export const BottomPanel: React.FC<Props> = ({
     ? Math.min(1, localFrame / readingDurationFrames)
     : 0;
 
+  // Calculate actual needed height: title area + content + padding
+  const titleAreaHeight = 5 + SPACING.lg + 44 + SPACING.lg; // drag handle + gap + title + gap
+  const paddingHeight = SPACING.xl + SPACING.xxl; // top + bottom padding
+  const actualNeededHeight = titleAreaHeight + paddingHeight + estimatedTotalHeight;
+  const maxPanelHeight = Math.round(1920 * effectivePanelPct / 100);
+  const finalPanelHeight = needsScroll ? maxPanelHeight : Math.min(maxPanelHeight, actualNeededHeight + 40);
+
   return (
     <AbsoluteFill style={{ zIndex: 100 }}>
       <AbsoluteFill style={{ backgroundColor: `rgba(0,0,0,${Math.max(0, dimOpacity)})` }} />
@@ -170,7 +177,7 @@ export const BottomPanel: React.FC<Props> = ({
         bottom: 0,
         left: 0,
         right: 0,
-        height: `${effectivePanelPct}%`,
+        height: finalPanelHeight,
         transform: `translateY(${translateY}px)`,
       }}>
         <div style={{

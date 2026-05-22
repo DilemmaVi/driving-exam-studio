@@ -150,20 +150,20 @@ export async function renderInBackground(
   try {
     updateTask(taskId, { status: "tts", phase: "tts", phase_label: "生成过渡语音", progress: 0 });
 
-    const showTransition = seriesData?.show_transition === 1;
+    const showTransition = Number(seriesData?.show_transition) === 1;
     const pauseStart = (seriesData?.pause_start as number) ?? 2.0;
     const pauseEnd = (seriesData?.pause_end as number) ?? 2.0;
     const pauseBeforeTip = (seriesData?.pause_before_tip as number) ?? 2.0;
     const ttsSpeed = (seriesData?.tts_speed as string) || "medium";
     const ttsVoice = (seriesData?.tts_voice as string) || "冰糖";
-    const keywordFlashEnabled = (seriesData?.keyword_flash_enabled ?? 1) !== 0;
-    const underlineProgressEnabled = (seriesData?.underline_progress_enabled ?? 1) !== 0;
-    const underlineQuestion = (seriesData?.underline_question ?? 1) !== 0;
-    const underlineOption = (seriesData?.underline_option ?? 0) === 1;
-    const underlineExplanation = (seriesData?.underline_explanation ?? 1) !== 0;
-    const underlineTip = (seriesData?.underline_tip ?? 1) !== 0;
+    const keywordFlashEnabled = Number(seriesData?.keyword_flash_enabled ?? 1) !== 0;
+    const underlineProgressEnabled = Number(seriesData?.underline_progress_enabled ?? 0) !== 0;
+    const underlineQuestion = Number(seriesData?.underline_question ?? 0) !== 0;
+    const underlineOption = Number(seriesData?.underline_option ?? 0) !== 0;
+    const underlineExplanation = Number(seriesData?.underline_explanation ?? 0) !== 0;
+    const underlineTip = Number(seriesData?.underline_tip ?? 0) !== 0;
     const underlineColor = (seriesData?.underline_color as string) || "#6366F1";
-    const avatarEnabled = (seriesData?.avatar_enabled ?? 1) !== 0;
+    const avatarEnabled = Number(seriesData?.avatar_enabled ?? 1) !== 0;
     const avatarSize = (seriesData?.avatar_size as number) ?? 260;
     const avatarPosition = (seriesData?.avatar_position as string) || "bottom-right";
 
@@ -176,14 +176,14 @@ export async function renderInBackground(
 
     // Apply bridge enabled switches
     const effectiveBridges = {
-      bridgeThink: ((seriesData?.bridge_think_enabled ?? 1) !== 0) ? bridgeDurations.bridgeThink : 0,
-      bridgeReveal: ((seriesData?.bridge_reveal_enabled ?? 1) !== 0) ? bridgeDurations.bridgeReveal : 0,
-      bridgeExplain: ((seriesData?.bridge_explain_enabled ?? 1) !== 0) ? bridgeDurations.bridgeExplain : 0,
-      bridgeTip: ((seriesData?.bridge_tip_enabled ?? 1) !== 0) ? bridgeDurations.bridgeTip : 0,
+      bridgeThink: (Number(seriesData?.bridge_think_enabled ?? 1) !== 0) ? bridgeDurations.bridgeThink : 0,
+      bridgeReveal: (Number(seriesData?.bridge_reveal_enabled ?? 1) !== 0) ? bridgeDurations.bridgeReveal : 0,
+      bridgeExplain: (Number(seriesData?.bridge_explain_enabled ?? 1) !== 0) ? bridgeDurations.bridgeExplain : 0,
+      bridgeTip: (Number(seriesData?.bridge_tip_enabled ?? 1) !== 0) ? bridgeDurations.bridgeTip : 0,
     };
 
-    const answerReadOption = (seriesData?.answer_read_option ?? 1) !== 0;
-    const answerReadMulti = (seriesData?.answer_read_multi as number) === 1;
+    const answerReadOption = Number(seriesData?.answer_read_option ?? 1) !== 0;
+    const answerReadMulti = Number(seriesData?.answer_read_multi) === 1;
 
     const sqMap = new Map(seriesQuestions.map((sq) => [sq.question_id as number, sq]));
 
@@ -308,7 +308,7 @@ export async function renderInBackground(
     updateTask(taskId, { status: "rendering", phase: "bundling", phase_label: "打包项目...", progress: 0.3 });
 
     const outputDir = getOutputDir();
-    const isSplitRender = seriesData?.split_render === 1;
+    const isSplitRender = Number(seriesData?.split_render) === 1;
 
     const settings = getSettings();
     const watermarkProps: Record<string, unknown> = {};
@@ -339,6 +339,7 @@ export async function renderInBackground(
       avatarEnabled,
       avatarSize,
       avatarPosition,
+      theme: seriesData?.theme || "light",
       ...watermarkProps,
     };
 

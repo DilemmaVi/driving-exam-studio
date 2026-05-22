@@ -801,9 +801,9 @@ export default function SeriesEditorPage() {
           const stemLen = (previewItem.row.question_text || "").replace(/【|】/g, "").length;
           return stemLen <= threshold;
         })()}
-        keywordFlashEnabled={(series?.keyword_flash_enabled ?? 1) !== 0}
-        underlineProgressEnabled={(series?.underline_progress_enabled ?? 1) !== 0}
-        avatarEnabled={(series?.avatar_enabled ?? 1) !== 0}
+        keywordFlashEnabled={Number(series?.keyword_flash_enabled ?? 1) !== 0}
+        underlineProgressEnabled={Number(series?.underline_progress_enabled ?? 0) !== 0}
+        avatarEnabled={Number(series?.avatar_enabled ?? 1) !== 0}
         avatarSize={series?.avatar_size ?? 260}
         avatarPosition={series?.avatar_position || "bottom-right"}
         pauseBeforeTip={(series?.pause_before_tip as number) ?? 2.0}
@@ -811,10 +811,10 @@ export default function SeriesEditorPage() {
         fontSizeQuestion={previewItem?.fontSizeQuestion ?? undefined}
         fontSizeOption={previewItem?.fontSizeOption ?? undefined}
         fontSizeExplanation={previewItem?.fontSizeExplanation ?? undefined}
-        underlineQuestion={(series?.underline_question ?? 1) !== 0}
-        underlineOption={(series?.underline_option ?? 0) === 1}
-        underlineExplanation={(series?.underline_explanation ?? 1) !== 0}
-        underlineTip={(series?.underline_tip ?? 1) !== 0}
+        underlineQuestion={Number(series?.underline_question ?? 0) !== 0}
+        underlineOption={Number(series?.underline_option ?? 0) !== 0}
+        underlineExplanation={Number(series?.underline_explanation ?? 0) !== 0}
+        underlineTip={Number(series?.underline_tip ?? 0) !== 0}
         underlineColor={series?.underline_color || "#6366F1"}
         stemKeywords={previewItem?.stemKeywords ? previewItem.stemKeywords.split(",").filter(Boolean) : undefined}
         stemKeywordPhases={previewItem?.stemKeywordPhases ? previewItem.stemKeywordPhases.split(",").filter(Boolean) : undefined}
@@ -824,6 +824,7 @@ export default function SeriesEditorPage() {
         panelAdjustValue={previewItem?.panelAdjustValue ?? undefined}
         subjectLabel={series?.category || undefined}
         pauseStart={(series?.pause_start as number) ?? 2.0}
+        theme={(series?.theme as any) || "light"}
       />
 
       {/* 左侧题库 */}
@@ -950,7 +951,7 @@ export default function SeriesEditorPage() {
         </div>
 
         <div className="px-6 py-2.5 border-t border-gray-200 bg-white text-xs text-gray-400 flex items-center gap-4">
-          <span>默认: 思考{defaultThinkTime}s · {defaultVoiceStyle}语气 · {series.theme || "dark"}主题</span>
+          <span>默认: 思考{defaultThinkTime}s · {defaultVoiceStyle}语气 · {series.theme || "light"}主题</span>
           <div className="flex-1" />
           {renderTaskId && (
             <a href="/renders" className="text-blue-600 hover:underline font-medium">渲染任务 {renderTaskId.slice(0, 8)} →</a>

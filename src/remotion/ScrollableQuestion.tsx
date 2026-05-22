@@ -10,6 +10,7 @@ import { TeacherAvatar } from "./TeacherAvatar";
 import { Watermark } from "./Watermark";
 import type { Question, AudioDurations } from "./types";
 import { COLORS, FONT } from "./theme";
+import type { ThemeName } from "./theme";
 
 const FPS = 30;
 const SCREEN_W = 1080;
@@ -95,7 +96,8 @@ export const ScrollableQuestion: React.FC<{
   watermarkColor?: string;
   watermarkFont?: string;
   watermarkStroke?: boolean;
-}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true, startDelay = 0, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke }) => {
+  theme?: ThemeName;
+}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true, startDelay = 0, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, theme }) => {
   const labels = ["A", "B", "C", "D"];
   const correctIndices = question.correctIndices || [question.correctIndex];
   const correctLabel = correctIndices.map(i => labels[i]).join("");
@@ -216,7 +218,7 @@ export const ScrollableQuestion: React.FC<{
 
   return (
     <AbsoluteFill>
-      <Background />
+      <Background theme={theme} />
       <ProgressBar />
 
       <div style={{

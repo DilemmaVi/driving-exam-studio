@@ -61,7 +61,7 @@ export const RADIUS = {
   xxl: 32,
 };
 
-export type ThemeName = "light" | "dark" | "gradient";
+export type ThemeName = "light" | "eye-care" | "gradient";
 
 export interface ThemeColors {
   bgPrimary: string;
@@ -76,17 +76,17 @@ export interface ThemeColors {
   border: string;
 }
 
-const DARK_THEME: ThemeColors = {
-  bgPrimary: "#0F172A",
-  bgSecondary: "#1E293B",
-  surface: "rgba(30, 41, 59, 0.9)",
-  text: "#F1F5F9",
-  textSecondary: "#94A3B8",
-  textMuted: "#64748B",
-  glass: "rgba(15, 23, 42, 0.92)",
-  glassBorder: "rgba(51, 65, 85, 0.5)",
-  overlay: "rgba(0, 0, 0, 0.6)",
-  border: "rgba(51, 65, 85, 0.6)",
+const EYE_CARE_THEME: ThemeColors = {
+  bgPrimary: "#E8F5E9",
+  bgSecondary: "#F1F8E9",
+  surface: "rgba(232, 245, 233, 0.92)",
+  text: "#1B5E20",
+  textSecondary: "#388E3C",
+  textMuted: "#81C784",
+  glass: "rgba(241, 248, 233, 0.94)",
+  glassBorder: "rgba(165, 214, 167, 0.5)",
+  overlay: "rgba(27, 94, 32, 0.3)",
+  border: "rgba(165, 214, 167, 0.6)",
 };
 
 const LIGHT_THEME: ThemeColors = {
@@ -117,7 +117,7 @@ const GRADIENT_THEME: ThemeColors = {
 
 export function getThemeColors(theme: ThemeName): ThemeColors {
   switch (theme) {
-    case "dark": return DARK_THEME;
+    case "eye-care": return EYE_CARE_THEME;
     case "gradient": return GRADIENT_THEME;
     default: return LIGHT_THEME;
   }

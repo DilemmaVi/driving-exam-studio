@@ -71,7 +71,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
   const [category, setCategory] = useState("");
 
   // Style
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState("light");
   const [fontScale, setFontScale] = useState(1.0);
   const [avatarPosition, setAvatarPosition] = useState("bottom-right");
   const [avatarSize, setAvatarSize] = useState(260);
@@ -108,11 +108,11 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
 
   // Animation effects
   const [keywordFlashEnabled, setKeywordFlashEnabled] = useState(1);
-  const [underlineProgressEnabled, setUnderlineProgressEnabled] = useState(1);
-  const [underlineQuestion, setUnderlineQuestion] = useState(1);
+  const [underlineProgressEnabled, setUnderlineProgressEnabled] = useState(0);
+  const [underlineQuestion, setUnderlineQuestion] = useState(0);
   const [underlineOption, setUnderlineOption] = useState(0);
-  const [underlineExplanation, setUnderlineExplanation] = useState(1);
-  const [underlineTip, setUnderlineTip] = useState(1);
+  const [underlineExplanation, setUnderlineExplanation] = useState(0);
+  const [underlineTip, setUnderlineTip] = useState(0);
   const [underlineColor, setUnderlineColor] = useState("#6366F1");
 
   // Avatar
@@ -150,7 +150,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
         setIntroTitle(series.intro_title || "");
         setIntroSubtitle(series.intro_subtitle || "");
         setCategory(series.category || "");
-        setTheme(series.theme || "dark");
+        setTheme(series.theme || "light");
         setFontScale(series.font_scale ?? 1.0);
         setAvatarPosition(series.avatar_position || "bottom-right");
         setAvatarSize(series.avatar_size ?? 260);
@@ -179,11 +179,11 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
         setTtsSpeed(series.tts_speed || "medium");
         setTtsVoice(series.tts_voice || "冰糖");
         setKeywordFlashEnabled(series.keyword_flash_enabled ?? 1);
-        setUnderlineProgressEnabled(series.underline_progress_enabled ?? 1);
-        setUnderlineQuestion(series.underline_question ?? 1);
-        setUnderlineOption(series.underline_option ?? 0);
-        setUnderlineExplanation(series.underline_explanation ?? 1);
-        setUnderlineTip(series.underline_tip ?? 1);
+        setUnderlineProgressEnabled(Number(series.underline_progress_enabled ?? 0));
+        setUnderlineQuestion(Number(series.underline_question ?? 0));
+        setUnderlineOption(Number(series.underline_option ?? 0));
+        setUnderlineExplanation(Number(series.underline_explanation ?? 0));
+        setUnderlineTip(Number(series.underline_tip ?? 0));
         setUnderlineColor(series.underline_color || "#6366F1");
         setAvatarEnabled(series.avatar_enabled ?? 1);
         setSplitRender(series.split_render ?? 0);
@@ -295,7 +295,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
                 <div className="grid grid-cols-3 gap-3">
                   {([
                     { value: "light", label: "清新浅色", color: "from-gray-100 to-white", text: "text-gray-800" },
-                    { value: "dark", label: "专业深色", color: "from-slate-800 to-slate-900", text: "text-white" },
+                    { value: "eye-care", label: "护眼绿色", color: "from-green-100 to-green-50", text: "text-green-800" },
                     { value: "gradient", label: "时尚渐变", color: "from-purple-900 to-indigo-900", text: "text-white" },
                   ] as const).map((t) => (
                     <button key={t.value} onClick={() => setTheme(t.value)}

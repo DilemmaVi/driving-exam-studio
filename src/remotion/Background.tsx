@@ -26,16 +26,16 @@ export const Background: React.FC<Props> = ({ theme }) => {
     );
   }
 
-  if (theme === "dark") {
+  if (theme === "eye-care") {
     return (
-      <AbsoluteFill style={{ background: "linear-gradient(180deg, #0F172A 0%, #1E293B 50%, #0F172A 100%)" }}>
+      <AbsoluteFill style={{ background: "linear-gradient(180deg, #E8F5E9 0%, #F1F8E9 50%, #E8F5E9 100%)" }}>
         <div style={{
           position: "absolute", top: -200, right: -150, width: 600, height: 600,
-          borderRadius: "50%", background: "rgba(59, 130, 246, 0.08)", filter: "blur(150px)",
+          borderRadius: "50%", background: "rgba(76, 175, 80, 0.08)", filter: "blur(150px)",
         }} />
         <div style={{
           position: "absolute", bottom: -150, left: -100, width: 500, height: 500,
-          borderRadius: "50%", background: "rgba(34, 197, 94, 0.05)", filter: "blur(120px)",
+          borderRadius: "50%", background: "rgba(139, 195, 74, 0.06)", filter: "blur(120px)",
         }} />
       </AbsoluteFill>
     );

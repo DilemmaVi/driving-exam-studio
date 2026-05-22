@@ -11,6 +11,7 @@ import { TeacherAvatar } from "./TeacherAvatar";
 import { Watermark } from "./Watermark";
 import type { Question, AudioDurations } from "./types";
 import { COLORS } from "./theme";
+import type { ThemeName } from "./theme";
 
 const FPS = 30;
 
@@ -55,7 +56,8 @@ export const MultipleChoice: React.FC<{
   watermarkColor?: string;
   watermarkFont?: string;
   watermarkStroke?: boolean;
-}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true, startDelay = 0, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke }) => {
+  theme?: ThemeName;
+}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true, startDelay = 0, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, theme }) => {
   const labels = ["A", "B", "C", "D"];
   const correctIndices = question.correctIndices || [question.correctIndex];
   const correctLabel = correctIndices.map(i => labels[i]).join("");
@@ -176,7 +178,7 @@ export const MultipleChoice: React.FC<{
 
   return (
     <AbsoluteFill>
-      <Background />
+      <Background theme={theme} />
       <ProgressBar />
 
       <div style={{ position: "absolute", top: 30, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", transform: `translateY(${contentShift}px) scale(${contentScale})`, transformOrigin: "top center", width: contentScale < 1 ? `${100 / contentScale}%` : undefined, marginLeft: contentScale < 1 ? `${-(100 / contentScale - 100) / 2}%` : undefined }}>
