@@ -21,7 +21,16 @@ const OUTRO_DURATION = 4;
 function questionDuration(entry: QuestionEntry, tipOnly = false): number {
   const d = entry.durations;
   if (tipOnly) {
-    return d.question + PAUSE + d.answer + PAUSE + (d.bridgeTip || 0) + d.tip + 2.5;
+    const think = entry.thinkTime ?? DEFAULT_THINK;
+    let dur = d.question + PAUSE;
+    if (entry.readOptions !== false) {
+      dur += (d.optionDurations || []).reduce((s, v) => s + v, 0);
+    }
+    dur += think;
+    dur += (d.bridgeReveal || 0);
+    dur += d.answer + PAUSE;
+    dur += (d.bridgeTip || 0) + d.tip + 2.5;
+    return dur;
   }
   const think = entry.thinkTime ?? DEFAULT_THINK;
   const hasTeacher = !!(entry.teacherExplanation && d.teacherExplanation);
@@ -105,8 +114,6 @@ export const DynamicCombinedExam: React.FC<Props> = ({
       ...entry,
       showOfficialExplanation: false,
       showTip: true,
-      thinkTime: 0,
-      readOptions: false,
     } : entry;
     const qDurSecs = questionDuration(effectiveEntry, tipOnly);
     const optAnimSecs = entry.component === "tf" ? 1.5 : 2;
