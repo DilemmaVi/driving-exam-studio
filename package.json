@@ -1,6 +1,6 @@
 {
   "name": "driving-exam-studio",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "private": true,
   "description": "驾考视频制作工作室",
   "author": "DilemmaVi",
@@ -22,6 +22,9 @@
     "@remotion/lottie": "^4.0.242",
     "@remotion/player": "^4.0.242",
     "@remotion/renderer": "^4.0.242",
+    "@types/adm-zip": "^0.5.8",
+    "@types/yazl": "^3.3.1",
+    "adm-zip": "^0.5.17",
     "better-sqlite3": "^12.9.0",
     "driver.js": "^1.4.0",
     "electron-updater": "^6.8.3",
@@ -33,7 +36,8 @@
     "remotion": "^4.0.242",
     "uuid": "^14.0.0",
     "webgl-fluid-enhanced": "^0.8.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "yazl": "^3.3.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

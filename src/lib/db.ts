@@ -11,6 +11,23 @@ fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 
 let _db: Database.Database | null = (globalThis as any).__examDb || null;
 
+export function getDbPath(): string {
+  return DB_PATH;
+}
+
+export function closeDb(): void {
+  if (_db) {
+    _db.close();
+    _db = null;
+    (globalThis as any).__examDb = null;
+  }
+}
+
+export function reopenDb(): Database.Database {
+  closeDb();
+  return getDb();
+}
+
 export function getDb(): Database.Database {
   if (!_db) {
     _db = new Database(DB_PATH);

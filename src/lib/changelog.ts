@@ -1,5 +1,12 @@
 export const changelog = [
   {
+    version: "0.3.5",
+    date: "2026-05-22",
+    changes: [
+      "添加数据管理功能，支持一键导出备份和导入恢复",
+    ],
+  },
+  {
     version: "0.3.4",
     date: "2026-05-22",
     changes: [

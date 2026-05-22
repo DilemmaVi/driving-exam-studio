@@ -43,6 +43,9 @@ export default function RootLayout({
           <Link href="/tts-dictionary" className="text-sm text-gray-600 hover:text-gray-900">
             发音词典
           </Link>
+          <Link href="/data-management" className="text-sm text-gray-600 hover:text-gray-900">
+            数据管理
+          </Link>
           <div className="ml-auto"><VersionBadge version={packageJson.version} /></div>
           <UpdateIndicator />
         </nav>
