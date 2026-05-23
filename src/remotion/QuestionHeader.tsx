@@ -122,8 +122,12 @@ export const QuestionHeader: React.FC<Props> = ({
 
   // Reading progress based on actual TTS audio duration
   const speedRatio = readingSpeedRatio ?? 1;
-  const prefixDelay = readingPrefixDelay ?? 8;
   const rawDuration = readingDurationFrames || (totalChars / 5) * 30;
+  // TTS audio includes spoken type prefix ("多选题。"=4 chars) not shown in displayed text
+  // Estimate prefix duration by char ratio: prefixChars / (prefixChars + displayedChars) * totalDuration
+  const typePrefixChars = 4;
+  const autoPrefixDelay = Math.round(typePrefixChars / (typePrefixChars + totalChars) * rawDuration);
+  const prefixDelay = readingPrefixDelay ?? autoPrefixDelay;
   const sweepDurationFrames = Math.max(1, (rawDuration - prefixDelay) / speedRatio);
   const readingProgress = sweepDurationFrames > 0
     ? Math.min(1, Math.max(0, (frame - rStart - prefixDelay) / sweepDurationFrames))
