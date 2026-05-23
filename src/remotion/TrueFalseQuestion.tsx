@@ -209,6 +209,7 @@ export const TrueFalseQuestion: React.FC<{
             circleFrame={T.explanationStart > 0 ? T.explanationStart : undefined}
             tipFrame={T.tipStart > 0 ? T.tipStart : undefined}
             readStartFrame={optReadStarts[i]}
+            readingDurationFrames={optFramesArr[i]}
             optionGap={optionGap}
             fontSizeOverride={fontSizeOption}
             underlineEnabled={underlineOption}

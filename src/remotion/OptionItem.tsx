@@ -13,6 +13,7 @@ interface Props {
   circleFrame?: number;
   tipFrame?: number;
   readStartFrame?: number;
+  readingDurationFrames?: number;
   fontScale?: number;
   optionGap?: number;
   fontSizeOverride?: number;
@@ -44,7 +45,7 @@ const parseSegments = (text: string): { text: string; highlight: boolean; blue?:
 
 export const OptionItem: React.FC<Props> = ({
   label, text, index, startFrame, revealFrame, isCorrect,
-  circleFrame, tipFrame, readStartFrame, fontScale = 1, optionGap, fontSizeOverride, underlineEnabled, underlineColor,
+  circleFrame, tipFrame, readStartFrame, readingDurationFrames, fontScale = 1, optionGap, fontSizeOverride, underlineEnabled, underlineColor,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -113,10 +114,9 @@ export const OptionItem: React.FC<Props> = ({
   const plainText = parts.map(p => p.text).join("");
   const totalChars = plainText.length;
 
-  // Reading color sweep: starts at readStartFrame, ~5 chars/sec
   const readActive = readStartFrame !== undefined && frame >= readStartFrame && !revealed;
   const readLocalFrame = readStartFrame !== undefined ? frame - readStartFrame : 0;
-  const sweepFrames = (totalChars / 5) * 30;
+  const sweepFrames = readingDurationFrames || (totalChars / 5) * 30;
   const readProgress = readActive && sweepFrames > 0
     ? Math.min(1, readLocalFrame / sweepFrames)
     : readActive ? 1 : -1;

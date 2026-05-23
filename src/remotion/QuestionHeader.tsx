@@ -122,8 +122,9 @@ export const QuestionHeader: React.FC<Props> = ({
 
   // Reading progress based on actual TTS audio duration
   const speedRatio = readingSpeedRatio ?? 1;
-  const sweepDurationFrames = (readingDurationFrames || (totalChars / 5) * 30) / speedRatio;
   const prefixDelay = readingPrefixDelay ?? 8;
+  const rawDuration = readingDurationFrames || (totalChars / 5) * 30;
+  const sweepDurationFrames = Math.max(1, (rawDuration - prefixDelay) / speedRatio);
   const readingProgress = sweepDurationFrames > 0
     ? Math.min(1, Math.max(0, (frame - rStart - prefixDelay) / sweepDurationFrames))
     : -1;

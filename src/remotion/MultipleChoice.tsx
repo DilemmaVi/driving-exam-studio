@@ -209,6 +209,7 @@ export const MultipleChoice: React.FC<{
               circleFrame={T.explanationStart > 0 ? T.explanationStart : undefined}
               tipFrame={T.tipStart > 0 ? T.tipStart : undefined}
               readStartFrame={readOptions ? optReadStarts[i] : undefined}
+              readingDurationFrames={readOptions ? optFramesArr[i] : undefined}
               optionGap={optionGap}
               fontSizeOverride={fontSizeOption}
               underlineEnabled={underlineOption}
