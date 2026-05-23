@@ -206,9 +206,16 @@ export async function generateTTSForQuestion(
     generateSegment(questionId, "answer", answerText, "用肯定、清晰的语气播报正确答案。", ttsSpeed, force, ttsVoice),
   ];
 
+  const isTrueFalse = row.type === 1;
+
   for (let i = 0; i < opts.length; i++) {
     const optText = buildOptionText(labels[i], opts[i]);
-    promises.push(generateSegment(questionId, `opt_${i}`, optText, "用清晰的教学语气朗读选项。", ttsSpeed, force, ttsVoice));
+    if (isTrueFalse) {
+      // True/false options ("A，正确。" / "B，错误。") are shared globally
+      promises.push(generateSegment(0, `tf_opt_${i}`, optText, "用清晰的教学语气朗读选项。", ttsSpeed, force, ttsVoice));
+    } else {
+      promises.push(generateSegment(questionId, `opt_${i}`, optText, "用清晰的教学语气朗读选项。", ttsSpeed, force, ttsVoice));
+    }
   }
 
   if (showExplanation) {
@@ -229,7 +236,16 @@ export async function generateTTSForQuestion(
   const answerResult = results[idx++];
   const optionDurations: number[] = [];
   for (let i = 0; i < opts.length; i++) {
-    optionDurations.push(results[idx++].duration);
+    const optResult = results[idx++];
+    optionDurations.push(optResult.duration);
+    if (isTrueFalse) {
+      // Copy shared tf option audio to per-question filename for Remotion
+      const srcFile = path.join(AUDIO_DIR, path.basename(optResult.filePath));
+      const destFile = path.join(AUDIO_DIR, `q${questionId}_opt_${i}.wav`);
+      if (fs.existsSync(srcFile) && srcFile !== destFile) {
+        fs.copyFileSync(srcFile, destFile);
+      }
+    }
   }
   const explanationResult = showExplanation ? results[idx++] : { duration: 0 };
   const tipResult = showTip ? results[idx++] : { duration: 0 };
