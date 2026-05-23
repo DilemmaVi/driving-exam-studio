@@ -1,0 +1,25 @@
+src/app/api/tts/tf-options/route.ts
+  a0016bb7d214ca0a 1-128
+src/components/SettingsModal.tsx
+  a0016bb7d214ca0a 115-116,515-578
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.16",
+  "base_commit_sha": "ce17d9eadb412c418d0c22c0673c9197571d9d9c",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 195,
+      "total_deletions": 0,
+      "accepted_lines": 1018,
+      "overriden_lines": 0
+    }
+  }
+}
