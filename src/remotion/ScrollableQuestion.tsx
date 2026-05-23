@@ -4,7 +4,6 @@ import { Background } from "./Background";
 import { ProgressBar } from "./ProgressBar";
 import { QuestionHeader } from "./QuestionHeader";
 import { OptionItem } from "./OptionItem";
-import { AnswerReveal } from "./AnswerReveal";
 import { BottomPanel } from "./BottomPanel";
 import { TeacherAvatar } from "./TeacherAvatar";
 import { Watermark } from "./Watermark";
@@ -100,8 +99,6 @@ export const ScrollableQuestion: React.FC<{
 }> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true, startDelay = 0, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, theme }) => {
   const labels = ["A", "B", "C", "D"];
   const correctIndices = question.correctIndices || [question.correctIndex];
-  const correctLabel = correctIndices.map(i => labels[i]).join("");
-  const correctText = correctIndices.map(i => question.options[i]?.replace(/【/g, "").replace(/】/g, "").replace(/[{}｛｝]/g, "")).filter(Boolean).join("、");
 
   const kwRegex = /【([^】]+)】/g;
   const keywords: string[] = [];
@@ -272,7 +269,6 @@ export const ScrollableQuestion: React.FC<{
               underlineColor={underlineColor}
             />
           ))}
-          <AnswerReveal correctLabel={correctLabel} correctText={correctText} startFrame={T.revealStart} />
         </div>
       </div>
 

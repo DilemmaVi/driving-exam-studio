@@ -167,7 +167,9 @@ export const BottomPanel: React.FC<Props> = ({
   const paddingHeight = SPACING.xl + SPACING.xxl; // top + bottom padding
   const actualNeededHeight = titleAreaHeight + paddingHeight + estimatedTotalHeight;
   const maxPanelHeight = Math.round(1920 * effectivePanelPct / 100);
-  const finalPanelHeight = needsScroll ? maxPanelHeight : Math.min(maxPanelHeight, actualNeededHeight + 40);
+  const minPanelHeight = Math.round(1920 * 0.25);
+  const adaptiveHeight = Math.max(minPanelHeight, actualNeededHeight + 60);
+  const finalPanelHeight = needsScroll ? maxPanelHeight : Math.min(maxPanelHeight, adaptiveHeight);
 
   return (
     <AbsoluteFill style={{ zIndex: 100 }}>
