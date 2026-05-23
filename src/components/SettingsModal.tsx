@@ -112,6 +112,8 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
   const [ttsSpeed, setTtsSpeed] = useState("medium");
   const [ttsVoice, setTtsVoice] = useState("冰糖");
   const [voicePreviewing, setVoicePreviewing] = useState(false);
+  const [tfOptGenerating, setTfOptGenerating] = useState(false);
+  const [tfOptReady, setTfOptReady] = useState(false);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // Animation effects
@@ -506,6 +508,71 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
                     <input type="checkbox" checked={answerReadMulti === 1} onChange={(e) => setAnswerReadMulti(e.target.checked ? 1 : 0)} className="rounded" />
                     多选题读选项内容
                   </label>
+                </div>
+              </div>
+              <hr />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">判断题选项语音</label>
+                <p className="text-xs text-gray-500 mb-2">判断题的"正确""错误"选项语音全局共用，可在此重新生成和试听</p>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    disabled={tfOptGenerating}
+                    onClick={async () => {
+                      setTfOptGenerating(true);
+                      try {
+                        const res = await fetch("/api/tts/tf-options", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ speed: ttsSpeed, voice: ttsVoice, force: true }),
+                        });
+                        if (!res.ok) throw new Error(await res.text());
+                        setTfOptReady(true);
+                      } catch (e) { alert("生成失败: " + (e instanceof Error ? e.message : e)); }
+                      setTfOptGenerating(false);
+                    }}
+                    className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+                  >
+                    {tfOptGenerating ? "生成中..." : "🔄 重新生成"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        if (previewAudioRef.current) { previewAudioRef.current.pause(); previewAudioRef.current = null; }
+                        const res = await fetch(`/api/tts/tf-options?index=0&speed=${ttsSpeed}&voice=${ttsVoice}`);
+                        if (!res.ok) { alert("请先生成语音"); return; }
+                        const blob = await res.blob();
+                        const url = URL.createObjectURL(blob);
+                        const audio = new Audio(url);
+                        previewAudioRef.current = audio;
+                        audio.onended = () => URL.revokeObjectURL(url);
+                        audio.play();
+                      } catch {}
+                    }}
+                    className="px-3 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    ▶ 试听"正确"
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        if (previewAudioRef.current) { previewAudioRef.current.pause(); previewAudioRef.current = null; }
+                        const res = await fetch(`/api/tts/tf-options?index=1&speed=${ttsSpeed}&voice=${ttsVoice}`);
+                        if (!res.ok) { alert("请先生成语音"); return; }
+                        const blob = await res.blob();
+                        const url = URL.createObjectURL(blob);
+                        const audio = new Audio(url);
+                        previewAudioRef.current = audio;
+                        audio.onended = () => URL.revokeObjectURL(url);
+                        audio.play();
+                      } catch {}
+                    }}
+                    className="px-3 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    ▶ 试听"错误"
+                  </button>
                 </div>
               </div>
               <hr />
