@@ -1,0 +1,23 @@
+src/remotion/QuestionHeader.tsx
+  a0016bb7d214ca0a 126-130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.16",
+  "base_commit_sha": "b96891b689a479c60bb01a06efbd1fdf53cac1dc",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 5,
+      "total_deletions": 1,
+      "accepted_lines": 828,
+      "overriden_lines": 0
+    }
+  }
+}
