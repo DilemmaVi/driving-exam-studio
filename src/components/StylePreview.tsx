@@ -113,7 +113,7 @@ export function StylePreview({ theme, fontScale, avatarPosition, avatarSize, key
             background: "linear-gradient(135deg, #3B82F6, #8B5CF6)", borderRadius: 10,
             padding: "1px 6px",
           }}>
-            <span style={{ color: "#fff", fontSize: Math.max(6, Math.round(8 * SCALE * effectiveFontScale)), fontWeight: 600 }}>考试讲师</span>
+            <span style={{ color: "#fff", fontSize: Math.max(6, Math.round(8 * SCALE * effectiveFontScale)), fontWeight: 600 }}>全安老师</span>
           </div>
         </div>
       )}

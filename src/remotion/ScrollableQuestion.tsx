@@ -96,7 +96,8 @@ export const ScrollableQuestion: React.FC<{
   watermarkFont?: string;
   watermarkStroke?: boolean;
   theme?: ThemeName;
-}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true, startDelay = 0, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, theme }) => {
+  tipOnly?: boolean;
+}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true, startDelay = 0, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, theme, tipOnly }) => {
   const labels = ["A", "B", "C", "D"];
   const correctIndices = question.correctIndices || [question.correctIndex];
 
@@ -121,6 +122,23 @@ export const ScrollableQuestion: React.FC<{
   const explanationAudio = hasTeacher ? `q${question.id}_teacher_explanation.wav` : `q${question.id}_explanation.wav`;
   const explanationDuration = hasTeacher ? audioDurations.teacherExplanation! : audioDurations.explanation;
 
+  const expKeywords: string[] = [];
+  const expBlueKeywords: string[] = [];
+  if (explanationText) {
+    const er = /【([^】]+)】/g;
+    while ((m = er.exec(explanationText)) !== null) expKeywords.push(m[1]);
+    const ebr = /[{｛]([^}｝]+)[}｝]/g;
+    while ((m = ebr.exec(explanationText)) !== null) expBlueKeywords.push(m[1]);
+  }
+  const tipKeywords: string[] = [];
+  const tipBlueKeywords: string[] = [];
+  if (question.tip) {
+    const tr = /【([^】]+)】/g;
+    while ((m = tr.exec(question.tip)) !== null) tipKeywords.push(m[1]);
+    const tbr = /[{｛]([^}｝]+)[}｝]/g;
+    while ((m = tbr.exec(question.tip)) !== null) tipBlueKeywords.push(m[1]);
+  }
+
   const optDurs = audioDurations.optionDurations || [];
   const qFrames = Math.ceil(audioDurations.question * FPS);
   const optFramesArr = optDurs.map(d => Math.ceil(d * FPS));
@@ -144,25 +162,34 @@ export const ScrollableQuestion: React.FC<{
 
   const effectiveOptFrames = readOptions ? totalOptFrames : 0;
 
-  let cursor = T.audioStart + qFrames + effectiveOptFrames + Math.round(0.3 * FPS);
-  cursor += Math.round((thinkTime || 0) * FPS);
-  T.highlightPhaseFrame = cursor;
-  T.bridgeRevealStart = cursor;
-  cursor += brFrames;
-  T.revealStart = cursor;
-  cursor += aFrames + Math.round(0.3 * FPS);
+  if (tipOnly) {
+    const tipLeadIn = Math.round(1 * FPS);
+    T.revealStart = T.optionsStart;
+    T.highlightPhaseFrame = T.optionsStart;
+    T.bridgeTipStart = T.optionsStart + tipLeadIn;
+    T.tipStart = T.bridgeTipStart + bpFrames;
+    T.tipEnd = T.tipStart + tFrames + Math.round(2.5 * FPS);
+  } else {
+    let cursor = T.audioStart + qFrames + effectiveOptFrames + Math.round(0.3 * FPS);
+    cursor += Math.round((thinkTime || 0) * FPS);
+    T.highlightPhaseFrame = cursor;
+    T.bridgeRevealStart = cursor;
+    cursor += brFrames;
+    T.revealStart = cursor;
+    cursor += aFrames + Math.round(0.3 * FPS);
 
-  if (showOfficialExplanation !== false && expFrames > 0) {
-    T.bridgeExplainStart = cursor; cursor += beFrames;
-    T.explanationStart = cursor;
-    T.explanationEnd = cursor + expFrames + Math.round(2.5 * FPS);
-    cursor = T.explanationEnd;
-  }
-  if (showTip !== false && tFrames > 0) {
-    cursor += Math.round((pauseBeforeTip || 0) * FPS);
-    T.bridgeTipStart = cursor; cursor += bpFrames;
-    T.tipStart = cursor;
-    T.tipEnd = cursor + tFrames + Math.round(2.5 * FPS);
+    if (showOfficialExplanation !== false && expFrames > 0) {
+      T.bridgeExplainStart = cursor; cursor += beFrames;
+      T.explanationStart = cursor;
+      T.explanationEnd = cursor + expFrames + Math.round(2.5 * FPS);
+      cursor = T.explanationEnd;
+    }
+    if (showTip !== false && tFrames > 0) {
+      cursor += Math.round((pauseBeforeTip || 0) * FPS);
+      T.bridgeTipStart = cursor; cursor += bpFrames;
+      T.tipStart = cursor;
+      T.tipEnd = cursor + tFrames + Math.round(2.5 * FPS);
+    }
   }
 
   const optReadStarts: number[] = [];
@@ -236,7 +263,7 @@ export const ScrollableQuestion: React.FC<{
           startFrame={0}
           readingStartFrame={T.audioStart}
           highlightPhaseFrame={T.highlightPhaseFrame}
-          circleFrame={T.explanationStart > 0 ? T.explanationStart : undefined}
+          circleFrame={T.explanationStart > 0 ? T.explanationStart : T.tipStart > 0 ? T.tipStart : undefined}
           tipFrame={T.tipStart > 0 ? T.tipStart : undefined}
           readingDurationFrames={qFrames}
           questionType={correctIndices.length > 1 ? "多选题" : "单选题"}
@@ -259,7 +286,7 @@ export const ScrollableQuestion: React.FC<{
               key={i} label={labels[i]} text={opt} index={i}
               startFrame={T.optionsStart} revealFrame={T.revealStart}
               isCorrect={correctIndices.includes(i)}
-              circleFrame={T.explanationStart > 0 ? T.explanationStart : undefined}
+              circleFrame={T.explanationStart > 0 ? T.explanationStart : T.tipStart > 0 ? T.tipStart : undefined}
               tipFrame={T.tipStart > 0 ? T.tipStart : undefined}
               readStartFrame={readOptions ? optReadStarts[i] : undefined}
               readingDurationFrames={readOptions ? optFramesArr[i] : undefined}
@@ -278,20 +305,20 @@ export const ScrollableQuestion: React.FC<{
       )}
 
       {showOfficialExplanation !== false && T.explanationEnd > T.explanationStart && (
-        <BottomPanel title="答题解析" titleColor={COLORS.correct} accentColor={COLORS.correct} borderColor={COLORS.correctBorder} content={explanationText} startFrame={T.explanationStart} endFrame={T.explanationEnd} readingDurationFrames={expFrames} underlineEnabled={underlineExplanation} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} phase="explanation" originalQuestion={question.questionContent} originalOptions={question.options} originalKeywords={keywords} correctOptionIndices={correctIndices} fontSizeOverride={fontSizeExplanation} />
+        <BottomPanel title="答题解析" titleColor={COLORS.correct} accentColor={COLORS.correct} borderColor={COLORS.correctBorder} content={explanationText} startFrame={T.explanationStart} endFrame={T.explanationEnd} readingDurationFrames={expFrames} keywords={[...keywords, ...expKeywords]} blueKeywords={[...blueKeywords, ...expBlueKeywords]} underlineEnabled={underlineExplanation} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} phase="explanation" originalQuestion={question.questionContent} originalOptions={question.options} originalKeywords={keywords} correctOptionIndices={correctIndices} fontSizeOverride={fontSizeExplanation} />
       )}
       {showTip !== false && T.tipEnd > T.tipStart && (
-        <BottomPanel title="答题技巧" titleColor={COLORS.highlight} accentColor={COLORS.highlight} borderColor="rgba(252, 211, 77, 0.4)" content={question.tip} startFrame={T.tipStart} endFrame={T.tipEnd} readingDurationFrames={tFrames} keywords={keywords} blueKeywords={blueKeywords} underlineEnabled={underlineTip} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} />
+        <BottomPanel title="答题技巧" titleColor={COLORS.highlight} accentColor={COLORS.highlight} borderColor="rgba(252, 211, 77, 0.4)" content={question.tip} startFrame={T.tipStart} endFrame={T.tipEnd} readingDurationFrames={tFrames} keywords={[...keywords, ...tipKeywords]} blueKeywords={[...blueKeywords, ...tipBlueKeywords]} underlineEnabled={underlineTip} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} />
       )}
 
-      <Sequence from={T.audioStart}><Audio src={`${audioServerUrl}/audio/q${question.id}_question.wav`} /></Sequence>
-      {readOptions && question.options.map((_, i) => (
+      {!tipOnly && <Sequence from={T.audioStart}><Audio src={`${audioServerUrl}/audio/q${question.id}_question.wav`} /></Sequence>}
+      {!tipOnly && readOptions && question.options.map((_, i) => (
         <Sequence key={`opt-audio-${i}`} from={optReadStarts[i]}>
           <Audio src={`${audioServerUrl}/audio/q${question.id}_opt_${i}.wav`} />
         </Sequence>
       ))}
-      {brFrames > 0 && <Sequence from={T.bridgeRevealStart}><Audio src={`${audioServerUrl}/audio/q0_bridge_reveal.wav`} /></Sequence>}
-      <Sequence from={T.revealStart}><Audio src={`${audioServerUrl}/audio/q${question.id}_answer.wav`} /></Sequence>
+      {!tipOnly && brFrames > 0 && <Sequence from={T.bridgeRevealStart}><Audio src={`${audioServerUrl}/audio/q0_bridge_reveal.wav`} /></Sequence>}
+      {!tipOnly && <Sequence from={T.revealStart}><Audio src={`${audioServerUrl}/audio/q${question.id}_answer.wav`} /></Sequence>}
       {showOfficialExplanation !== false && T.explanationStart > 0 && (
         <>
           {beFrames > 0 && <Sequence from={T.bridgeExplainStart}><Audio src={`${audioServerUrl}/audio/q0_bridge_explain.wav`} /></Sequence>}

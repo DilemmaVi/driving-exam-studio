@@ -21,16 +21,8 @@ const OUTRO_DURATION = 4;
 function questionDuration(entry: QuestionEntry, tipOnly = false): number {
   const d = entry.durations;
   if (tipOnly) {
-    const think = entry.thinkTime ?? DEFAULT_THINK;
-    let dur = d.question + PAUSE;
-    if (entry.readOptions !== false) {
-      dur += (d.optionDurations || []).reduce((s, v) => s + v, 0);
-    }
-    dur += think;
-    dur += (d.bridgeReveal || 0);
-    dur += d.answer + PAUSE;
-    dur += (d.bridgeTip || 0) + d.tip + 2.5;
-    return dur;
+    // Only tip audio, no question/options/answer reading
+    return (d.bridgeTip || 0) + d.tip + 2.5;
   }
   const think = entry.thinkTime ?? DEFAULT_THINK;
   const hasTeacher = !!(entry.teacherExplanation && d.teacherExplanation);
@@ -101,7 +93,7 @@ export const DynamicCombinedExam: React.FC<Props> = ({
     const introFrames = Math.ceil(introSecs * FPS);
     sequences.push(
       <Sequence key="intro" from={currentFrame} durationInFrames={introFrames}>
-        <IntroCard title={introTitle} subtitle={introSubtitle} category={introCategory} audioServerUrl={audioServerUrl} />
+        <IntroCard title={introTitle} subtitle={introSubtitle} category={introCategory} audioServerUrl={audioServerUrl} sequenceDuration={introFrames} />
       </Sequence>
     );
     currentFrame += introFrames;
@@ -193,6 +185,7 @@ export const DynamicCombinedExam: React.FC<Props> = ({
           watermarkFont={watermarkFont}
           watermarkStroke={watermarkStroke}
           theme={theme}
+          tipOnly={!!tipOnly}
         />
       </Sequence>
     );

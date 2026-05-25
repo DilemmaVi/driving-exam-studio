@@ -4,7 +4,7 @@ import { Lottie } from "@remotion/lottie";
 import type { LottieAnimationData } from "@remotion/lottie";
 
 const RING_WIDTH = 4;
-const LABEL_TEXT = "考试讲师";
+const LABEL_TEXT = "全安老师";
 
 interface Props {
   startFrame?: number;
