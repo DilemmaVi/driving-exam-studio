@@ -28,7 +28,7 @@ export const IntroCard: React.FC<Props> = ({ title, subtitle, category, audioSer
 
   const subtitleOpacity = interpolate(frame, [55, 70], [0, 1], { extrapolateRight: "clamp" });
 
-  const fadeOutStart = Math.max(60, totalFrames - 20);
+  const fadeOutStart = Math.min(Math.max(60, totalFrames - 20), totalFrames - 1);
   const fadeOut = interpolate(frame, [fadeOutStart, totalFrames], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   const logoSrc = audioServerUrl ? `${audioServerUrl}/logo.png` : staticFile("logo.png");
