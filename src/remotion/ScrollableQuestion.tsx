@@ -265,7 +265,7 @@ export const ScrollableQuestion: React.FC<{
           highlightPhaseFrame={T.highlightPhaseFrame}
           circleFrame={T.explanationStart > 0 ? T.explanationStart : T.tipStart > 0 ? T.tipStart : undefined}
           tipFrame={T.tipStart > 0 ? T.tipStart : undefined}
-          readingDurationFrames={qFrames}
+          readingDurationFrames={tipOnly ? 0 : qFrames}
           questionType={correctIndices.length > 1 ? "多选题" : "单选题"}
           subjectLabel={subjectLabel}
           fontScale={fontScale}
@@ -305,10 +305,10 @@ export const ScrollableQuestion: React.FC<{
       )}
 
       {showOfficialExplanation !== false && T.explanationEnd > T.explanationStart && (
-        <BottomPanel title="答题解析" titleColor={COLORS.correct} accentColor={COLORS.correct} borderColor={COLORS.correctBorder} content={explanationText} startFrame={T.explanationStart} endFrame={T.explanationEnd} readingDurationFrames={expFrames} keywords={[...keywords, ...expKeywords]} blueKeywords={[...blueKeywords, ...expBlueKeywords]} underlineEnabled={underlineExplanation} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} phase="explanation" originalQuestion={question.questionContent} originalOptions={question.options} originalKeywords={keywords} correctOptionIndices={correctIndices} fontSizeOverride={fontSizeExplanation} />
+        <BottomPanel title="答题解析" titleColor={COLORS.correct} accentColor={COLORS.correct} borderColor={COLORS.correctBorder} content={explanationText} startFrame={T.explanationStart} endFrame={T.explanationEnd} readingDurationFrames={expFrames} keywords={expKeywords} blueKeywords={expBlueKeywords} underlineEnabled={underlineExplanation} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} phase="explanation" originalQuestion={question.questionContent} originalOptions={question.options} originalKeywords={keywords} correctOptionIndices={correctIndices} fontSizeOverride={fontSizeExplanation} />
       )}
       {showTip !== false && T.tipEnd > T.tipStart && (
-        <BottomPanel title="答题技巧" titleColor={COLORS.highlight} accentColor={COLORS.highlight} borderColor="rgba(252, 211, 77, 0.4)" content={question.tip} startFrame={T.tipStart} endFrame={T.tipEnd} readingDurationFrames={tFrames} keywords={[...keywords, ...tipKeywords]} blueKeywords={[...blueKeywords, ...tipBlueKeywords]} underlineEnabled={underlineTip} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} />
+        <BottomPanel title="答题技巧" titleColor={COLORS.highlight} accentColor={COLORS.highlight} borderColor="rgba(252, 211, 77, 0.4)" content={question.tip} startFrame={T.tipStart} endFrame={T.tipEnd} readingDurationFrames={tFrames} keywords={tipKeywords} blueKeywords={tipBlueKeywords} underlineEnabled={underlineTip} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} />
       )}
 
       {!tipOnly && <Sequence from={T.audioStart}><Audio src={`${audioServerUrl}/audio/q${question.id}_question.wav`} /></Sequence>}

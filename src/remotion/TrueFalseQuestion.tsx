@@ -210,7 +210,7 @@ export const TrueFalseQuestion: React.FC<{
           highlightPhaseFrame={T.highlightPhaseFrame}
           circleFrame={T.explanationStart > 0 ? T.explanationStart : T.tipStart > 0 ? T.tipStart : undefined}
           tipFrame={T.tipStart > 0 ? T.tipStart : undefined}
-          readingDurationFrames={qFrames}
+          readingDurationFrames={tipOnly ? 0 : qFrames}
           questionType="判断题"
           subjectLabel={subjectLabel}
           fontSizeOverride={fontSizeQuestion}
@@ -224,7 +224,7 @@ export const TrueFalseQuestion: React.FC<{
           readingSpeedRatio={readingSpeedRatio}
         />
 
-        {question.coverImage && <QuestionImage src={question.coverImage} startFrame={T.questionStart + Math.round(1 * fps)} />}
+        {question.coverImage && <QuestionImage src={question.coverImage} startFrame={T.questionStart + Math.round(1 * fps)} circleFrame={T.explanationStart > 0 ? T.explanationStart : T.tipStart > 0 ? T.tipStart : undefined} />}
 
         <div style={{ marginTop: 20 }}>
         {question.options.map((opt, i) => (
@@ -250,10 +250,10 @@ export const TrueFalseQuestion: React.FC<{
       )}
 
       {showOfficialExplanation !== false && T.explanationEnd > T.explanationStart && (
-        <BottomPanel title="答题解析" titleColor={COLORS.correct} accentColor={COLORS.correct} borderColor={COLORS.correctBorder} content={explanationText} startFrame={T.explanationStart} endFrame={T.explanationEnd} readingDurationFrames={expFrames} keywords={[...keywords, ...expKeywords]} blueKeywords={[...blueKeywords, ...expBlueKeywords]} underlineEnabled={underlineExplanation} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} phase="explanation" originalQuestion={question.questionContent} originalOptions={question.options} originalKeywords={keywords} correctOptionIndices={[question.correctIndex]} fontSizeOverride={fontSizeExplanation} />
+        <BottomPanel title="答题解析" titleColor={COLORS.correct} accentColor={COLORS.correct} borderColor={COLORS.correctBorder} content={explanationText} startFrame={T.explanationStart} endFrame={T.explanationEnd} readingDurationFrames={expFrames} keywords={expKeywords} blueKeywords={expBlueKeywords} underlineEnabled={underlineExplanation} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} phase="explanation" originalQuestion={question.questionContent} originalOptions={question.options} originalKeywords={keywords} correctOptionIndices={[question.correctIndex]} fontSizeOverride={fontSizeExplanation} />
       )}
       {showTip !== false && T.tipEnd > T.tipStart && (
-        <BottomPanel title="答题技巧" titleColor={COLORS.highlight} accentColor={COLORS.highlight} borderColor="rgba(252, 211, 77, 0.4)" content={question.tip} startFrame={T.tipStart} endFrame={T.tipEnd} readingDurationFrames={tFrames} keywords={[...keywords, ...tipKeywords]} blueKeywords={[...blueKeywords, ...tipBlueKeywords]} underlineEnabled={underlineTip} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} />
+        <BottomPanel title="答题技巧" titleColor={COLORS.highlight} accentColor={COLORS.highlight} borderColor="rgba(252, 211, 77, 0.4)" content={question.tip} startFrame={T.tipStart} endFrame={T.tipEnd} readingDurationFrames={tFrames} keywords={tipKeywords} blueKeywords={tipBlueKeywords} underlineEnabled={underlineTip} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} />
       )}
 
       {/* Stem audio */}

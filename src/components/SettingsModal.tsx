@@ -1,5 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { Player } from "@remotion/player";
+import { IntroCard } from "@/remotion/IntroCard";
 import { StylePreview } from "./StylePreview";
 
 interface SeriesData {
@@ -103,6 +105,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
   const [outroEnabled, setOutroEnabled] = useState(0);
   const [introDuration, setIntroDuration] = useState(4.0);
   const [outroDuration, setOutroDuration] = useState(4.0);
+  const [showIntroPreview, setShowIntroPreview] = useState(false);
 
   // Playback control
   const [showTransition, setShowTransition] = useState(0);
@@ -292,6 +295,9 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
                       <label className="block text-sm text-gray-600 mb-1">片头时长（秒）</label>
                       <input type="number" min={2} max={15} step={0.5} value={introDuration} onChange={(e) => setIntroDuration(Number(e.target.value))} className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
+                    <button onClick={() => setShowIntroPreview(true)} className="text-xs px-3 py-1.5 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition">
+                      预览片头
+                    </button>
                   </div>
                 )}
               </div>
@@ -804,6 +810,29 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
           </button>
         </div>
       </div>
+
+      {showIntroPreview && (
+        <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center" onClick={() => setShowIntroPreview(false)}>
+          <div className="bg-gray-900 rounded-xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-2 bg-gray-800">
+              <span className="text-sm text-gray-300">预览片头</span>
+              <button onClick={() => setShowIntroPreview(false)} className="text-gray-400 hover:text-white text-lg">×</button>
+            </div>
+            <Player
+              key={`intro-preview-${introTitle}-${introDuration}`}
+              component={IntroCard}
+              inputProps={{ title: introTitle || series?.name || "", subtitle: introSubtitle, category, audioServerUrl: "/api", sequenceDuration: Math.ceil(introDuration * 30) }}
+              durationInFrames={Math.ceil(introDuration * 30)}
+              compositionWidth={1080}
+              compositionHeight={1920}
+              fps={30}
+              style={{ width: 270, height: 480 }}
+              controls
+              autoPlay
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

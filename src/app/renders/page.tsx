@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { GuideTourButton } from "@/components/GuideTour";
 
 interface RenderTask {
@@ -38,13 +38,25 @@ export default function RendersPage() {
   const [playingTaskId, setPlayingTaskId] = useState<string | null>(null);
   const pageSize = 20;
 
+  const prevStatusRef = useRef<Map<string, string>>(new Map());
+
   const fetchTasks = useCallback(async () => {
     const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
     if (statusFilter) params.set("status", statusFilter);
     if (keyword) params.set("keyword", keyword);
     const res = await fetch(`/api/render?${params}`);
     const data = await res.json();
-    setTasks(data.tasks || []);
+    const newTasks: RenderTask[] = data.tasks || [];
+    const prev = prevStatusRef.current;
+    for (const t of newTasks) {
+      if (t.status === "done" && prev.get(t.id) && prev.get(t.id) !== "done") {
+        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+          new Notification("渲染完成", { body: `任务已完成${t.series_name ? `：${t.series_name}` : ""}` });
+        }
+      }
+    }
+    prevStatusRef.current = new Map(newTasks.map((t) => [t.id, t.status]));
+    setTasks(newTasks);
     setTotal(data.total || 0);
   }, [page, statusFilter, keyword]);
 
@@ -53,6 +65,12 @@ export default function RendersPage() {
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
 
   useEffect(() => {
     if (!hasActive) return;

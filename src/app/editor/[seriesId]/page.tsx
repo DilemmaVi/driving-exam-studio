@@ -726,10 +726,11 @@ export default function SeriesEditorPage() {
 
   const startRender = async (tipOnly = false) => {
     if (rendering) return;
-    const notReady = selected.filter((s) => s.ttsStatus !== "ready");
+    const targetSelected = checkedIds.length > 0 ? selected.filter((s) => checkedIds.includes(s.id)) : selected;
+    const notReady = targetSelected.filter((s) => s.ttsStatus !== "ready");
     if (notReady.length > 0) { alert("请先生成所有题目的语音"); return; }
     if (tipOnly) {
-      const noTip = selected.filter((s) => !s.row.tip_text && !s.row.tip_display);
+      const noTip = targetSelected.filter((s) => !s.row.tip_text && !s.row.tip_display);
       if (noTip.length > 0) { alert(`${noTip.length} 题没有技巧内容`); return; }
     }
     await saveToServer();
@@ -738,7 +739,7 @@ export default function SeriesEditorPage() {
       const res = await fetch("/api/render", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ seriesId, tipOnly }),
+        body: JSON.stringify({ seriesId, tipOnly, questionIds: checkedIds.length > 0 ? checkedIds : undefined }),
       });
       const data = await res.json();
       setRenderTaskId(data.taskId);

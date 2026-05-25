@@ -5,9 +5,10 @@ import { COLORS, SPACING, RADIUS } from "./theme";
 interface Props {
   src: string;
   startFrame: number;
+  circleFrame?: number;
 }
 
-export const QuestionImage: React.FC<Props> = ({ src, startFrame }) => {
+export const QuestionImage: React.FC<Props> = ({ src, startFrame, circleFrame }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const env = getRemotionEnvironment();
@@ -23,6 +24,11 @@ export const QuestionImage: React.FC<Props> = ({ src, startFrame }) => {
   const scale = interpolate(enter, [0, 1], [0.85, 1]);
   const isRendering = env.isRendering;
 
+  const circled = circleFrame != null && frame >= circleFrame;
+  const circleProgress = circleFrame != null ? spring({ frame: frame - circleFrame, fps, config: { damping: 20, stiffness: 120 }, from: 0, to: 1 }) : 0;
+  const borderWidth = circled ? interpolate(circleProgress, [0, 1], [0, 4]) : 0;
+  const borderColor = `rgba(239,68,68,${circled ? interpolate(circleProgress, [0, 1], [0, 1]) : 0})`;
+
   return (
     <div
       style={{
@@ -37,7 +43,7 @@ export const QuestionImage: React.FC<Props> = ({ src, startFrame }) => {
         style={{
           borderRadius: RADIUS.xl,
           overflow: "hidden",
-          border: `1.5px solid ${COLORS.glassBorder}`,
+        border: circled ? `${borderWidth}px solid ${borderColor}` : `1.5px solid ${COLORS.glassBorder}`,
           boxShadow: COLORS.cardShadow,
           background: COLORS.glass,
           padding: SPACING.md,
