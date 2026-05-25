@@ -29,6 +29,11 @@ export async function POST(request: NextRequest) {
       seriesQuestions = db.prepare(
         "SELECT * FROM series_questions WHERE series_id = ? ORDER BY sort_order"
       ).all(seriesId) as Record<string, unknown>[];
+
+      if (Array.isArray(questionIds) && questionIds.length > 0) {
+        const filterSet = new Set(questionIds.map(Number));
+        seriesQuestions = seriesQuestions.filter((sq) => filterSet.has(Number(sq.question_id)));
+      }
       qIds = seriesQuestions.map((sq) => sq.question_id as number);
     } else if (Array.isArray(questionIds) && questionIds.length > 0) {
       qIds = questionIds;
