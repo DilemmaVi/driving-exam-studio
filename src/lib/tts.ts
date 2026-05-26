@@ -212,7 +212,7 @@ export async function generateTTSForQuestion(
     const optText = buildOptionText(labels[i], opts[i]);
     if (isTrueFalse) {
       // True/false options ("A，正确。" / "B，错误。") are shared globally
-      promises.push(generateSegment(0, `tf_opt_${i}`, optText, "用清晰的教学语气朗读选项。", ttsSpeed, force, ttsVoice));
+      promises.push(generateSegment(0, `tf_opt_${i}`, optText, "用清晰的教学语气朗读选项。", ttsSpeed, false, ttsVoice));
     } else {
       promises.push(generateSegment(questionId, `opt_${i}`, optText, "用清晰的教学语气朗读选项。", ttsSpeed, force, ttsVoice));
     }

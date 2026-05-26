@@ -744,6 +744,7 @@ export default function SeriesEditorPage() {
       const data = await res.json();
       setRenderTaskId(data.taskId);
       showToast("✅ 视频生成任务已提交，请到任务列表查看进度");
+      setTimeout(() => setRenderTaskId(null), 3000);
     } catch { alert("渲染提交失败"); }
     setRendering(false);
   };
@@ -904,12 +905,9 @@ export default function SeriesEditorPage() {
             <button id="tour-save-btn" onClick={saveToServer} disabled={saving} className="px-3 py-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 transition">
               {saving ? "保存中..." : "💾 保存"}
             </button>
-            <button id="tour-tts-btn" onClick={() => generateTTS()} disabled={selected.length === 0 || generatingTTS}
+            <button id="tour-tts-btn" onClick={() => generateTTS(true)} disabled={selected.length === 0 || generatingTTS}
               className="px-4 py-1.5 bg-gray-800 text-white rounded-lg text-sm hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
             >{generatingTTS ? "生成中..." : "🎙 生成语音"}</button>
-            <button onClick={() => generateTTS(true)} disabled={selected.length === 0 || generatingTTS}
-              className="px-3 py-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
-            >{generatingTTS ? "生成中..." : "🔄 全部重新生成"}</button>
             <button id="tour-render-btn" onClick={() => startRender(false)} disabled={!allReady || rendering || generatingTTS || !!renderTaskId}
               className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm"
             >{rendering ? "提交中..." : renderTaskId ? "已提交" : "🎬 生成视频"}</button>

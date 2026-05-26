@@ -58,8 +58,8 @@ export async function GET(request: NextRequest) {
   const taskId = searchParams.get("taskId");
   const db = getDb();
 
-  // Recover stale tasks: if a task is stuck in tts/rendering but not in the queue, mark as error
-  const stuckTasks = db.prepare("SELECT id FROM render_tasks WHERE status IN ('tts', 'rendering')").all() as { id: string }[];
+  // Recover stale tasks: if a task is stuck in tts/rendering/pending but not in the queue, mark as error
+  const stuckTasks = db.prepare("SELECT id FROM render_tasks WHERE status IN ('pending', 'tts', 'rendering')").all() as { id: string }[];
   for (const t of stuckTasks) {
     if (renderQueue.getCurrentTaskId() !== t.id && renderQueue.getPosition(t.id) === 0) {
       db.prepare("UPDATE render_tasks SET status = 'error', error = '进程重启，任务中断' WHERE id = ?").run(t.id);
@@ -287,7 +287,7 @@ export async function renderInBackground(
           correctIndex: correctIdx,
           correctIndices: correctIndices.length > 1 ? correctIndices : undefined,
           explanation: row.explanation || "",
-          tip: row.tip_text || row.tip_display || "",
+          tip: row.tip_display || row.tip_text || "",
           coverImage: getStaticUrl(row.cover_image) || undefined,
         },
         durations: { ...ttsResult.durations, ...effectiveBridges },
@@ -355,11 +355,28 @@ export async function renderInBackground(
       const splitDir = path.join(outputDir, taskId);
       fs.mkdirSync(splitDir, { recursive: true });
 
+      const splitIntroOutro: Record<string, unknown> = {};
+      if (!tipOnly && seriesData) {
+        const introOn = Number(seriesData.intro_enabled ?? 0) === 1;
+        const outroOn = Number(seriesData.outro_enabled ?? 0) === 1;
+        if (introOn && seriesData.intro_title) {
+          splitIntroOutro.introTitle = seriesData.intro_title;
+          splitIntroOutro.introSubtitle = seriesData.intro_subtitle || "";
+          splitIntroOutro.introCategory = seriesData.category || "";
+          splitIntroOutro.introDuration = Number(seriesData.intro_duration ?? 4);
+        }
+        if (outroOn && seriesData.outro_text) {
+          splitIntroOutro.outroText = seriesData.outro_text;
+          splitIntroOutro.outroSubtitle = seriesData.outro_subtitle || "";
+          splitIntroOutro.outroDuration = Number(seriesData.outro_duration ?? 4);
+        }
+      }
+
       const batchItems = entries.map((entry, i) => {
         const nameSlug = (entry.question.questionContent || "").replace(/[\\/:*?"<>|]/g, "").slice(0, 15).trim();
         const fileName = `${String(i + 1).padStart(2, "0")}-${nameSlug}.mp4`;
         return {
-          props: { ...sharedProps, entries: [entry] },
+          props: { ...sharedProps, ...splitIntroOutro, entries: [entry], tipOnly: tipOnly || undefined },
           outputPath: path.join(splitDir, fileName),
         };
       });

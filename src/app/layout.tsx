@@ -7,6 +7,7 @@ import packageJson from "../../package.json";
 import { UpdateIndicator } from "@/components/UpdateIndicator";
 import { ForceUpdateOverlay } from "@/components/ForceUpdateOverlay";
 import { VersionBadge } from "@/components/VersionBadge";
+import { RenderStatusProvider, RenderStatusBadge } from "@/components/RenderNotification";
 
 const geist = Geist({
   variable: "--font-geist",
@@ -26,31 +27,36 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" className={`${geist.variable} h-full`}>
       <body className="min-h-full bg-gray-50 text-gray-900 antialiased">
-        <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/brand-logo.png" alt="全安驾考" width={32} height={32} className="rounded" />
-            <span className="text-lg font-bold text-blue-600">全安驾考</span>
-          </Link>
-          <Link href="/series" className="text-sm text-gray-600 hover:text-gray-900">
-            视频系列
-          </Link>
-          <Link href="/questions" className="text-sm text-gray-600 hover:text-gray-900">
-            题库管理
-          </Link>
-          <Link href="/renders" className="text-sm text-gray-600 hover:text-gray-900">
-            渲染任务
-          </Link>
-          <Link href="/tts-dictionary" className="text-sm text-gray-600 hover:text-gray-900">
-            发音词典
-          </Link>
-          <Link href="/data-management" className="text-sm text-gray-600 hover:text-gray-900">
-            数据管理
-          </Link>
-          <div className="ml-auto"><VersionBadge version={packageJson.version} /></div>
-          <UpdateIndicator />
-        </nav>
-        <main className="flex-1">{children}</main>
-        <ForceUpdateOverlay />
+        <RenderStatusProvider>
+          <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-6">
+            <Link href="/" className="flex items-center gap-2">
+              <Image src="/brand-logo.png" alt="全安驾考" width={32} height={32} className="rounded" />
+              <span className="text-lg font-bold text-blue-600">全安驾考</span>
+            </Link>
+            <Link href="/series" className="text-sm text-gray-600 hover:text-gray-900">
+              视频系列
+            </Link>
+            <Link href="/questions" className="text-sm text-gray-600 hover:text-gray-900">
+              题库管理
+            </Link>
+            <Link href="/renders" className="text-sm text-gray-600 hover:text-gray-900">
+              渲染任务
+            </Link>
+            <Link href="/tts-dictionary" className="text-sm text-gray-600 hover:text-gray-900">
+              发音词典
+            </Link>
+            <Link href="/data-management" className="text-sm text-gray-600 hover:text-gray-900">
+              数据管理
+            </Link>
+            <div className="ml-auto flex items-center gap-3">
+              <RenderStatusBadge />
+              <VersionBadge version={packageJson.version} />
+            </div>
+            <UpdateIndicator />
+          </nav>
+          <main className="flex-1">{children}</main>
+          <ForceUpdateOverlay />
+        </RenderStatusProvider>
       </body>
     </html>
   );
