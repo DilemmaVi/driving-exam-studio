@@ -1,0 +1,37 @@
+package.json
+  a0016bb7d214ca0a 3
+src/app/api/render/route.ts
+  a0016bb7d214ca0a 61-62,290,358-374,379
+src/components/RenderNotification.tsx
+  a0016bb7d214ca0a 1-104
+src/app/editor/[seriesId]/page.tsx
+  a0016bb7d214ca0a 747,908
+src/lib/tts.ts
+  a0016bb7d214ca0a 215
+src/app/layout.tsx
+  a0016bb7d214ca0a 10,30-59
+src/lib/changelog.ts
+  a0016bb7d214ca0a 3-15
+CHANGELOG.md
+  a0016bb7d214ca0a 1-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.16",
+  "base_commit_sha": "3a66ad63d9f26379b3e1c1f482bff171e9da55ef",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 203,
+      "total_deletions": 54,
+      "accepted_lines": 1088,
+      "overriden_lines": 0
+    }
+  }
+}
