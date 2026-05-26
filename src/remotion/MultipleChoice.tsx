@@ -55,9 +55,10 @@ export const MultipleChoice: React.FC<{
   watermarkColor?: string;
   watermarkFont?: string;
   watermarkStroke?: boolean;
+  watermarkLogoGrayscale?: boolean;
   theme?: ThemeName;
   tipOnly?: boolean;
-}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true, startDelay = 0, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, theme, tipOnly }) => {
+}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true, startDelay = 0, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, watermarkLogoGrayscale, theme, tipOnly }) => {
   const labels = ["A", "B", "C", "D"];
   const correctIndices = question.correctIndices || [question.correctIndex];
 
@@ -204,6 +205,7 @@ export const MultipleChoice: React.FC<{
   return (
     <AbsoluteFill>
       <Background theme={theme} />
+      {(watermarkText || watermarkLogoUrl) && <Watermark text={watermarkText} logoUrl={watermarkLogoUrl} position={watermarkPosition} opacity={watermarkOpacity} fontSize={watermarkFontSize} scale={watermarkScale} color={watermarkColor} font={watermarkFont as any} stroke={watermarkStroke} logoGrayscale={watermarkLogoGrayscale} />}
       <ProgressBar />
 
       <div style={{ position: "absolute", top: 30, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", transform: `translateY(${contentShift}px) scale(${contentScale})`, transformOrigin: "top center", width: contentScale < 1 ? `${100 / contentScale}%` : undefined, marginLeft: contentScale < 1 ? `${-(100 / contentScale - 100) / 2}%` : undefined }}>
@@ -278,7 +280,6 @@ export const MultipleChoice: React.FC<{
           <Sequence from={T.tipStart}><Audio src={`${audioServerUrl}/audio/q${question.id}_tip.wav`} /></Sequence>
         </>
       )}
-      {(watermarkText || watermarkLogoUrl) && <Watermark text={watermarkText} logoUrl={watermarkLogoUrl} position={watermarkPosition} opacity={watermarkOpacity} fontSize={watermarkFontSize} scale={watermarkScale} color={watermarkColor} font={watermarkFont as any} stroke={watermarkStroke} />}
     </AbsoluteFill>
   );
 };

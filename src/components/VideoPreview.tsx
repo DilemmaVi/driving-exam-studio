@@ -54,12 +54,12 @@ export function VideoPreview({
   underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor,
   stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, pauseStart, theme,
 }: Props) {
-  const [watermark, setWatermark] = useState<{ text?: string; position?: string; opacity?: number; fontSize?: string; logoUrl?: string; scale?: number; color?: string; font?: string; stroke?: boolean }>({});
+  const [watermark, setWatermark] = useState<{ text?: string; position?: string; opacity?: number; fontSize?: string; logoUrl?: string; scale?: number; color?: string; font?: string; stroke?: boolean; logoGrayscale?: boolean }>({});
   useEffect(() => {
     if (open) {
       fetch("/api/settings").then(r => r.json()).then(d => {
         if (d.watermarkEnabled && (d.watermarkText || d.watermarkLogoUrl)) {
-          setWatermark({ text: d.watermarkText, position: d.watermarkPosition, opacity: d.watermarkOpacity, fontSize: d.watermarkFontSize, logoUrl: d.watermarkLogoUrl, scale: d.watermarkScale, color: d.watermarkColor, font: d.watermarkFont, stroke: d.watermarkStroke });
+          setWatermark({ text: d.watermarkText, position: d.watermarkPosition, opacity: d.watermarkOpacity, fontSize: d.watermarkFontSize, logoUrl: d.watermarkLogoUrl, scale: d.watermarkScale, color: d.watermarkColor, font: d.watermarkFont, stroke: d.watermarkStroke, logoGrayscale: d.watermarkLogoGrayscale });
         } else {
           setWatermark({});
         }
@@ -141,6 +141,7 @@ export function VideoPreview({
             watermarkColor: watermark.color,
             watermarkFont: watermark.font,
             watermarkStroke: watermark.stroke,
+            watermarkLogoGrayscale: watermark.logoGrayscale,
             theme,
           }}
           durationInFrames={durationInFrames}

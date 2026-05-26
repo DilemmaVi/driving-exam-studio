@@ -268,6 +268,7 @@ function initTables(db: Database.Database) {
     ["outro_enabled", "INTEGER DEFAULT 0"],
     ["intro_duration", "REAL DEFAULT 4.0"],
     ["outro_duration", "REAL DEFAULT 4.0"],
+    ["intro_logo", "TEXT DEFAULT ''"],
   ];
   for (const [col, typedef] of styleEnhanceCols) {
     if (!vsColsV3.some((c) => c.name === col)) {

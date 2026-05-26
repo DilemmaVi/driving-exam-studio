@@ -15,6 +15,7 @@ interface Settings {
   watermarkColor?: string;
   watermarkFont?: string;
   watermarkStroke?: boolean;
+  watermarkLogoGrayscale?: boolean;
 }
 
 export function getSettings(): Settings {

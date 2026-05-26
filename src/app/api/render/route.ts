@@ -58,11 +58,13 @@ export async function GET(request: NextRequest) {
   const taskId = searchParams.get("taskId");
   const db = getDb();
 
-  // Recover stale tasks: if a task is stuck in tts/rendering/pending but not in the queue, mark as error
-  const stuckTasks = db.prepare("SELECT id FROM render_tasks WHERE status IN ('pending', 'tts', 'rendering')").all() as { id: string }[];
-  for (const t of stuckTasks) {
-    if (renderQueue.getCurrentTaskId() !== t.id && renderQueue.getPosition(t.id) === 0) {
-      db.prepare("UPDATE render_tasks SET status = 'error', error = '进程重启，任务中断' WHERE id = ?").run(t.id);
+  // Recover stale tasks only when not currently rendering (avoid DB contention during render)
+  if (!renderQueue.getCurrentTaskId()) {
+    const stuckTasks = db.prepare("SELECT id FROM render_tasks WHERE status IN ('pending', 'tts', 'rendering')").all() as { id: string }[];
+    for (const t of stuckTasks) {
+      if (renderQueue.getPosition(t.id) === 0) {
+        db.prepare("UPDATE render_tasks SET status = 'error', error = '进程重启，任务中断' WHERE id = ?").run(t.id);
+      }
     }
   }
 
@@ -327,6 +329,7 @@ export async function renderInBackground(
       watermarkProps.watermarkColor = settings.watermarkColor;
       watermarkProps.watermarkFont = settings.watermarkFont;
       watermarkProps.watermarkStroke = settings.watermarkStroke;
+      watermarkProps.watermarkLogoGrayscale = settings.watermarkLogoGrayscale;
     }
 
     const sharedProps: Record<string, unknown> = {
@@ -364,6 +367,7 @@ export async function renderInBackground(
           splitIntroOutro.introSubtitle = seriesData.intro_subtitle || "";
           splitIntroOutro.introCategory = seriesData.category || "";
           splitIntroOutro.introDuration = Number(seriesData.intro_duration ?? 4);
+          if (seriesData.intro_logo) splitIntroOutro.introLogo = seriesData.intro_logo;
         }
         if (outroOn && seriesData.outro_text) {
           splitIntroOutro.outroText = seriesData.outro_text;
@@ -396,6 +400,7 @@ export async function renderInBackground(
           props.introSubtitle = seriesData.intro_subtitle || "";
           props.introCategory = seriesData.category || "";
           props.introDuration = Number(seriesData.intro_duration ?? 4);
+          if (seriesData.intro_logo) props.introLogo = seriesData.intro_logo;
         }
         if (outroOn && seriesData.outro_text) {
           props.outroText = seriesData.outro_text;

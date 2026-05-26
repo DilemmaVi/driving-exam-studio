@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Player } from "@remotion/player";
 import { IntroCard } from "@/remotion/IntroCard";
+import { OutroCard } from "@/remotion/OutroCard";
 import { StylePreview } from "./StylePreview";
 
 interface SeriesData {
@@ -104,8 +105,10 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
   const [introEnabled, setIntroEnabled] = useState(0);
   const [outroEnabled, setOutroEnabled] = useState(0);
   const [introDuration, setIntroDuration] = useState(4.0);
+  const [introLogo, setIntroLogo] = useState("");
   const [outroDuration, setOutroDuration] = useState(4.0);
   const [showIntroPreview, setShowIntroPreview] = useState(false);
+  const [showOutroPreview, setShowOutroPreview] = useState(false);
 
   // Playback control
   const [showTransition, setShowTransition] = useState(0);
@@ -143,6 +146,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
   const [watermarkColor, setWatermarkColor] = useState("#ffffff");
   const [watermarkFont, setWatermarkFont] = useState("default");
   const [watermarkStroke, setWatermarkStroke] = useState(true);
+  const [watermarkLogoGrayscale, setWatermarkLogoGrayscale] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -158,6 +162,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
         setWatermarkColor(d.watermarkColor || "#ffffff");
         setWatermarkFont(d.watermarkFont || "default");
         setWatermarkStroke(d.watermarkStroke !== false);
+        setWatermarkLogoGrayscale(d.watermarkLogoGrayscale || false);
       });
       if (series) {
         setIntroTitle(series.intro_title || "");
@@ -189,6 +194,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
         setOutroEnabled(Number(series.outro_enabled ?? 0));
         setIntroDuration(Number(series.intro_duration ?? 4.0));
         setOutroDuration(Number(series.outro_duration ?? 4.0));
+        setIntroLogo((series as any).intro_logo || "");
         setShowTransition(series.show_transition ?? 0);
         setPauseStart(series.pause_start ?? 2.0);
         setPauseEnd(series.pause_end ?? 2.0);
@@ -214,7 +220,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
       await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mimoApiKey: apiKey.trim(), watermarkEnabled, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke }),
+        body: JSON.stringify({ mimoApiKey: apiKey.trim(), watermarkEnabled, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, watermarkLogoGrayscale }),
       });
       setMaskedKey("sk-****" + apiKey.trim().slice(-6));
       setApiKey("");
@@ -222,7 +228,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
       await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ watermarkEnabled, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke }),
+        body: JSON.stringify({ watermarkEnabled, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, watermarkLogoGrayscale }),
       });
     }
     onSave({
@@ -232,7 +238,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
       answerReadOption, answerReadMulti,
       bridgeThinkEnabled, bridgeRevealEnabled, bridgeExplainEnabled, bridgeTipEnabled,
       outroText: outroText || undefined, outroSubtitle: outroSubtitle || undefined,
-      introEnabled, outroEnabled, introDuration, outroDuration,
+      introEnabled, outroEnabled, introDuration, outroDuration, introLogo,
       bridgeThink: bridgeThink || undefined,
       bridgeReveal: bridgeReveal || undefined,
       bridgeExplain: bridgeExplain || undefined,
@@ -276,6 +282,31 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
           <div className={`p-6 space-y-4 ${tab === "视频风格" ? "flex-1 min-w-0 overflow-y-auto" : ""}`}>
           {tab === "基本信息" && (
             <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">片头片尾 Logo</label>
+                <div className="flex items-center gap-3">
+                  {introLogo && (
+                    <img src={introLogo} alt="logo" className="w-12 h-12 object-contain rounded border" />
+                  )}
+                  <label className="cursor-pointer text-sm text-blue-600 hover:text-blue-700 border border-blue-200 rounded-lg px-3 py-1.5">
+                    {introLogo ? "更换" : "上传 Logo"}
+                    <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const formData = new FormData();
+                      formData.append("file", file);
+                      formData.append("type", "intro-logo");
+                      const res = await fetch("/api/upload", { method: "POST", body: formData });
+                      const data = await res.json();
+                      if (data.url) setIntroLogo(data.url);
+                    }} />
+                  </label>
+                  {introLogo && (
+                    <button type="button" onClick={() => setIntroLogo("")} className="text-xs text-red-500 hover:text-red-600">移除</button>
+                  )}
+                  {!introLogo && <span className="text-xs text-gray-400">未设置时使用默认品牌 Logo</span>}
+                </div>
+              </div>
               <div className="space-y-3">
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                   <input type="checkbox" checked={introEnabled === 1} onChange={(e) => setIntroEnabled(e.target.checked ? 1 : 0)} className="rounded" />
@@ -325,6 +356,9 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
                       <label className="block text-sm text-gray-600 mb-1">片尾时长（秒）</label>
                       <input type="number" min={2} max={15} step={0.5} value={outroDuration} onChange={(e) => setOutroDuration(Number(e.target.value))} className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
+                    <button onClick={() => setShowOutroPreview(true)} className="text-xs px-3 py-1.5 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition">
+                      预览片尾
+                    </button>
                   </div>
                 )}
               </div>
@@ -757,6 +791,10 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
                       <input type="checkbox" checked={watermarkStroke} onChange={(e) => setWatermarkStroke(e.target.checked)} className="rounded" />
                       <span className="text-gray-600">文字描边（增强可读性）</span>
                     </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" checked={watermarkLogoGrayscale} onChange={(e) => setWatermarkLogoGrayscale(e.target.checked)} className="rounded" />
+                      <span className="text-gray-600">Logo 灰度化（降低视觉干扰）</span>
+                    </label>
                     <div>
                       <label className="block text-sm text-gray-600 mb-2">位置</label>
                       <div className="grid grid-cols-3 gap-1.5 w-40">
@@ -774,7 +812,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
                     </div>
                     <div>
                       <label className="block text-sm text-gray-600 mb-1">整体缩放 ({watermarkScale}%)</label>
-                      <input type="range" min={30} max={200} value={watermarkScale} onChange={(e) => setWatermarkScale(Number(e.target.value))} className="w-full" />
+                      <input type="range" min={30} max={400} value={watermarkScale} onChange={(e) => setWatermarkScale(Number(e.target.value))} className="w-full" />
                     </div>
                     <div>
                       <label className="block text-sm text-gray-600 mb-1">文字大小 ({watermarkFontSize}px)</label>
@@ -821,8 +859,31 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
             <Player
               key={`intro-preview-${introTitle}-${introDuration}`}
               component={IntroCard}
-              inputProps={{ title: introTitle || series?.name || "", subtitle: introSubtitle, category, audioServerUrl: "/api", sequenceDuration: Math.ceil(introDuration * 30) }}
+              inputProps={{ title: introTitle || series?.name || "", subtitle: introSubtitle, category, audioServerUrl: "/api", sequenceDuration: Math.ceil(introDuration * 30), theme: theme as any, logoUrl: introLogo || undefined }}
               durationInFrames={Math.ceil(introDuration * 30)}
+              compositionWidth={1080}
+              compositionHeight={1920}
+              fps={30}
+              style={{ width: 270, height: 480 }}
+              controls
+              autoPlay
+            />
+          </div>
+        </div>
+      )}
+
+      {showOutroPreview && (
+        <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center" onClick={() => setShowOutroPreview(false)}>
+          <div className="bg-gray-900 rounded-xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-2 bg-gray-800">
+              <span className="text-sm text-gray-300">预览片尾</span>
+              <button onClick={() => setShowOutroPreview(false)} className="text-gray-400 hover:text-white text-lg">×</button>
+            </div>
+            <Player
+              key={`outro-preview-${outroText}-${outroDuration}-${theme}`}
+              component={OutroCard}
+              inputProps={{ title: outroText || "片尾标题", subtitle: outroSubtitle, audioServerUrl: "/api", theme: theme as any, logoUrl: introLogo || undefined }}
+              durationInFrames={Math.ceil(outroDuration * 30)}
               compositionWidth={1080}
               compositionHeight={1920}
               fps={30}

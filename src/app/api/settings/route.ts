@@ -16,6 +16,7 @@ export async function GET() {
     watermarkColor: settings.watermarkColor || "#ffffff",
     watermarkFont: settings.watermarkFont || "default",
     watermarkStroke: settings.watermarkStroke !== false,
+    watermarkLogoGrayscale: settings.watermarkLogoGrayscale || false,
   });
 }
 
@@ -35,6 +36,7 @@ export async function POST(request: NextRequest) {
   if (body.watermarkColor !== undefined) settings.watermarkColor = body.watermarkColor;
   if (body.watermarkFont !== undefined) settings.watermarkFont = body.watermarkFont;
   if (body.watermarkStroke !== undefined) settings.watermarkStroke = body.watermarkStroke;
+  if (body.watermarkLogoGrayscale !== undefined) settings.watermarkLogoGrayscale = body.watermarkLogoGrayscale;
   saveSettings(settings);
   return NextResponse.json({ ok: true });
 }

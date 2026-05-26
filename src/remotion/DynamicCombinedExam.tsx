@@ -53,6 +53,7 @@ interface Props {
   outroSubtitle?: string;
   introDuration?: number;
   outroDuration?: number;
+  introLogo?: string;
   tipOnly?: boolean;
   showTransition?: boolean;
   pauseStart?: number;
@@ -77,13 +78,14 @@ interface Props {
   watermarkColor?: string;
   watermarkFont?: string;
   watermarkStroke?: boolean;
+  watermarkLogoGrayscale?: boolean;
   theme?: ThemeName;
 }
 
 export const DynamicCombinedExam: React.FC<Props> = ({
-  entries, audioServerUrl = "", introTitle, introSubtitle, introCategory, outroText, outroSubtitle, introDuration: introDurationProp, outroDuration: outroDurationProp, tipOnly,
+  entries, audioServerUrl = "", introTitle, introSubtitle, introCategory, outroText, outroSubtitle, introDuration: introDurationProp, outroDuration: outroDurationProp, introLogo, tipOnly,
   showTransition, pauseStart, pauseEnd, pauseBeforeTip,
-  keywordFlashEnabled, underlineProgressEnabled, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, avatarEnabled, avatarSize, avatarPosition, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, theme,
+  keywordFlashEnabled, underlineProgressEnabled, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, avatarEnabled, avatarSize, avatarPosition, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, watermarkLogoGrayscale, theme,
 }) => {
   let currentFrame = 0;
   const sequences: React.ReactElement[] = [];
@@ -93,7 +95,7 @@ export const DynamicCombinedExam: React.FC<Props> = ({
     const introFrames = Math.ceil(introSecs * FPS);
     sequences.push(
       <Sequence key="intro" from={currentFrame} durationInFrames={introFrames}>
-        <IntroCard title={introTitle} subtitle={introSubtitle} category={introCategory} audioServerUrl={audioServerUrl} sequenceDuration={introFrames} />
+        <IntroCard title={introTitle} subtitle={introSubtitle} category={introCategory} audioServerUrl={audioServerUrl} sequenceDuration={introFrames} theme={theme} logoUrl={introLogo} />
       </Sequence>
     );
     currentFrame += introFrames;
@@ -112,7 +114,7 @@ export const DynamicCombinedExam: React.FC<Props> = ({
     } : entry;
     const qDurSecs = questionDuration(effectiveEntry, tipOnly);
     const optAnimSecs = entry.component === "tf" ? 1.5 : 2;
-    const extraPause = isFirst ? (pauseStart || 0) : 0;
+    const extraPause = (isFirst && !introTitle) ? (pauseStart || 0) : 0;
     const qFrames = Math.round(optAnimSecs * FPS) + Math.round(extraPause * FPS) + Math.ceil(qDurSecs * FPS) + 10;
 
     if (showTransition && idx > 0) {
@@ -184,6 +186,7 @@ export const DynamicCombinedExam: React.FC<Props> = ({
           watermarkColor={watermarkColor}
           watermarkFont={watermarkFont}
           watermarkStroke={watermarkStroke}
+          watermarkLogoGrayscale={watermarkLogoGrayscale}
           theme={theme}
           tipOnly={!!tipOnly}
         />
@@ -197,7 +200,7 @@ export const DynamicCombinedExam: React.FC<Props> = ({
     const outroFrames = Math.ceil(outroSecs * FPS);
     sequences.push(
       <Sequence key="outro" from={currentFrame} durationInFrames={outroFrames}>
-        <OutroCard title={outroText} subtitle={outroSubtitle} audioServerUrl={audioServerUrl} />
+        <OutroCard title={outroText} subtitle={outroSubtitle} audioServerUrl={audioServerUrl} theme={theme} logoUrl={introLogo} />
       </Sequence>
     );
     currentFrame += outroFrames;
@@ -226,7 +229,7 @@ export function calcCombinedDuration(
   entries.forEach((entry, idx) => {
     if (showTransition && idx > 0) total += TRANS_DURATION;
     const optAnimTime = entry.component === "tf" ? 1.5 : 2;
-    const extraPause = idx === 0 ? (pauseStart || 0) : 0;
+    const extraPause = (idx === 0 && !hasIntro) ? (pauseStart || 0) : 0;
     let qDur = optAnimTime + extraPause + questionDuration(entry, tipOnly);
     total += qDur;
   });

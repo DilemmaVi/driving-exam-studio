@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { AbsoluteFill, Img, staticFile, useCurrentFrame, interpolate, spring, useVideoConfig } from "remotion";
-import { COLORS, FONT, SPACING } from "./theme";
+import { COLORS, FONT, SPACING, getThemeColors, type ThemeName } from "./theme";
 
 interface Props {
   title: string;
@@ -9,12 +9,15 @@ interface Props {
   category?: string;
   audioServerUrl?: string;
   sequenceDuration?: number;
+  theme?: ThemeName;
+  logoUrl?: string;
 }
 
-export const IntroCard: React.FC<Props> = ({ title, subtitle, category, audioServerUrl, sequenceDuration }) => {
+export const IntroCard: React.FC<Props> = ({ title, subtitle, category, audioServerUrl, sequenceDuration, theme, logoUrl }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const totalFrames = sequenceDuration ?? 120;
+  const colors = theme ? getThemeColors(theme) : COLORS;
 
   const bgOpacity = interpolate(frame, [0, 20], [0, 1], { extrapolateRight: "clamp" });
 
@@ -31,11 +34,11 @@ export const IntroCard: React.FC<Props> = ({ title, subtitle, category, audioSer
   const fadeOutStart = Math.min(Math.max(60, totalFrames - 20), totalFrames - 1);
   const fadeOut = interpolate(frame, [fadeOutStart, totalFrames], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
-  const logoSrc = audioServerUrl ? `${audioServerUrl}/logo.png` : staticFile("logo.png");
+  const logoSrc = logoUrl || (audioServerUrl ? `${audioServerUrl}/logo.png` : staticFile("logo.png"));
 
   return (
     <AbsoluteFill style={{
-      backgroundColor: COLORS.bgPrimary,
+      backgroundColor: colors.bgPrimary,
       display: "flex", alignItems: "center", justifyContent: "center",
       opacity: bgOpacity * fadeOut,
     }}>
@@ -55,7 +58,7 @@ export const IntroCard: React.FC<Props> = ({ title, subtitle, category, audioSer
           <div style={{
             opacity: categoryOpacity,
             fontSize: FONT.size.label,
-            color: COLORS.accent,
+            color: colors.accent,
             fontFamily: FONT.main,
             marginBottom: SPACING.md,
             letterSpacing: 4,
@@ -68,7 +71,7 @@ export const IntroCard: React.FC<Props> = ({ title, subtitle, category, audioSer
           transform: `scale(${titleScale})`,
           fontSize: FONT.size.title + 20,
           fontWeight: 800,
-          color: COLORS.text,
+          color: colors.text,
           fontFamily: FONT.main,
           lineHeight: 1.3,
         }}>
@@ -78,7 +81,7 @@ export const IntroCard: React.FC<Props> = ({ title, subtitle, category, audioSer
           <div style={{
             opacity: subtitleOpacity,
             fontSize: FONT.size.explanation,
-            color: COLORS.textSecondary,
+            color: colors.textSecondary,
             fontFamily: FONT.main,
             marginTop: SPACING.lg,
           }}>

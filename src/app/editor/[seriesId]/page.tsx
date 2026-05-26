@@ -658,6 +658,7 @@ export default function SeriesEditorPage() {
       outroEnabled: "outro_enabled",
       introDuration: "intro_duration",
       outroDuration: "outro_duration",
+      introLogo: "intro_logo",
     };
     const snakeUpdates: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(updates)) {

@@ -26,6 +26,7 @@ interface Props {
   color?: string;
   font?: WatermarkFont;
   stroke?: boolean;
+  logoGrayscale?: boolean;
 }
 
 const POS_STYLE: Record<WatermarkPosition, React.CSSProperties> = {
@@ -40,7 +41,7 @@ const POS_STYLE: Record<WatermarkPosition, React.CSSProperties> = {
   "bottom-right": { bottom: 140, right: 40 },
 };
 
-export const Watermark: React.FC<Props> = ({ text, logoUrl, position = "bottom-right", opacity = 30, fontSize = 36, scale = 100, color = "#ffffff", font = "default", stroke = true }) => {
+export const Watermark: React.FC<Props> = ({ text, logoUrl, position = "bottom-right", opacity = 30, fontSize = 36, scale = 100, color = "#ffffff", font = "default", stroke = true, logoGrayscale = false }) => {
   if (!text && !logoUrl) return null;
   const scaleFactor = scale / 100;
   const fontFamily = FONT_MAP[font] || FONT_MAP.default;
@@ -52,17 +53,16 @@ export const Watermark: React.FC<Props> = ({ text, logoUrl, position = "bottom-r
       ...POS_STYLE[position],
       opacity: opacity / 100,
       pointerEvents: "none",
-      zIndex: 10,
       display: "flex",
       alignItems: "center",
       gap: 12 * scaleFactor,
     }}>
       {logoUrl && (
         <Img src={logoUrl} style={{
-          width: 80 * scaleFactor,
-          height: 80 * scaleFactor,
+          width: 120 * scaleFactor,
+          height: 120 * scaleFactor,
           objectFit: "contain",
-          filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.4))",
+          filter: `drop-shadow(0 1px 3px rgba(0,0,0,0.4))${logoGrayscale ? " grayscale(1)" : ""}`,
         }} />
       )}
       {text && (
