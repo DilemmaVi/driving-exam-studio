@@ -42,7 +42,7 @@ export default function QuestionsPage() {
   const [importCategory, setImportCategory] = useState("");
   const [importMode, setImportMode] = useState("append");
   const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<{ total: number; inserted: number; skipped: number; updated?: number; deleted?: number } | null>(null);
+  const [importResult, setImportResult] = useState<{ total?: number; inserted?: number; skipped?: number; updated?: number; deleted?: number; error?: string } | null>(null);
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const [deleting, setDeleting] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -109,6 +109,12 @@ export default function QuestionsPage() {
     fd.append("categoryId", importCategory);
     fd.append("importMode", importMode);
     const res = await fetch("/api/questions/import", { method: "POST", body: fd });
+    if (!res.ok) {
+      const text = await res.text();
+      try { setImportResult(JSON.parse(text)); } catch { setImportResult({ error: text || `导入失败 (${res.status})` }); }
+      setImporting(false);
+      return;
+    }
     const data = await res.json();
     setImportResult(data);
     setImporting(false);
@@ -334,17 +340,30 @@ export default function QuestionsPage() {
                 <p className="text-xs text-gray-400 mt-1">支持 quanan 导出的标准模板格式 · <a href="/api/questions/template" className="text-blue-600 hover:underline">下载导入模板</a></p>
               </div>
               {importResult && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
-                  <p className="text-green-800 font-medium">导入完成</p>
-                  <p className="text-green-700 mt-1">共 {importResult.total} 题，新增 {importResult.inserted} 题{importResult.updated ? `，更新 ${importResult.updated} 题` : ""}，跳过重复 {importResult.skipped} 题{importResult.deleted ? `，已清除旧题 ${importResult.deleted} 题` : ""}</p>
-                </div>
+                importResult.error ? (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm">
+                    <p className="text-red-800 font-medium">导入失败</p>
+                    <p className="text-red-700 mt-1">{importResult.error}</p>
+                  </div>
+                ) : (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
+                    <p className="text-green-800 font-medium">导入完成</p>
+                    <p className="text-green-700 mt-1">共 {importResult.total} 题，新增 {importResult.inserted} 题{importResult.updated ? `，更新 ${importResult.updated} 题` : ""}，跳过重复 {importResult.skipped} 题{importResult.deleted ? `，已清除旧题 ${importResult.deleted} 题` : ""}</p>
+                  </div>
+                )
               )}
             </div>
             <div className="flex justify-end gap-3 mt-6">
-              <button onClick={() => setShowImport(false)} className="px-4 py-2 text-sm text-gray-600">取消</button>
-              <button onClick={handleImport} disabled={importing}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-40"
-              >{importing ? "导入中..." : "开始导入"}</button>
+              {importResult && !importResult.error ? (
+                <button onClick={() => { setShowImport(false); setImportResult(null); }} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">完成</button>
+              ) : (
+                <>
+                  <button onClick={() => { setShowImport(false); setImportResult(null); }} className="px-4 py-2 text-sm text-gray-600">取消</button>
+                  <button onClick={handleImport} disabled={importing}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-40"
+                  >{importing ? "导入中..." : "开始导入"}</button>
+                </>
+              )}
             </div>
           </div>
         </div>

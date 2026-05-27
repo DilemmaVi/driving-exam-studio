@@ -25,6 +25,7 @@ function parseCorrectAnswer(raw: unknown): string {
 }
 
 export async function POST(request: NextRequest) {
+  try {
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
   const categoryId = formData.get("categoryId") as string || "";
@@ -66,6 +67,7 @@ export async function POST(request: NextRequest) {
 
   let deleted = 0;
 
+  db.pragma("foreign_keys = OFF");
   const tx = db.transaction(() => {
     if (importMode === "replace" && categoryId) {
       const qIds = db.prepare(
@@ -162,6 +164,7 @@ export async function POST(request: NextRequest) {
   });
 
   tx();
+  db.pragma("foreign_keys = ON");
 
   return NextResponse.json({
     total: rows.length,
@@ -170,4 +173,8 @@ export async function POST(request: NextRequest) {
     updated,
     deleted,
   });
+  } catch (e: any) {
+    console.error("Import error:", e);
+    return NextResponse.json({ error: e.message || "导入失败" }, { status: 500 });
+  }
 }
