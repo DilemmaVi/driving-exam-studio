@@ -1,5 +1,12 @@
 export const changelog = [
   {
+    version: "0.3.18",
+    date: "2026-05-27",
+    changes: [
+      "修复片头片尾自定义 Logo 渲染时不生效的问题",
+    ],
+  },
+  {
     version: "0.3.17",
     date: "2026-05-27",
     changes: [

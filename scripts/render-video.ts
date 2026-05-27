@@ -102,6 +102,7 @@ async function runBatch(input: { items: Array<{ props: Record<string, unknown>; 
         ...item.props,
         audioServerUrl: AUDIO_SERVER_URL,
         watermarkLogoUrl: resolveUrl(item.props.watermarkLogoUrl as string | undefined),
+        introLogo: resolveUrl(item.props.introLogo as string | undefined),
         entries: (item.props.entries as Array<{ question: { id: number; coverImage?: string } }>).map((entry) => ({
           ...entry,
           audioServerUrl: AUDIO_SERVER_URL,
@@ -198,6 +199,7 @@ async function runSingle(inputProps: Record<string, unknown>, AUDIO_SERVER_URL: 
     ...inputProps,
     audioServerUrl: AUDIO_SERVER_URL,
     watermarkLogoUrl: resolveUrl(inputProps.watermarkLogoUrl as string | undefined),
+    introLogo: resolveUrl(inputProps.introLogo as string | undefined),
     entries: (inputProps.entries as Array<{ question: { id: number; coverImage?: string } }>).map((entry) => ({
       ...entry,
       audioServerUrl: AUDIO_SERVER_URL,
