@@ -1,0 +1,31 @@
+src/remotion/IntroCard.tsx
+  a0016bb7d214ca0a 83
+package.json
+  a0016bb7d214ca0a 3
+src/lib/changelog.ts
+  a0016bb7d214ca0a 3-8
+src/remotion/OutroCard.tsx
+  a0016bb7d214ca0a 43
+CHANGELOG.md
+  a0016bb7d214ca0a 1-3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.16",
+  "base_commit_sha": "c6559888e1d9b759fa1479dc657ede5b8ba924b0",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 13,
+      "total_deletions": 3,
+      "accepted_lines": 1901,
+      "overriden_lines": 0
+    }
+  }
+}
