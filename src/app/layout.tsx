@@ -8,6 +8,8 @@ import { UpdateIndicator } from "@/components/UpdateIndicator";
 import { ForceUpdateOverlay } from "@/components/ForceUpdateOverlay";
 import { VersionBadge } from "@/components/VersionBadge";
 import { RenderStatusProvider, RenderStatusBadge } from "@/components/RenderNotification";
+import { ErrorPopup } from "@/components/ErrorPopup";
+import { LoggerInitializer } from "@/components/LoggerInitializer";
 
 const geist = Geist({
   variable: "--font-geist",
@@ -28,7 +30,7 @@ export default function RootLayout({
     <html lang="zh-CN" className={`${geist.variable} h-full`}>
       <body className="min-h-full bg-gray-50 text-gray-900 antialiased">
         <RenderStatusProvider>
-          <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-6">
+          <nav className="sticky top-0 z-40 bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-6 shadow-sm">
             <Link href="/" className="flex items-center gap-2">
               <Image src="/brand-logo.png" alt="全安驾考" width={32} height={32} className="rounded" />
               <span className="text-lg font-bold text-blue-600">全安驾考</span>
@@ -56,6 +58,8 @@ export default function RootLayout({
           </nav>
           <main className="flex-1">{children}</main>
           <ForceUpdateOverlay />
+          <LoggerInitializer />
+          <ErrorPopup />
         </RenderStatusProvider>
       </body>
     </html>

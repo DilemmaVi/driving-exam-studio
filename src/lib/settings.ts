@@ -5,6 +5,8 @@ const SETTINGS_PATH = path.join(process.cwd(), "data", "settings.json");
 
 interface Settings {
   mimoApiKey?: string;
+  mimoBaseUrl?: string;
+  mimoTtsModel?: string;
   watermarkEnabled?: boolean;
   watermarkText?: string;
   watermarkPosition?: string;
@@ -36,4 +38,12 @@ export function getMimoApiKey(): string {
   const key = getSettings().mimoApiKey || process.env.MIMO_API_KEY || "";
   if (!key) throw new Error("请先在设置中配置 MIMO API Key");
   return key;
+}
+
+export function getMimoBaseUrl(): string {
+  return getSettings().mimoBaseUrl || "https://api.xiaomimimo.com/v1";
+}
+
+export function getMimoTtsModel(): string {
+  return getSettings().mimoTtsModel || "mimo-v2.5-tts";
 }

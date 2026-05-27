@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { logger } from "@/lib/client-logger";
 
 interface Stats {
   questionCount: number;
@@ -30,6 +31,7 @@ function formatSize(bytes: number): string {
 export default function DataManagementPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [exportingLog, setExportingLog] = useState(false);
   const [importing, setImporting] = useState(false);
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [importFile, setImportFile] = useState<File | null>(null);
@@ -60,6 +62,36 @@ export default function DataManagementPage() {
       setMessage({ type: "error", text: "导出失败: " + (e as Error).message });
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleExportLog = async () => {
+    setExportingLog(true);
+    setMessage(null);
+    try {
+      const clientLogs = logger.exportLogs();
+      const res = await fetch("/api/logs/export");
+      if (!res.ok) throw new Error("获取服务端日志失败");
+      const serverLogs = await res.text();
+
+      const fullLog = `=== 客户端日志 ===
+${clientLogs}
+
+=== 服务端日志 ===
+${serverLogs}`;
+
+      const blob = new Blob([fullLog], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `driving-exam-studio-log-${new Date().toISOString().replace(/[:.]/g, "-")}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setMessage({ type: "success", text: "日志导出成功" });
+    } catch (e) {
+      setMessage({ type: "error", text: "导出日志失败: " + (e as Error).message });
+    } finally {
+      setExportingLog(false);
     }
   };
 
@@ -175,6 +207,19 @@ export default function DataManagementPage() {
           className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {exporting ? "导出中..." : "导出备份"}
+        </button>
+      </div>
+
+      {/* Export Log */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">导出日志</h2>
+        <p className="text-sm text-gray-500 mb-4">导出应用运行日志，用于排查问题。日志包含操作记录、API 调用、错误信息等。</p>
+        <button
+          onClick={handleExportLog}
+          disabled={exportingLog}
+          className="px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {exportingLog ? "导出中..." : "导出日志"}
         </button>
       </div>
 

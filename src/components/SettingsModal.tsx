@@ -70,6 +70,8 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
   const [tab, setTab] = useState<(typeof TABS)[number]>("基本信息");
   const [apiKey, setApiKey] = useState("");
   const [maskedKey, setMaskedKey] = useState("");
+  const [baseUrl, setBaseUrl] = useState("https://api.xiaomimimo.com/v1");
+  const [ttsModel, setTtsModel] = useState("mimo-v2.5-tts");
   const [saving, setSaving] = useState(false);
 
   // Basic
@@ -153,6 +155,8 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
     if (open) {
       fetch("/api/settings").then((r) => r.json()).then((d) => {
         setMaskedKey(d.mimoApiKey || "");
+        setBaseUrl(d.mimoBaseUrl || "https://api.xiaomimimo.com/v1");
+        setTtsModel(d.mimoTtsModel || "mimo-v2.5-tts");
         setWatermarkEnabled(!!d.watermarkEnabled);
         setWatermarkText(d.watermarkText || "");
         setWatermarkPosition(d.watermarkPosition || "bottom-right");
@@ -222,7 +226,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
       await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mimoApiKey: apiKey.trim(), watermarkEnabled, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, watermarkLogoGrayscale }),
+        body: JSON.stringify({ mimoApiKey: apiKey.trim(), mimoBaseUrl: baseUrl, mimoTtsModel: ttsModel, watermarkEnabled, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, watermarkLogoGrayscale }),
       });
       setMaskedKey("sk-****" + apiKey.trim().slice(-6));
       setApiKey("");
@@ -230,7 +234,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
       await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ watermarkEnabled, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, watermarkLogoGrayscale }),
+        body: JSON.stringify({ mimoBaseUrl: baseUrl, mimoTtsModel: ttsModel, watermarkEnabled, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, watermarkLogoGrayscale }),
       });
     }
     onSave({
@@ -271,7 +275,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={onClose}>
       <div id="tour-settings-modal" className={`bg-white rounded-xl shadow-xl max-h-[80vh] flex flex-col transition-all ${tab === "视频风格" ? "w-[920px]" : "w-[680px]"}`} onClick={(e) => e.stopPropagation()}>
         {/* Tab header */}
-        <div id="tour-settings-tabs" className="flex border-b border-gray-200 px-6 pt-5 overflow-x-auto">
+        <div id="tour-settings-tabs" className="flex flex-wrap gap-1 border-b border-gray-200 px-6 pt-4 pb-1">
           {TABS.map((t) => (
             <button key={t} id={`tour-settings-tab-${t}`} onClick={() => setTab(t)}
               className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition whitespace-nowrap ${tab === t ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}
@@ -369,6 +373,16 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
                 <label className="block text-sm font-medium text-gray-700 mb-1">MIMO API Key</label>
                 {maskedKey && <p className="text-xs text-gray-500 mb-2">当前: {maskedKey}</p>}
                 <input type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="输入新的 API Key..." className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">API Base URL</label>
+                <input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder="https://api.xiaomimimo.com/v1" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <p className="text-xs text-gray-400 mt-1">默认: https://api.xiaomimimo.com/v1</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">TTS 模型</label>
+                <input value={ttsModel} onChange={(e) => setTtsModel(e.target.value)} placeholder="mimo-v2.5-tts" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <p className="text-xs text-gray-400 mt-1">默认: mimo-v2.5-tts</p>
               </div>
             </>
           )}

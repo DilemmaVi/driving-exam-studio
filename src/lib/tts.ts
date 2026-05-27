@@ -2,16 +2,17 @@ import OpenAI from "openai";
 import * as fs from "fs";
 import * as path from "path";
 import { getDb } from "./db";
-import { getMimoApiKey } from "./settings";
+import { getMimoApiKey, getMimoBaseUrl, getMimoTtsModel } from "./settings";
 import { getAudioDir } from "./paths";
 
 const AUDIO_DIR = getAudioDir();
 
 function getClient() {
   const apiKey = getMimoApiKey();
+  const baseURL = getMimoBaseUrl();
   return new OpenAI({
     apiKey,
-    baseURL: "https://api.xiaomimimo.com/v1",
+    baseURL,
     defaultHeaders: { "api-key": apiKey },
   });
 }
@@ -76,8 +77,9 @@ async function generateSegment(questionId: number, segment: string, text: string
   fs.mkdirSync(AUDIO_DIR, { recursive: true });
 
   const client = getClient();
+  const model = getMimoTtsModel();
   const completion = await client.chat.completions.create({
-    model: "mimo-v2.5-tts",
+    model,
     messages: [
       { role: "user", content: fullStyle },
       { role: "assistant", content: text },

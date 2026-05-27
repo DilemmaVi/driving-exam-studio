@@ -5,6 +5,8 @@ export async function GET() {
   const settings = getSettings();
   return NextResponse.json({
     mimoApiKey: settings.mimoApiKey ? "sk-****" + settings.mimoApiKey.slice(-6) : "",
+    mimoBaseUrl: settings.mimoBaseUrl || "https://api.xiaomimimo.com/v1",
+    mimoTtsModel: settings.mimoTtsModel || "mimo-v2.5-tts",
     configured: !!settings.mimoApiKey,
     watermarkEnabled: settings.watermarkEnabled || false,
     watermarkText: settings.watermarkText || "",
@@ -26,6 +28,8 @@ export async function POST(request: NextRequest) {
   if (body.mimoApiKey !== undefined) {
     settings.mimoApiKey = body.mimoApiKey;
   }
+  if (body.mimoBaseUrl !== undefined) settings.mimoBaseUrl = body.mimoBaseUrl;
+  if (body.mimoTtsModel !== undefined) settings.mimoTtsModel = body.mimoTtsModel;
   if (body.watermarkEnabled !== undefined) settings.watermarkEnabled = body.watermarkEnabled;
   if (body.watermarkText !== undefined) settings.watermarkText = body.watermarkText;
   if (body.watermarkPosition !== undefined) settings.watermarkPosition = body.watermarkPosition;
