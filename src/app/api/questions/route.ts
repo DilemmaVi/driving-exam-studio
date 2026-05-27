@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   const page = parseInt(searchParams.get("page") || "1");
   const pageSize = parseInt(searchParams.get("pageSize") || "20");
   const type = searchParams.get("type");
+  const hasImage = searchParams.get("hasImage");
   const keyword = searchParams.get("keyword");
   const category = searchParams.get("category");
 
@@ -29,6 +30,14 @@ export async function GET(request: NextRequest) {
     } else {
       where += " AND q.type = ?";
       params.push(parseInt(type));
+    }
+  }
+
+  if (hasImage && hasImage !== "all") {
+    if (hasImage === "true") {
+      where += " AND ((q.cover_image IS NOT NULL AND q.cover_image != '') OR (q.gif_image IS NOT NULL AND q.gif_image != ''))";
+    } else if (hasImage === "false") {
+      where += " AND (q.cover_image IS NULL OR q.cover_image = '') AND (q.gif_image IS NULL OR q.gif_image = '')";
     }
   }
 

@@ -37,15 +37,20 @@ export default function QuestionsPage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [keyword, setKeyword] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
+  const [questionType, setQuestionType] = useState("all");
+  const [hasImage, setHasImage] = useState("all");
   const [showImport, setShowImport] = useState(false);
   const [importCategory, setImportCategory] = useState("");
   const [importMode, setImportMode] = useState("append");
-  const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ total?: number; inserted?: number; skipped?: number; updated?: number; deleted?: number; error?: string } | null>(null);
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const [deleting, setDeleting] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [importStep, setImportStep] = useState<"select" | "preview" | "result">("select");
+  const [previewData, setPreviewData] = useState<any>(null);
+  const [previewing, setPreviewing] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [expandedPreviewId, setExpandedPreviewId] = useState<number | null>(null);
   const [showCategoryMgr, setShowCategoryMgr] = useState(false);
   const [newCatName, setNewCatName] = useState("");
   const [editingCat, setEditingCat] = useState<{ id: string; name: string } | null>(null);
@@ -87,37 +92,71 @@ export default function QuestionsPage() {
   const fetchQuestions = useCallback(async () => {
     const params = new URLSearchParams({ page: String(page), pageSize: "20" });
     if (activeCategory !== "all") params.set("category", activeCategory);
-    if (typeFilter !== "all") params.set("type", typeFilter);
+    if (questionType !== "all") params.set("type", questionType);
+    if (hasImage !== "all") params.set("hasImage", hasImage);
     if (keyword) params.set("keyword", keyword);
     const res = await fetch(`/api/questions?${params}`);
     const data = await res.json();
     setQuestions(data.questions);
     setTotal(data.total);
-  }, [page, activeCategory, typeFilter, keyword]);
+  }, [page, activeCategory, questionType, hasImage, keyword]);
 
   useEffect(() => { fetchQuestions(); }, [fetchQuestions]);
 
   const totalPages = Math.ceil(total / 20);
 
-  const handleImport = async () => {
+  const handlePreview = async () => {
     const file = fileRef.current?.files?.[0];
     if (!file || !importCategory) return;
-    setImporting(true);
-    setImportResult(null);
+
+    setPreviewing(true);
+    setPreviewData(null);
+
     const fd = new FormData();
     fd.append("file", file);
     fd.append("categoryId", importCategory);
     fd.append("importMode", importMode);
-    const res = await fetch("/api/questions/import", { method: "POST", body: fd });
+
+    const res = await fetch("/api/questions/import/preview", { method: "POST", body: fd });
+    const data = await res.json();
+
     if (!res.ok) {
-      const text = await res.text();
-      try { setImportResult(JSON.parse(text)); } catch { setImportResult({ error: text || `导入失败 (${res.status})` }); }
-      setImporting(false);
+      alert(data.error || "预览失败");
+      setPreviewing(false);
       return;
     }
+
+    setPreviewData(data.preview);
+    setImportStep("preview");
+    setPreviewing(false);
+  };
+
+  const handleConfirmImport = async () => {
+    if (!previewData || !importCategory) return;
+
+    setConfirming(true);
+
+    const res = await fetch("/api/questions/import/confirm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        categoryId: importCategory,
+        importMode,
+        questions: previewData.questions,
+      }),
+    });
+
     const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "导入失败");
+      setConfirming(false);
+      return;
+    }
+
     setImportResult(data);
-    setImporting(false);
+    setImportStep("result");
+    setConfirming(false);
     fetchQuestions();
   };
 
@@ -164,7 +203,7 @@ export default function QuestionsPage() {
         <div className="flex gap-2">
           <Link href="/series" className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">返回系列</Link>
           <GuideTourButton page="questions" />
-          <button id="tour-q-import" onClick={() => { setShowImport(true); setImportResult(null); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">导入 Excel</button>
+          <button id="tour-q-import" onClick={() => { setShowImport(true); setImportResult(null); setImportStep("select"); setPreviewData(null); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">导入 Excel</button>
         </div>
       </div>
 
@@ -182,17 +221,40 @@ export default function QuestionsPage() {
       </div>
 
       {/* 搜索 + 筛选 */}
-      <div id="tour-q-search" className="flex gap-3 mb-4">
+      <div id="tour-q-search" className="space-y-3 mb-4">
         <input type="text" placeholder="搜索题目..." value={keyword}
           onChange={(e) => { setKeyword(e.target.value); setPage(1); }}
-          className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <div className="flex gap-1.5">
-          {[{ v: "all", l: "全部" }, { v: "1", l: "判断题" }, { v: "2", l: "选择题" }].map((t) => (
-            <button key={t.v} onClick={() => { setTypeFilter(t.v); setPage(1); }}
-              className={`px-3 py-2 rounded-lg text-xs font-medium transition ${typeFilter === t.v ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
-            >{t.l}</button>
-          ))}
+        <div className="flex gap-4">
+          {/* 题型筛选 */}
+          <div className="flex gap-1.5 items-center">
+            <span className="text-sm text-gray-500">题型：</span>
+            {[
+              { v: "all", l: "全部" },
+              { v: "1", l: "判断题" },
+              { v: "single", l: "单选题" },
+              { v: "multi", l: "多选题" }
+            ].map((t) => (
+              <button key={t.v} onClick={() => { setQuestionType(t.v); setPage(1); }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${questionType === t.v ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+              >{t.l}</button>
+            ))}
+          </div>
+
+          {/* 图片筛选 */}
+          <div className="flex gap-1.5 items-center">
+            <span className="text-sm text-gray-500">图片：</span>
+            {[
+              { v: "all", l: "全部" },
+              { v: "true", l: "有图片" },
+              { v: "false", l: "无图片" }
+            ].map((t) => (
+              <button key={t.v} onClick={() => { setHasImage(t.v); setPage(1); }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${hasImage === t.v ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+              >{t.l}</button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -312,59 +374,179 @@ export default function QuestionsPage() {
 
       {/* 导入弹窗 */}
       {showImport && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setShowImport(false)}>
-          <div className="bg-white rounded-xl shadow-xl w-[480px] p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-gray-900 mb-4">导入 Excel</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">选择分类</label>
-                <select value={importCategory} onChange={(e) => setImportCategory(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                >
-                  {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">导入模式</label>
-                <div className="flex gap-2">
-                  <button onClick={() => setImportMode("append")} className={`flex-1 py-2 rounded-lg text-sm border transition ${importMode === "append" ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>追加</button>
-                  <button onClick={() => setImportMode("overwrite")} className={`flex-1 py-2 rounded-lg text-sm border transition ${importMode === "overwrite" ? "bg-amber-600 text-white border-amber-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>覆盖更新</button>
-                  <button onClick={() => setImportMode("replace")} className={`flex-1 py-2 rounded-lg text-sm border transition ${importMode === "replace" ? "bg-red-600 text-white border-red-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>替换</button>
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => { setShowImport(false); setImportStep("select"); setPreviewData(null); }}>
+          <div className="bg-white rounded-xl shadow-xl w-[640px] max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            {importStep === "select" && (
+              <>
+                <div className="px-6 py-4 border-b">
+                  <h3 className="text-lg font-bold text-gray-900">导入 Excel</h3>
                 </div>
-                {importMode === "append" && <p className="text-xs text-gray-500 mt-1">重复题目跳过，只插入新题</p>}
-                {importMode === "overwrite" && <p className="text-xs text-amber-600 mt-1">重复题目更新内容（解析、技巧等），新题插入</p>}
-                {importMode === "replace" && <p className="text-xs text-red-500 mt-1">⚠ 将清空该分类下所有题目，再全量导入</p>}
-              </div>
-              <div>
-                <input ref={fileRef} type="file" accept=".xlsx,.xls" className="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 file:font-medium file:cursor-pointer" />
-                <p className="text-xs text-gray-400 mt-1">支持 quanan 导出的标准模板格式 · <a href="/api/questions/template" className="text-blue-600 hover:underline">下载导入模板</a></p>
-              </div>
-              {importResult && (
-                importResult.error ? (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm">
-                    <p className="text-red-800 font-medium">导入失败</p>
-                    <p className="text-red-700 mt-1">{importResult.error}</p>
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">选择文件</label>
+                    <input ref={fileRef} type="file" accept=".xlsx,.xls" className="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 file:font-medium file:cursor-pointer" />
+                    <p className="text-xs text-gray-400 mt-1">支持 quanan 导出的标准模板格式 · <a href="/api/questions/template" className="text-blue-600 hover:underline">下载导入模板</a></p>
                   </div>
-                ) : (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
-                    <p className="text-green-800 font-medium">导入完成</p>
-                    <p className="text-green-700 mt-1">共 {importResult.total} 题，新增 {importResult.inserted} 题{importResult.updated ? `，更新 ${importResult.updated} 题` : ""}，跳过重复 {importResult.skipped} 题{importResult.deleted ? `，已清除旧题 ${importResult.deleted} 题` : ""}</p>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">选择分类</label>
+                    <select value={importCategory} onChange={(e) => setImportCategory(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                    >
+                      {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
                   </div>
-                )
-              )}
-            </div>
-            <div className="flex justify-end gap-3 mt-6">
-              {importResult && !importResult.error ? (
-                <button onClick={() => { setShowImport(false); setImportResult(null); }} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">完成</button>
-              ) : (
-                <>
-                  <button onClick={() => { setShowImport(false); setImportResult(null); }} className="px-4 py-2 text-sm text-gray-600">取消</button>
-                  <button onClick={handleImport} disabled={importing}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">导入模式</label>
+                    <div className="flex gap-2">
+                      <button onClick={() => setImportMode("append")} className={`flex-1 py-2 rounded-lg text-sm border transition ${importMode === "append" ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>追加</button>
+                      <button onClick={() => setImportMode("overwrite")} className={`flex-1 py-2 rounded-lg text-sm border transition ${importMode === "overwrite" ? "bg-amber-600 text-white border-amber-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>覆盖更新</button>
+                      <button onClick={() => setImportMode("replace")} className={`flex-1 py-2 rounded-lg text-sm border transition ${importMode === "replace" ? "bg-red-600 text-white border-red-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>替换</button>
+                    </div>
+                    {importMode === "append" && <p className="text-xs text-gray-500 mt-1">重复题目跳过，只插入新题</p>}
+                    {importMode === "overwrite" && <p className="text-xs text-amber-600 mt-1">重复题目更新内容（解析、技巧等），新题插入</p>}
+                    {importMode === "replace" && <p className="text-xs text-red-500 mt-1">⚠ 将清空该分类下所有题目，再全量导入</p>}
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 px-6 py-4 border-t">
+                  <button onClick={() => { setShowImport(false); setImportStep("select"); setPreviewData(null); }} className="px-4 py-2 text-sm text-gray-600">取消</button>
+                  <button onClick={handlePreview} disabled={previewing}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-40"
-                  >{importing ? "导入中..." : "开始导入"}</button>
-                </>
-              )}
-            </div>
+                  >{previewing ? "解析中..." : "预览"}</button>
+                </div>
+              </>
+            )}
+
+            {importStep === "preview" && previewData && (
+              <>
+                <div className="px-6 py-4 border-b">
+                  <h3 className="text-lg font-bold text-gray-900">导入预览</h3>
+                </div>
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  {importMode === "replace" && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+                      ⚠ 替换模式：确认导入后将清空该分类下所有现有题目，再全量导入新题
+                    </div>
+                  )}
+                  <div className="grid grid-cols-4 gap-3">
+                    <div className="bg-green-50 rounded-lg p-3 text-center">
+                      <p className="text-2xl font-bold text-green-700">{previewData.toInsert || 0}</p>
+                      <p className="text-xs text-green-600 mt-1">新增</p>
+                    </div>
+                    <div className="bg-blue-50 rounded-lg p-3 text-center">
+                      <p className="text-2xl font-bold text-blue-700">{previewData.toUpdate || 0}</p>
+                      <p className="text-xs text-blue-600 mt-1">更新</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3 text-center">
+                      <p className="text-2xl font-bold text-gray-700">{previewData.toSkip || 0}</p>
+                      <p className="text-xs text-gray-600 mt-1">跳过</p>
+                    </div>
+                    <div className="bg-red-50 rounded-lg p-3 text-center">
+                      <p className="text-2xl font-bold text-red-700">{previewData.errors?.length || 0}</p>
+                      <p className="text-xs text-red-600 mt-1">错误</p>
+                    </div>
+                  </div>
+                  {previewData.total > previewData.displayed && (
+                    <p className="text-xs text-gray-500 text-center">显示前 {previewData.displayed} 题，共 {previewData.total} 题</p>
+                  )}
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-gray-50 border-b border-gray-200">
+                          <th className="w-12 px-3 py-2 text-left text-gray-500 font-medium">#</th>
+                          <th className="w-14 px-3 py-2 text-left text-gray-500 font-medium">题型</th>
+                          <th className="px-3 py-2 text-left text-gray-500 font-medium">题目</th>
+                          <th className="w-16 px-3 py-2 text-left text-gray-500 font-medium">状态</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {previewData.questions.map((q: any, idx: number) => {
+                          const isExpanded = expandedPreviewId === idx;
+                          const statusColor = q.action === "insert" ? "bg-green-100 text-green-700" : q.action === "update" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600";
+                          const statusLabel = q.action === "insert" ? "新增" : q.action === "update" ? "更新" : "跳过";
+                          return (
+                            <React.Fragment key={idx}>
+                              <tr className={`border-b border-gray-50 cursor-pointer transition ${isExpanded ? "bg-blue-50/50" : "hover:bg-gray-50/50"}`}
+                                onClick={() => setExpandedPreviewId(isExpanded ? null : idx)}
+                              >
+                                <td className="px-3 py-2 text-gray-400 font-mono text-xs">{idx + 1}</td>
+                                <td className="px-3 py-2"><span className={`text-xs px-1.5 py-0.5 rounded-full font-medium whitespace-nowrap ${typeColor(q.type)}`}>{typeLabel(q.type)}</span></td>
+                                <td className="px-3 py-2 text-gray-700 max-w-xs truncate">{q.question_text}</td>
+                                <td className="px-3 py-2"><span className={`text-xs px-1.5 py-0.5 rounded-full font-medium whitespace-nowrap ${statusColor}`}>{statusLabel}</span></td>
+                              </tr>
+                              {isExpanded && (
+                                <tr className="border-b border-gray-100">
+                                  <td colSpan={4} className="px-6 py-3 bg-gray-50/80">
+                                    <div className="space-y-2">
+                                      {q._error && <p className="text-sm text-red-600">{q._error}</p>}
+                                      <div>
+                                        <h4 className="text-xs font-medium text-gray-500 mb-1">选项</h4>
+                                        <div className="flex flex-wrap gap-1.5">
+                                          {[q.option1, q.option2, q.option3, q.option4].filter(Boolean).map((opt: string, i: number) => {
+                                            const labels = ["A", "B", "C", "D"];
+                                            const isCorrect = q.correct_answer?.includes(labels[i]);
+                                            return (
+                                              <span key={i} className={`text-xs px-2 py-1 rounded ${isCorrect ? "bg-green-100 text-green-800" : "bg-white text-gray-600 border border-gray-200"}`}>
+                                                {labels[i]}. {String(opt).replace(/【|】/g, "")}
+                                              </span>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                      {q.explanation && (
+                                        <div>
+                                          <h4 className="text-xs font-medium text-gray-500 mb-1">解析</h4>
+                                          <p className="text-xs text-gray-600">{q.explanation}</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div className="flex justify-between px-6 py-4 border-t">
+                  <button onClick={() => { setImportStep("select"); setPreviewData(null); }} className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">返回</button>
+                  <button onClick={handleConfirmImport} disabled={confirming}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-40"
+                  >{confirming ? "导入中..." : "确认导入"}</button>
+                </div>
+              </>
+            )}
+
+            {importStep === "result" && importResult && (
+              <>
+                <div className="px-6 py-4 border-b">
+                  <h3 className="text-lg font-bold text-gray-900">导入结果</h3>
+                </div>
+                <div className="flex-1 overflow-y-auto p-6">
+                  {importResult.error ? (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm">
+                      <p className="text-red-800 font-medium">导入失败</p>
+                      <p className="text-red-700 mt-1">{importResult.error}</p>
+                    </div>
+                  ) : (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm">
+                      <p className="text-green-800 font-medium text-lg">导入完成</p>
+                      <div className="mt-3 space-y-1 text-green-700">
+                        <p>共处理 {importResult.total} 题</p>
+                        {importResult.inserted != null && importResult.inserted > 0 && <p>新增 {importResult.inserted} 题</p>}
+                        {importResult.updated != null && importResult.updated > 0 && <p>更新 {importResult.updated} 题</p>}
+                        {importResult.skipped != null && importResult.skipped > 0 && <p>跳过重复 {importResult.skipped} 题</p>}
+                        {importResult.deleted != null && importResult.deleted > 0 && <p>已清除旧题 {importResult.deleted} 题</p>}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="flex justify-end px-6 py-4 border-t">
+                  <button onClick={() => { setShowImport(false); setImportResult(null); setImportStep("select"); setPreviewData(null); }} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">完成</button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

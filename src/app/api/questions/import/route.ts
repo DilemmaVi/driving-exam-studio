@@ -120,13 +120,12 @@ export async function POST(request: NextRequest) {
         if (v && String(v).trim()) explainImgs.push(String(v).trim());
       }
 
-      const hashInput = questionText.replace(/【|】/g, "").replace(/\s+/g, "") +
-        opts.map((o) => o.replace(/【|】/g, "")).join("");
+      const hashInput = questionText.replace(/\s+/g, "") + opts.join("");
       const hash = md5(hashInput);
 
       const existing = db.prepare("SELECT id FROM questions WHERE content_hash = ? OR (source_id = ? AND source_id > 0)").get(hash, sourceId) as { id: number } | undefined;
       if (existing) {
-        if (importMode === "overwrite") {
+        if (importMode === "overwrite" || importMode === "replace") {
           update.run(
             type, questionText, questionContent,
             opts[0] || null, opts[1] || null, opts[2] || null, opts[3] || null,
