@@ -40,7 +40,7 @@ export const OutroCard: React.FC<Props> = ({ title, subtitle, audioServerUrl, th
         </div>
         {subtitle && (
           <div style={{
-            fontSize: FONT.size.explanation,
+            fontSize: FONT.size.title + 16,
             color: colors.textSecondary,
             fontFamily: FONT.main,
             marginTop: SPACING.lg,

@@ -1,5 +1,12 @@
 export const changelog = [
   {
+    version: "0.3.16",
+    date: "2026-05-27",
+    changes: [
+      "片头片尾标题与副标题字号统一",
+    ],
+  },
+  {
     version: "0.3.15",
     date: "2026-05-27",
     changes: [

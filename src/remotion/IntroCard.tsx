@@ -80,7 +80,7 @@ export const IntroCard: React.FC<Props> = ({ title, subtitle, category, audioSer
         {subtitle && (
           <div style={{
             opacity: subtitleOpacity,
-            fontSize: FONT.size.explanation,
+            fontSize: FONT.size.title + 20,
             color: colors.textSecondary,
             fontFamily: FONT.main,
             marginTop: SPACING.lg,
