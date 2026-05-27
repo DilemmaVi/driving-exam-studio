@@ -1,5 +1,12 @@
 export const changelog = [
   {
+    version: "0.3.15",
+    date: "2026-05-27",
+    changes: [
+      "修复渲染视频时水印 Logo 图片加载失败的问题",
+    ],
+  },
+  {
     version: "0.3.14",
     date: "2026-05-27",
     changes: [

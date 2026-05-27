@@ -39,6 +39,9 @@ function createAudioServer(port: number): Promise<http.Server> {
       if (urlPath.startsWith("/audio")) {
         const audioPath = urlPath.replace(/^\/audio/, "") || "";
         filePath = path.join(PUBLIC_AUDIO_DIR, audioPath === "/" ? "" : audioPath);
+      } else if (urlPath.startsWith("/api/uploads/")) {
+        const filename = urlPath.replace(/^\/api\/uploads\//, "");
+        filePath = path.join(PUBLIC_DIR, "uploads", filename);
       } else {
         filePath = path.join(PUBLIC_DIR, urlPath);
       }
