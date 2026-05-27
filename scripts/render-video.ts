@@ -31,7 +31,7 @@ const PUBLIC_DIR = path.join(PROJECT_ROOT, "public");
 const PUBLIC_AUDIO_DIR = process.env.AUDIO_DIR || path.join(PUBLIC_DIR, "audio");
 
 function createAudioServer(port: number): Promise<http.Server> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const server = http.createServer((req, res) => {
       const urlPath = req.url || "/";
       let filePath: string;
@@ -55,19 +55,33 @@ function createAudioServer(port: number): Promise<http.Server> {
         res.end("Not found");
       }
     });
+    server.on("error", (err: NodeJS.ErrnoException) => {
+      if (err.code === "EADDRINUSE") {
+        console.error(`Port ${port} in use, trying ${port + 1}`);
+        server.listen(port + 1, "127.0.0.1", () => resolve(server));
+      } else {
+        reject(err);
+      }
+    });
     server.listen(port, "127.0.0.1", () => resolve(server));
   });
 }
 
 async function main() {
-  const AUDIO_SERVER_URL = "http://127.0.0.1:3033";
+  const audioServer = await createAudioServer(3033);
+  const actualPort = (audioServer.address() as { port: number }).port;
+  const AUDIO_SERVER_URL = `http://127.0.0.1:${actualPort}`;
 
   const inputRaw = JSON.parse(fs.readFileSync(propsFile, "utf-8"));
 
-  if (inputRaw.batch) {
-    await runBatch(inputRaw, AUDIO_SERVER_URL);
-  } else {
-    await runSingle(inputRaw, AUDIO_SERVER_URL);
+  try {
+    if (inputRaw.batch) {
+      await runBatch(inputRaw, AUDIO_SERVER_URL);
+    } else {
+      await runSingle(inputRaw, AUDIO_SERVER_URL);
+    }
+  } finally {
+    audioServer.close();
   }
 }
 
@@ -84,11 +98,7 @@ async function runBatch(input: { items: Array<{ props: Record<string, unknown>; 
     },
   });
 
-  console.log(JSON.stringify({ type: "status", phase: "server", message: "启动音频服务器..." }));
-  const audioServer = await createAudioServer(3033);
-
-  try {
-    for (let i = 0; i < totalItems; i++) {
+  for (let i = 0; i < totalItems; i++) {
       const item = input.items[i];
       console.log(JSON.stringify({ type: "status", phase: "rendering", message: `渲染第 ${i + 1}/${totalItems} 题...`, currentItem: i + 1, totalItems }));
 
@@ -166,10 +176,6 @@ async function runBatch(input: { items: Array<{ props: Record<string, unknown>; 
         }
       }
     }
-  } finally {
-    audioServer.close();
-  }
-
   console.log(JSON.stringify({ type: "batch_done", totalItems }));
 }
 
@@ -225,15 +231,9 @@ async function runSingle(inputProps: Record<string, unknown>, AUDIO_SERVER_URL: 
     durationSec: Math.round(composition.durationInFrames / composition.fps),
   }));
 
-  // Start audio server
-  console.log(JSON.stringify({ type: "status", phase: "server", message: "启动音频服务器..." }));
-  const audioServer = await createAudioServer(3033);
-  console.log(JSON.stringify({ type: "status", phase: "server", message: "音频服务器已启动" }));
-
   console.log(JSON.stringify({ type: "status", phase: "rendering", message: "正在渲染视频..." }));
 
-  try {
-    await renderMedia({
+  await renderMedia({
       composition,
       serveUrl: bundleLocation,
       codec: "h264",
@@ -257,9 +257,6 @@ async function runSingle(inputProps: Record<string, unknown>, AUDIO_SERVER_URL: 
         }));
       },
     });
-  } finally {
-    audioServer.close();
-  }
 
   const stat = fs.statSync(outputPath);
 

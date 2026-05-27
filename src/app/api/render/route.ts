@@ -361,6 +361,7 @@ export async function renderInBackground(
 
       const splitIntroOutro: Record<string, unknown> = {};
       if (!tipOnly && seriesData) {
+        if (seriesData.intro_logo) splitIntroOutro.introLogo = seriesData.intro_logo;
         const introOn = Number(seriesData.intro_enabled ?? 0) === 1;
         const outroOn = Number(seriesData.outro_enabled ?? 0) === 1;
         if (introOn && seriesData.intro_title) {
@@ -368,7 +369,6 @@ export async function renderInBackground(
           splitIntroOutro.introSubtitle = seriesData.intro_subtitle || "";
           splitIntroOutro.introCategory = seriesData.category || "";
           splitIntroOutro.introDuration = Number(seriesData.intro_duration ?? 4);
-          if (seriesData.intro_logo) splitIntroOutro.introLogo = seriesData.intro_logo;
         }
         if (outroOn && seriesData.outro_text) {
           splitIntroOutro.outroText = seriesData.outro_text;
@@ -394,6 +394,7 @@ export async function renderInBackground(
       if (tipOnly) {
         props.tipOnly = true;
       } else if (seriesData) {
+        if (seriesData.intro_logo) props.introLogo = seriesData.intro_logo;
         const introOn = Number(seriesData.intro_enabled ?? 0) === 1;
         const outroOn = Number(seriesData.outro_enabled ?? 0) === 1;
         if (introOn && seriesData.intro_title) {
@@ -401,7 +402,6 @@ export async function renderInBackground(
           props.introSubtitle = seriesData.intro_subtitle || "";
           props.introCategory = seriesData.category || "";
           props.introDuration = Number(seriesData.intro_duration ?? 4);
-          if (seriesData.intro_logo) props.introLogo = seriesData.intro_logo;
         }
         if (outroOn && seriesData.outro_text) {
           props.outroText = seriesData.outro_text;

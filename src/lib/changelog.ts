@@ -1,5 +1,13 @@
 export const changelog = [
   {
+    version: "0.3.19",
+    date: "2026-05-27",
+    changes: [
+      "修复片尾自定义 Logo 渲染时不生效的问题（Logo 不再依赖片头开关）",
+      "修复渲染脚本重复创建音频服务器导致端口冲突的问题",
+    ],
+  },
+  {
     version: "0.3.18",
     date: "2026-05-27",
     changes: [
