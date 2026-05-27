@@ -1,0 +1,49 @@
+src/lib/changelog.ts
+  a0016bb7d214ca0a 3-10
+src/app/api/series/[id]/route.ts
+  a0016bb7d214ca0a 64
+src/remotion/ScrollableQuestion.tsx
+  a0016bb7d214ca0a 101-102
+src/app/api/render/route.ts
+  a0016bb7d214ca0a 351
+src/remotion/DynamicCombinedExam.tsx
+  a0016bb7d214ca0a 83,89,193
+src/remotion/TrueFalseQuestion.tsx
+  a0016bb7d214ca0a 61-62
+package.json
+  a0016bb7d214ca0a 3
+src/lib/db.ts
+  a0016bb7d214ca0a 272
+src/components/SettingsModal.tsx
+  a0016bb7d214ca0a 87,178,238,442-446
+CHANGELOG.md
+  a0016bb7d214ca0a 1-5
+src/app/editor/[seriesId]/page.tsx
+  a0016bb7d214ca0a 662,836
+src/remotion/MultipleChoice.tsx
+  a0016bb7d214ca0a 61-62,258,261
+src/components/VideoPreview.tsx
+  a0016bb7d214ca0a 46,56,147
+src/remotion/BottomPanel.tsx
+  a0016bb7d214ca0a 32,85,213
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.16",
+  "base_commit_sha": "c50978305782d134a519ca68476b05e47b7949cb",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 1035,
+      "total_deletions": 20,
+      "accepted_lines": 1933,
+      "overriden_lines": 0
+    }
+  }
+}
