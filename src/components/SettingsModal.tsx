@@ -84,6 +84,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
   const [avatarSize, setAvatarSize] = useState(260);
   const [keywordStyle, setKeywordStyle] = useState("circle");
   const [panelHeight, setPanelHeight] = useState(48);
+  const [panelSuffix, setPanelSuffix] = useState("全安驾考");
 
   // Voice
   const [defaultThinkTime, setDefaultThinkTime] = useState(3);
@@ -174,6 +175,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
         setAvatarSize(series.avatar_size ?? 260);
         setKeywordStyle(series.keyword_style || "circle");
         setPanelHeight(series.panel_height ?? 48);
+        setPanelSuffix((series as any).panel_suffix ?? "全安驾考");
         setDefaultThinkTime(series.default_think_time ?? 3);
         setDefaultVoiceStyle(series.default_voice_style || "教学");
         setSpeechRate(series.speech_rate ?? 1.0);
@@ -233,7 +235,7 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
     }
     onSave({
       introTitle, introSubtitle, category,
-      theme, fontScale, avatarPosition, avatarSize, keywordStyle, panelHeight,
+      theme, fontScale, avatarPosition, avatarSize, keywordStyle, panelHeight, panelSuffix,
       defaultThinkTime, defaultVoiceStyle, speechRate, readOptions,
       answerReadOption, answerReadMulti,
       bridgeThinkEnabled, bridgeRevealEnabled, bridgeExplainEnabled, bridgeTipEnabled,
@@ -436,6 +438,11 @@ export function SettingsModal({ open, onClose, series, onSave }: Props) {
                     >{l}</button>
                   ))}
                 </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">面板标题后缀</label>
+                <input value={panelSuffix} onChange={(e) => setPanelSuffix(e.target.value)} placeholder="如：全安驾考（留空则不显示）" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <p className="text-xs text-gray-400 mt-1">设置后显示为「答题解析-全安驾考」「答题技巧-全安驾考」</p>
               </div>
             </>
           )}

@@ -61,6 +61,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       introDuration: "intro_duration",
       outroDuration: "outro_duration",
       introLogo: "intro_logo",
+      panelSuffix: "panel_suffix",
     };
     const col = colMap[key];
     if (col) { fields.push(`${col} = ?`); values.push(val); }

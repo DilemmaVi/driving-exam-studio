@@ -58,7 +58,8 @@ export const TrueFalseQuestion: React.FC<{
   watermarkLogoGrayscale?: boolean;
   theme?: ThemeName;
   tipOnly?: boolean;
-}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, readOptions = true, startDelay = 0, teacherExplanation, showOfficialExplanation, showTip, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, watermarkLogoGrayscale, theme, tipOnly }) => {
+  panelSuffix?: string;
+}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, readOptions = true, startDelay = 0, teacherExplanation, showOfficialExplanation, showTip, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, watermarkLogoGrayscale, theme, tipOnly, panelSuffix }) => {
   const labels = ["A", "B"];
 
   const kwRegex = /【([^】]+)】/g;
@@ -252,10 +253,10 @@ export const TrueFalseQuestion: React.FC<{
       )}
 
       {showOfficialExplanation !== false && T.explanationEnd > T.explanationStart && (
-        <BottomPanel title="答题解析" titleColor={COLORS.correct} accentColor={COLORS.correct} borderColor={COLORS.correctBorder} content={explanationText} startFrame={T.explanationStart} endFrame={T.explanationEnd} readingDurationFrames={expFrames} keywords={expKeywords} blueKeywords={expBlueKeywords} underlineEnabled={underlineExplanation} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} phase="explanation" originalQuestion={question.questionContent} originalOptions={question.options} originalKeywords={keywords} correctOptionIndices={[question.correctIndex]} fontSizeOverride={fontSizeExplanation} />
+        <BottomPanel title="答题解析" titleColor={COLORS.correct} accentColor={COLORS.correct} borderColor={COLORS.correctBorder} content={explanationText} startFrame={T.explanationStart} endFrame={T.explanationEnd} readingDurationFrames={expFrames} keywords={expKeywords} blueKeywords={expBlueKeywords} underlineEnabled={underlineExplanation} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} phase="explanation" originalQuestion={question.questionContent} originalOptions={question.options} originalKeywords={keywords} correctOptionIndices={[question.correctIndex]} fontSizeOverride={fontSizeExplanation} panelSuffix={panelSuffix} />
       )}
       {showTip !== false && T.tipEnd > T.tipStart && (
-        <BottomPanel title="答题技巧" titleColor={COLORS.highlight} accentColor={COLORS.highlight} borderColor="rgba(252, 211, 77, 0.4)" content={question.tip} startFrame={T.tipStart} endFrame={T.tipEnd} readingDurationFrames={tFrames} keywords={tipKeywords} blueKeywords={tipBlueKeywords} underlineEnabled={underlineTip} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} />
+        <BottomPanel title="答题技巧" titleColor={COLORS.highlight} accentColor={COLORS.highlight} borderColor="rgba(252, 211, 77, 0.4)" content={question.tip} startFrame={T.tipStart} endFrame={T.tipEnd} readingDurationFrames={tFrames} keywords={tipKeywords} blueKeywords={tipBlueKeywords} underlineEnabled={underlineTip} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} panelSuffix={panelSuffix} />
       )}
 
       {/* Stem audio */}

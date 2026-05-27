@@ -80,12 +80,13 @@ interface Props {
   watermarkStroke?: boolean;
   watermarkLogoGrayscale?: boolean;
   theme?: ThemeName;
+  panelSuffix?: string;
 }
 
 export const DynamicCombinedExam: React.FC<Props> = ({
   entries, audioServerUrl = "", introTitle, introSubtitle, introCategory, outroText, outroSubtitle, introDuration: introDurationProp, outroDuration: outroDurationProp, introLogo, tipOnly,
   showTransition, pauseStart, pauseEnd, pauseBeforeTip,
-  keywordFlashEnabled, underlineProgressEnabled, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, avatarEnabled, avatarSize, avatarPosition, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, watermarkLogoGrayscale, theme,
+  keywordFlashEnabled, underlineProgressEnabled, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, avatarEnabled, avatarSize, avatarPosition, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, watermarkLogoGrayscale, theme, panelSuffix,
 }) => {
   let currentFrame = 0;
   const sequences: React.ReactElement[] = [];
@@ -189,6 +190,7 @@ export const DynamicCombinedExam: React.FC<Props> = ({
           watermarkLogoGrayscale={watermarkLogoGrayscale}
           theme={theme}
           tipOnly={!!tipOnly}
+          panelSuffix={panelSuffix}
         />
       </Sequence>
     );

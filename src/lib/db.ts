@@ -269,6 +269,7 @@ function initTables(db: Database.Database) {
     ["intro_duration", "REAL DEFAULT 4.0"],
     ["outro_duration", "REAL DEFAULT 4.0"],
     ["intro_logo", "TEXT DEFAULT ''"],
+    ["panel_suffix", "TEXT DEFAULT '全安驾考'"],
   ];
   for (const [col, typedef] of styleEnhanceCols) {
     if (!vsColsV3.some((c) => c.name === col)) {

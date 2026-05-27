@@ -348,6 +348,7 @@ export async function renderInBackground(
       avatarSize,
       avatarPosition,
       theme: seriesData?.theme || "light",
+      panelSuffix: seriesData?.panel_suffix || undefined,
       ...watermarkProps,
     };
 

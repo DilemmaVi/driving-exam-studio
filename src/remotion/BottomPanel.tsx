@@ -29,6 +29,7 @@ interface Props {
   fontSizeOverride?: number;
   readingPrefixDelay?: number;
   readingSpeedRatio?: number;
+  panelSuffix?: string;
 }
 
 interface Segment {
@@ -81,7 +82,7 @@ export const BottomPanel: React.FC<Props> = ({
   readingDurationFrames, keywords, blueKeywords, panelHeight: panelHeightProp,
   underlineEnabled = false, phase, originalQuestion, originalOptions,
   originalKeywords, correctOptionIndices, keywordFlashEnabled, fontSizeOverride, underlineColor,
-  readingPrefixDelay, readingSpeedRatio,
+  readingPrefixDelay, readingSpeedRatio, panelSuffix,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -209,7 +210,7 @@ export const BottomPanel: React.FC<Props> = ({
               fontSize: FONT.size.title, color: titleColor,
               fontWeight: 700, fontFamily: FONT.main,
             }}>
-              {title}
+              {title}{panelSuffix ? `-${panelSuffix}` : ""}
             </span>
           </div>
 

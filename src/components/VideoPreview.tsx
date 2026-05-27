@@ -43,6 +43,7 @@ interface Props {
   subjectLabel?: string;
   pauseStart?: number;
   theme?: ThemeName;
+  panelSuffix?: string;
 }
 
 export function VideoPreview({
@@ -52,7 +53,7 @@ export function VideoPreview({
   avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap,
   fontSizeQuestion, fontSizeOption, fontSizeExplanation,
   underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor,
-  stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, pauseStart, theme,
+  stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, pauseStart, theme, panelSuffix,
 }: Props) {
   const [watermark, setWatermark] = useState<{ text?: string; position?: string; opacity?: number; fontSize?: string; logoUrl?: string; scale?: number; color?: string; font?: string; stroke?: boolean; logoGrayscale?: boolean }>({});
   useEffect(() => {
@@ -143,6 +144,7 @@ export function VideoPreview({
             watermarkStroke: watermark.stroke,
             watermarkLogoGrayscale: watermark.logoGrayscale,
             theme,
+            panelSuffix,
           }}
           durationInFrames={durationInFrames}
           compositionWidth={1080}

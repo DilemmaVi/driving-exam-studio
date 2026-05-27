@@ -98,7 +98,8 @@ export const ScrollableQuestion: React.FC<{
   watermarkLogoGrayscale?: boolean;
   theme?: ThemeName;
   tipOnly?: boolean;
-}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true, startDelay = 0, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, watermarkLogoGrayscale, theme, tipOnly }) => {
+  panelSuffix?: string;
+}> = ({ question, audioDurations, audioServerUrl = "", thinkTime, teacherExplanation, showOfficialExplanation, showTip, readOptions = true, startDelay = 0, keywordFlashEnabled, underlineProgressEnabled, avatarEnabled, avatarSize, avatarPosition, pauseBeforeTip, optionGap, fontSizeQuestion, fontSizeOption, fontSizeExplanation, underlineQuestion, underlineOption, underlineExplanation, underlineTip, underlineColor, stemKeywords, stemKeywordPhases, readingPrefixDelay, readingSpeedRatio, panelAdjust, panelAdjustValue, subjectLabel, watermarkText, watermarkPosition, watermarkOpacity, watermarkFontSize, watermarkLogoUrl, watermarkScale, watermarkColor, watermarkFont, watermarkStroke, watermarkLogoGrayscale, theme, tipOnly, panelSuffix }) => {
   const labels = ["A", "B", "C", "D"];
   const correctIndices = question.correctIndices || [question.correctIndex];
 
@@ -307,10 +308,10 @@ export const ScrollableQuestion: React.FC<{
       )}
 
       {showOfficialExplanation !== false && T.explanationEnd > T.explanationStart && (
-        <BottomPanel title="答题解析" titleColor={COLORS.correct} accentColor={COLORS.correct} borderColor={COLORS.correctBorder} content={explanationText} startFrame={T.explanationStart} endFrame={T.explanationEnd} readingDurationFrames={expFrames} keywords={expKeywords} blueKeywords={expBlueKeywords} underlineEnabled={underlineExplanation} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} phase="explanation" originalQuestion={question.questionContent} originalOptions={question.options} originalKeywords={keywords} correctOptionIndices={correctIndices} fontSizeOverride={fontSizeExplanation} />
+        <BottomPanel title="答题解析" titleColor={COLORS.correct} accentColor={COLORS.correct} borderColor={COLORS.correctBorder} content={explanationText} startFrame={T.explanationStart} endFrame={T.explanationEnd} readingDurationFrames={expFrames} keywords={expKeywords} blueKeywords={expBlueKeywords} underlineEnabled={underlineExplanation} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} phase="explanation" originalQuestion={question.questionContent} originalOptions={question.options} originalKeywords={keywords} correctOptionIndices={correctIndices} fontSizeOverride={fontSizeExplanation} panelSuffix={panelSuffix} />
       )}
       {showTip !== false && T.tipEnd > T.tipStart && (
-        <BottomPanel title="答题技巧" titleColor={COLORS.highlight} accentColor={COLORS.highlight} borderColor="rgba(252, 211, 77, 0.4)" content={question.tip} startFrame={T.tipStart} endFrame={T.tipEnd} readingDurationFrames={tFrames} keywords={tipKeywords} blueKeywords={tipBlueKeywords} underlineEnabled={underlineTip} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} />
+        <BottomPanel title="答题技巧" titleColor={COLORS.highlight} accentColor={COLORS.highlight} borderColor="rgba(252, 211, 77, 0.4)" content={question.tip} startFrame={T.tipStart} endFrame={T.tipEnd} readingDurationFrames={tFrames} keywords={tipKeywords} blueKeywords={tipBlueKeywords} underlineEnabled={underlineTip} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} panelSuffix={panelSuffix} />
       )}
 
       {!tipOnly && <Sequence from={T.audioStart}><Audio src={`${audioServerUrl}/audio/q${question.id}_question.wav`} /></Sequence>}

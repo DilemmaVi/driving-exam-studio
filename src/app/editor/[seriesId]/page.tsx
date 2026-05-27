@@ -659,6 +659,7 @@ export default function SeriesEditorPage() {
       introDuration: "intro_duration",
       outroDuration: "outro_duration",
       introLogo: "intro_logo",
+      panelSuffix: "panel_suffix",
     };
     const snakeUpdates: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(updates)) {
@@ -832,6 +833,7 @@ export default function SeriesEditorPage() {
         subjectLabel={series?.category || undefined}
         pauseStart={(series?.pause_start as number) ?? 2.0}
         theme={(series?.theme as any) || "light"}
+        panelSuffix={(series as any)?.panel_suffix || undefined}
       />
 
       {/* 左侧题库 */}
