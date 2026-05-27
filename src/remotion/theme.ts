@@ -74,6 +74,7 @@ export interface ThemeColors {
   glassBorder: string;
   overlay: string;
   border: string;
+  accent: string;
 }
 
 const EYE_CARE_THEME: ThemeColors = {
@@ -87,6 +88,7 @@ const EYE_CARE_THEME: ThemeColors = {
   glassBorder: "rgba(165, 214, 167, 0.5)",
   overlay: "rgba(27, 94, 32, 0.3)",
   border: "rgba(165, 214, 167, 0.6)",
+  accent: "#43A047",
 };
 
 const LIGHT_THEME: ThemeColors = {
@@ -100,6 +102,7 @@ const LIGHT_THEME: ThemeColors = {
   glassBorder: "rgba(203, 213, 225, 0.3)",
   overlay: "rgba(15, 23, 42, 0.5)",
   border: "rgba(203, 213, 225, 0.6)",
+  accent: "#3B82F6",
 };
 
 const GRADIENT_THEME: ThemeColors = {
@@ -113,6 +116,7 @@ const GRADIENT_THEME: ThemeColors = {
   glassBorder: "rgba(124, 58, 237, 0.3)",
   overlay: "rgba(0, 0, 0, 0.6)",
   border: "rgba(124, 58, 237, 0.4)",
+  accent: "#A78BFA",
 };
 
 export function getThemeColors(theme: ThemeName): ThemeColors {
