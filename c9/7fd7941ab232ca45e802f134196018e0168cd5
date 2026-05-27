@@ -1,0 +1,533 @@
+src/components/ErrorPopup.tsx
+  47210fd9a599f08e 1-135
+src/app/api/logs/export/route.ts
+  06d9e12624586ed8 1-106
+src/components/SettingsModal.tsx
+  d3abcffa21f5a9cf 158-159
+  2a56d2d70088103b 278
+  f3f07e6daf9677da 377-386
+  03021d403b80632e 229,237
+  c1be3f27f46de3b8 73-74
+src/app/data-management/page.tsx
+  d07070e56d7d693b 213-223
+  0a6bba16d503104d 68-97
+  68924052b58aa3f5 34
+  6bfa55be38fd5019 4
+package.json
+  4573e7402b491511 3
+src/lib/settings.ts
+  8b30202beba3f7f5 42-49
+  7d82f796feaf07ae 8-9
+src/lib/changelog.ts
+  11df7351c53bdcd2 3-12
+src/app/layout.tsx
+  78366408b388b092 11
+  f7a7894432d25b03 61
+  2c9eb9a3b2b131fb 62
+  02b0cbfc5ae9536b 12
+  f7a294860b368f26 33
+src/components/LoggerInitializer.tsx
+  192588ef084dfe3d 9,11-12
+  e867c45bf73a0e83 1-8,10,13-46,48-74
+  40670fe5067c8f6f 47
+src/app/api/settings/route.ts
+  87a8b08cb6e1bad4 8-9
+  8dd4001430e2434f 31-32
+src/app/api/logs/client/route.ts
+  8fd661fb13be0683 1-57
+src/lib/tts.ts
+  8f5ec3f8b0246b23 5,12,15
+  0d9849d52acf4360 80,82
+CHANGELOG.md
+  095d86733ec327b5 1-7
+src/lib/client-logger.ts
+  436c0901cc3ed679 1-94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.16",
+  "base_commit_sha": "c97fd7941ab232ca45e802f134196018e0168cd5",
+  "prompts": {
+    "02b0cbfc5ae9536b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-7e4a3596-4c63-412f-96e9-49a01bf218ff",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    },
+    "03021d403b80632e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-3bb0bf4d-7e48-4826-a1c2-ba0cd8d2547e",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 2,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    },
+    "06d9e12624586ed8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-6d17d90f-7c26-4ae6-9096-264d7e7081f8",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 106,
+      "total_deletions": 0,
+      "accepted_lines": 106,
+      "overriden_lines": 0
+    },
+    "095d86733ec327b5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-956cfb02-9b82-48a4-8c33-f4deae2fc4a5",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 7,
+      "total_deletions": 0,
+      "accepted_lines": 7,
+      "overriden_lines": 0
+    },
+    "0a6bba16d503104d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-e52fb257-da13-4edd-9e07-1bcb7b0e1499",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 30,
+      "total_deletions": 0,
+      "accepted_lines": 30,
+      "overriden_lines": 0
+    },
+    "0d9849d52acf4360": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-fb23eb7f-e4ab-47cd-b6c1-73f40e8bbddd",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 1,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    },
+    "11df7351c53bdcd2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-d5aad878-3833-45f0-b6ae-f8f5a68d45a5",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 11,
+      "total_deletions": 0,
+      "accepted_lines": 11,
+      "overriden_lines": 0
+    },
+    "192588ef084dfe3d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-0bb8e2de-292c-4c15-8f7e-a9fd8e031d02",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 3,
+      "total_deletions": 2,
+      "accepted_lines": 3,
+      "overriden_lines": 0
+    },
+    "294d6c6e779cb842": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-b868ee06-6837-487f-b293-f5d64d3221e8",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 35,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    },
+    "2a56d2d70088103b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-c25d5d81-e3b8-470d-a4da-2c06d092a904",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    },
+    "2c9eb9a3b2b131fb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-38af776a-4f06-43ad-9755-33d7428141c8",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    },
+    "37e791db505a27cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-f99f913e-40cb-4e9d-852c-9cdc201f1dff",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 4,
+      "total_deletions": 28,
+      "accepted_lines": 4,
+      "overriden_lines": 0
+    },
+    "40670fe5067c8f6f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-a9a4fde5-025e-4104-b38a-1b064ae617bb",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    },
+    "436c0901cc3ed679": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-401e49e2-64d6-43f3-ab0a-388b0048144f",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 129,
+      "total_deletions": 0,
+      "accepted_lines": 94,
+      "overriden_lines": 0
+    },
+    "4573e7402b491511": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-37601336-e77f-4e12-a163-a8441b57fb21",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    },
+    "47210fd9a599f08e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-16af1a44-d82d-42e1-9391-7dbd19d01457",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 135,
+      "total_deletions": 0,
+      "accepted_lines": 135,
+      "overriden_lines": 0
+    },
+    "5230d5ea37b0797a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-45ba4263-2e57-44ae-8377-440ea77a5ed5",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    },
+    "68924052b58aa3f5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-14fb6134-7470-4c7e-b5d2-fa1396593788",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    },
+    "6bfa55be38fd5019": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-ecda03d1-1859-4b27-b795-f27698915d69",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    },
+    "78366408b388b092": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-7646e3c8-ea35-4388-8dd7-512d7038e88a",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    },
+    "7d82f796feaf07ae": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-f4092ee9-c6a4-42de-bb59-4d722757a072",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 0,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    },
+    "865c8d3f3805ae53": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-1a136140-1730-4dfa-a611-a972e01de7f0",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 28,
+      "total_deletions": 4,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    },
+    "87a8b08cb6e1bad4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-a14442d5-f36f-470f-83d9-8deec31756a2",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 0,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    },
+    "8b30202beba3f7f5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-1c94c80a-8692-4c0e-a03d-8e3aa696bfe5",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 8,
+      "total_deletions": 0,
+      "accepted_lines": 8,
+      "overriden_lines": 0
+    },
+    "8dd4001430e2434f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-315a1e58-79dd-4444-8565-1b79afedba31",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 0,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    },
+    "8f5ec3f8b0246b23": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-7f219edf-602e-4a22-afd6-8b0f25eba050",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 3,
+      "total_deletions": 2,
+      "accepted_lines": 3,
+      "overriden_lines": 0
+    },
+    "8fd661fb13be0683": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-706c8e6c-0594-459b-a8d3-b366dad4797c",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 57,
+      "total_deletions": 0,
+      "accepted_lines": 57,
+      "overriden_lines": 0
+    },
+    "99157ada6a290b4f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-8cae9dbb-997f-4b16-90b0-5dd574fe9ea2",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    },
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 1888,
+      "overriden_lines": 0
+    },
+    "c1be3f27f46de3b8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-6f36c32d-0e44-4442-8daa-96360d9b84fc",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 0,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    },
+    "d07070e56d7d693b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-9278526a-8801-4b7d-b319-09b784fb0adf",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 13,
+      "total_deletions": 0,
+      "accepted_lines": 13,
+      "overriden_lines": 0
+    },
+    "d3abcffa21f5a9cf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-6bf127c6-8aa8-4974-8df0-1efa549d2c31",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 0,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    },
+    "e867c45bf73a0e83": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-5b0f182b-c172-49ec-b704-33508c3ea4f5",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 72,
+      "total_deletions": 0,
+      "accepted_lines": 70,
+      "overriden_lines": 0
+    },
+    "f1bd8b6fd8200483": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-15275314-7de3-4b27-b01d-3e75e6209214",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    },
+    "f3f07e6daf9677da": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-8283ca9c-a18c-47c3-a1ec-fa10f7a5b66b",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 10,
+      "total_deletions": 0,
+      "accepted_lines": 10,
+      "overriden_lines": 0
+    },
+    "f7a294860b368f26": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-870108b1-b38b-466f-bd54-c7f7055ac2b1",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    },
+    "f7a7894432d25b03": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "opencode-transcript-ses_197ba34acffeXUJI7jEpHiftMK-b5728c21-a1d4-4d00-9847-44b9412644ba",
+        "model": "unknown"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
