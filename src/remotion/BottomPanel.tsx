@@ -109,19 +109,53 @@ export const BottomPanel: React.FC<Props> = ({
   const sentences = cleanContent.split(/(?<=[。！？；])/).filter(s => s.trim());
   const sentenceDelay = 12;
 
-  // Determine effective panel height (reserve space for red circles ~1 line)
+  // Extract keyword list for line estimation
+  const allKwsForEst = [...(keywords || []), ...(blueKeywords || [])];
+
+  // Determine effective panel height
   const effectivePanelPct = panelHeightProp && panelHeightProp > 0 ? panelHeightProp : 48;
   const panelContentHeight = Math.round(1920 * effectivePanelPct / 100) - 240;
   const baseFontSize = FONT.size.question - 4; // 58
   const baseLineHeight = 2;
   const contentWidth = 1080 - SPACING.xl * 2;
+
+  // Estimate lines considering keyword nowrap behavior
+  function estimateLines(text: string, charsPerLine: number): number {
+    if (!allKwsForEst.length) return Math.max(1, Math.ceil(text.length / charsPerLine));
+    const segments = splitByKeywords(text, allKwsForEst);
+    let lines = 1;
+    let col = 0;
+    for (const seg of segments) {
+      if (seg.isKeyword) {
+        if (col + seg.text.length > charsPerLine && col > 0) {
+          lines++;
+          col = 0;
+        }
+        col += seg.text.length;
+        if (col >= charsPerLine) {
+          lines += Math.floor(col / charsPerLine);
+          col = col % charsPerLine;
+        }
+      } else {
+        for (let i = 0; i < seg.text.length; i++) {
+          col++;
+          if (col > charsPerLine) {
+            lines++;
+            col = 1;
+          }
+        }
+      }
+    }
+    return lines;
+  }
+
   let panelFontSize = baseFontSize;
   let estimatedTotalHeight = 0;
   for (let fs = baseFontSize; fs >= 32; fs -= 2) {
     const charsPerLine = Math.floor(contentWidth / fs);
     let totalLines = 0;
     for (const s of sentences) {
-      totalLines += Math.max(1, Math.ceil(s.length / charsPerLine));
+      totalLines += estimateLines(s, charsPerLine);
     }
     estimatedTotalHeight = totalLines * (fs * baseLineHeight);
     if (estimatedTotalHeight <= panelContentHeight) {
@@ -137,7 +171,7 @@ export const BottomPanel: React.FC<Props> = ({
   const finalCharsPerLine = Math.floor(contentWidth / panelFontSize);
   let finalTotalLines = 0;
   for (const s of sentences) {
-    finalTotalLines += Math.max(1, Math.ceil(s.length / finalCharsPerLine));
+    finalTotalLines += estimateLines(s, finalCharsPerLine);
   }
   estimatedTotalHeight = finalTotalLines * (panelFontSize * baseLineHeight);
 
@@ -163,14 +197,13 @@ export const BottomPanel: React.FC<Props> = ({
     ? Math.min(1, localFrame / readingDurationFrames)
     : 0;
 
-  // Calculate actual needed height: title area + content + padding + 1 line buffer for keyword wrapping
+  // Calculate actual needed height: title area + content + padding
   const titleAreaHeight = 5 + SPACING.lg + 44 + SPACING.lg;
   const paddingHeight = SPACING.xl + SPACING.xxl;
-  const lineHeightBuffer = panelFontSize * baseLineHeight * 2;
-  const actualNeededHeight = titleAreaHeight + paddingHeight + estimatedTotalHeight + lineHeightBuffer;
+  const actualNeededHeight = titleAreaHeight + paddingHeight + estimatedTotalHeight;
   const maxPanelHeight = Math.round(1920 * effectivePanelPct / 100);
   const minPanelHeight = Math.round(1920 * 0.25);
-  const adaptiveHeight = Math.max(minPanelHeight, actualNeededHeight);
+  const adaptiveHeight = Math.max(minPanelHeight, actualNeededHeight + 60);
   const finalPanelHeight = needsScroll ? maxPanelHeight : Math.min(maxPanelHeight, adaptiveHeight);
 
   return (

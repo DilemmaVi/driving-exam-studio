@@ -1,5 +1,12 @@
 export const changelog = [
   {
+    version: "0.3.25",
+    date: "2026-05-28",
+    changes: [
+      "减少底部面板留白（自适应高度缓冲从 120 改为 60）",
+    ],
+  },
+  {
     version: "0.3.24",
     date: "2026-05-28",
     changes: [
