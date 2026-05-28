@@ -280,6 +280,8 @@ export const QuestionHeader: React.FC<Props> = ({
         fontFamily: FONT.main,
         lineHeight: 1.7,
         fontWeight: 500,
+        letterSpacing: 0,
+        wordBreak: "break-word",
       }}>
         {renderedParts}
       </div>

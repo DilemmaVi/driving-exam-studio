@@ -112,6 +112,8 @@ export const TeacherExplanation: React.FC<Props> = ({
               </div>
               <div style={{
                 fontSize: FONT.size.option - 4, color: COLORS.text, fontFamily: FONT.main, lineHeight: 1.5,
+                letterSpacing: 0,
+                wordBreak: "break-word",
               }}>
                 {renderHighlightedText(optText)}
               </div>

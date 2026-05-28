@@ -109,9 +109,9 @@ export const BottomPanel: React.FC<Props> = ({
   const sentences = cleanContent.split(/(?<=[。！？；])/).filter(s => s.trim());
   const sentenceDelay = 12;
 
-  // Determine effective panel height
+  // Determine effective panel height (reserve space for red circles ~1 line)
   const effectivePanelPct = panelHeightProp && panelHeightProp > 0 ? panelHeightProp : 48;
-  const panelContentHeight = Math.round(1920 * effectivePanelPct / 100) - 240;
+  const panelContentHeight = Math.round(1920 * effectivePanelPct / 100) - 240 - 80;
   const baseFontSize = FONT.size.question - 4; // 58
   const baseLineHeight = 2;
   const contentWidth = 1080 - SPACING.xl * 2;
@@ -283,6 +283,8 @@ export const BottomPanel: React.FC<Props> = ({
                   fontFamily: FONT.main,
                   opacity: sentenceOpacity,
                   transform: `translateY(${sentenceY}px)`,
+                  letterSpacing: 0,
+                  wordBreak: "break-word",
                 }}>
                   {rendered}
                 </div>

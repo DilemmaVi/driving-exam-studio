@@ -1,5 +1,14 @@
 export const changelog = [
   {
+    version: "0.3.22",
+    date: "2026-05-28",
+    changes: [
+      "修复中英文混合时字间距异常的问题",
+      "修复答题解析/答题技巧面板红圈出现时文字被挤出的问题",
+      "设置页新增API Base URL和TTS模型配置",
+    ],
+  },
+  {
     version: "0.3.21",
     date: "2026-05-27",
     changes: [

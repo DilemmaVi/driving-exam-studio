@@ -200,6 +200,8 @@ export const OptionItem: React.FC<Props> = ({
           fontFamily: FONT.main,
           fontWeight: revealed && isCorrect ? 700 : 500,
           lineHeight: 1.5,
+          letterSpacing: 0,
+          wordBreak: "break-word",
         }}
       >
         {renderedContent}
