@@ -1,5 +1,12 @@
 export const changelog = [
   {
+    version: "0.3.24",
+    date: "2026-05-28",
+    changes: [
+      "修复答题解析/答题技巧面板红圈出现时文字被挤出的问题（增加2行缓冲空间）",
+    ],
+  },
+  {
     version: "0.3.23",
     date: "2026-05-28",
     changes: [
