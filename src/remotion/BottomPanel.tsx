@@ -111,7 +111,7 @@ export const BottomPanel: React.FC<Props> = ({
 
   // Determine effective panel height (reserve space for red circles ~1 line)
   const effectivePanelPct = panelHeightProp && panelHeightProp > 0 ? panelHeightProp : 48;
-  const panelContentHeight = Math.round(1920 * effectivePanelPct / 100) - 240 - 80;
+  const panelContentHeight = Math.round(1920 * effectivePanelPct / 100) - 240 - 280;
   const baseFontSize = FONT.size.question - 4; // 58
   const baseLineHeight = 2;
   const contentWidth = 1080 - SPACING.xl * 2;
@@ -169,7 +169,7 @@ export const BottomPanel: React.FC<Props> = ({
   const actualNeededHeight = titleAreaHeight + paddingHeight + estimatedTotalHeight;
   const maxPanelHeight = Math.round(1920 * effectivePanelPct / 100);
   const minPanelHeight = Math.round(1920 * 0.25);
-  const adaptiveHeight = Math.max(minPanelHeight, actualNeededHeight + 60);
+  const adaptiveHeight = Math.max(minPanelHeight, actualNeededHeight + 200);
   const finalPanelHeight = needsScroll ? maxPanelHeight : Math.min(maxPanelHeight, adaptiveHeight);
 
   return (

@@ -1,5 +1,12 @@
 export const changelog = [
   {
+    version: "0.3.23",
+    date: "2026-05-28",
+    changes: [
+      "修复答题解析/答题技巧面板红圈出现时文字被挤出的问题（调整面板自适应高度）",
+    ],
+  },
+  {
     version: "0.3.22",
     date: "2026-05-28",
     changes: [
