@@ -206,7 +206,7 @@ export async function generateTTSForQuestion(
 
   const promises: Promise<TTSResult>[] = [
     generateSegment(questionId, "question", questionText, "用清晰的教学语气朗读题目。", ttsSpeed, force, ttsVoice),
-    generateSegment(questionId, "answer", answerText, "用肯定、清晰的语气播报正确答案。", ttsSpeed, force, ttsVoice),
+    generateSegment(questionId, "answer", answerText, "用肯定、清晰的语气播报正确答案，其中A、B、C、D是选项编号，请读作英文字母。", ttsSpeed, force, ttsVoice),
   ];
 
   const isTrueFalse = row.type === 1;
@@ -215,9 +215,9 @@ export async function generateTTSForQuestion(
     const optText = buildOptionText(labels[i], opts[i]);
     if (isTrueFalse) {
       // True/false options ("A，正确。" / "B，错误。") are shared globally
-      promises.push(generateSegment(0, `tf_opt_${i}`, optText, "用清晰的教学语气朗读选项。", ttsSpeed, false, ttsVoice));
+      promises.push(generateSegment(0, `tf_opt_${i}`, optText, "朗读选项内容，其中A、B、C、D是选项编号，请读作英文字母。", ttsSpeed, false, ttsVoice));
     } else {
-      promises.push(generateSegment(questionId, `opt_${i}`, optText, "用清晰的教学语气朗读选项。", ttsSpeed, force, ttsVoice));
+      promises.push(generateSegment(questionId, `opt_${i}`, optText, "朗读选项内容，其中A、B、C、D是选项编号，请读作英文字母。", ttsSpeed, force, ttsVoice));
     }
   }
 

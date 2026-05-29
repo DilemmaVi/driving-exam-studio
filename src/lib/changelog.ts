@@ -1,5 +1,12 @@
 export const changelog = [
   {
+    version: "0.3.27",
+    date: "2026-05-29",
+    changes: [
+      "修复 TTS 朗读选项时字母 C 被误读的问题（优化 style prompt 明确 ABCD 为英文字母）",
+    ],
+  },
+  {
     version: "0.3.26",
     date: "2026-05-29",
     changes: [
