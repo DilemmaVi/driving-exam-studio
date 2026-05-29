@@ -86,7 +86,7 @@ async function generateSegment(questionId: number, segment: string, text: string
     ],
     // @ts-ignore
     audio: { format: "wav", voice },
-  });
+  }, { timeout: 30000 });
 
   const message = completion.choices?.[0]?.message;
   // @ts-ignore
@@ -145,6 +145,7 @@ function buildQuestionStemText(row: QuestionRow): string {
   // Strip option part: A:xxx, B:xxx etc.
   content = content.replace(/[,，]?\s*A[.:：][\s\S]*$/, "");
   content = content.replace(/[（(]\s*[）)]/g, "");
+  content = content.replace(/[（(]/g, "").replace(/[）)]/g, "");
   content = content.replace(/[。，！？]+$/, "。");
   if (!/[。！？]$/.test(content.trim())) {
     content = content.trim() + "。";

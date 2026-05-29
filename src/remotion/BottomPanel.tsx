@@ -127,14 +127,16 @@ export const BottomPanel: React.FC<Props> = ({
     let col = 0;
     for (const seg of segments) {
       if (seg.isKeyword) {
+        // nowrap keyword: if it doesn't fit on current line, move to next line
         if (col + seg.text.length > charsPerLine && col > 0) {
           lines++;
           col = 0;
         }
+        // keyword occupies 1 visual line (nowrap), next content starts on new line if overflowed
         col += seg.text.length;
         if (col >= charsPerLine) {
-          lines += Math.floor(col / charsPerLine);
-          col = col % charsPerLine;
+          lines++;
+          col = 0;
         }
       } else {
         for (let i = 0; i < seg.text.length; i++) {

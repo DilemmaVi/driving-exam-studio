@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     db.prepare("INSERT INTO render_tasks (id, question_ids, series_id, status, phase, phase_label, created_at) VALUES (?, ?, ?, 'pending', '', '', ?)")
       .run(taskId, JSON.stringify(qIds), seriesId || null, nowBeijing());
 
-    renderQueue.enqueue(taskId, () => renderInBackground(taskId, qIds, seriesData, seriesQuestions, !!tipOnly));
+    renderQueue.enqueue(taskId, (signal) => renderInBackground(taskId, qIds, seriesData, seriesQuestions, !!tipOnly, signal));
 
     return NextResponse.json({ taskId });
   } catch (e: unknown) {
@@ -153,6 +153,7 @@ export async function renderInBackground(
   seriesData: Record<string, unknown> | null,
   seriesQuestions: Record<string, unknown>[],
   tipOnly = false,
+  signal?: AbortSignal,
 ) {
   try {
     updateTask(taskId, { status: "tts", phase: "tts", phase_label: "生成过渡语音", progress: 0 });
@@ -230,6 +231,7 @@ export async function renderInBackground(
     }> = [];
 
     for (let i = 0; i < questionIds.length; i++) {
+      if (signal?.aborted) throw new Error("任务已取消");
       const qId = questionIds[i];
       updateTask(taskId, {
         progress: i / questionIds.length * 0.3,

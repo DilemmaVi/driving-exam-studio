@@ -1,6 +1,6 @@
 import type { ChildProcess } from "child_process";
 
-type Job = { taskId: string; fn: () => Promise<void> };
+type Job = { taskId: string; fn: (signal: AbortSignal) => Promise<void> };
 
 const RENDER_TIMEOUT_MS = 30 * 60 * 1000;
 
@@ -9,8 +9,9 @@ class RenderQueue {
   private running = false;
   private currentTaskId: string | null = null;
   private currentProcess: ChildProcess | null = null;
+  private currentAbort: AbortController | null = null;
 
-  enqueue(taskId: string, fn: () => Promise<void>) {
+  enqueue(taskId: string, fn: (signal: AbortSignal) => Promise<void>) {
     this.queue.push({ taskId, fn });
     this.process();
   }
@@ -22,9 +23,10 @@ class RenderQueue {
       while (this.queue.length > 0) {
         const job = this.queue.shift()!;
         this.currentTaskId = job.taskId;
+        this.currentAbort = new AbortController();
         try {
           await Promise.race([
-            job.fn(),
+            job.fn(this.currentAbort.signal),
             new Promise<never>((_, reject) =>
               setTimeout(() => reject(new Error("渲染超时（超过30分钟）")), RENDER_TIMEOUT_MS)
             ),
@@ -34,11 +36,13 @@ class RenderQueue {
         }
         this.currentTaskId = null;
         this.currentProcess = null;
+        this.currentAbort = null;
       }
     } finally {
       this.running = false;
       this.currentTaskId = null;
       this.currentProcess = null;
+      this.currentAbort = null;
     }
   }
 
@@ -48,8 +52,9 @@ class RenderQueue {
       this.queue.splice(idx, 1);
       return true;
     }
-    if (this.currentTaskId === taskId && this.currentProcess) {
-      this.currentProcess.kill("SIGTERM");
+    if (this.currentTaskId === taskId) {
+      if (this.currentAbort) this.currentAbort.abort();
+      if (this.currentProcess) this.currentProcess.kill("SIGTERM");
       return true;
     }
     return false;
