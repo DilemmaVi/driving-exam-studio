@@ -155,7 +155,7 @@ function buildQuestionStemText(row: QuestionRow): string {
 
 function buildOptionText(label: string, optionText: string): string {
   const clean = optionText.replace(/【/g, "").replace(/】/g, "");
-  return `${label}，${clean}。`;
+  return `${label}, ${clean}。`;
 }
 
 function buildAnswerText(row: QuestionRow, readContent = true): string {
@@ -211,13 +211,13 @@ export async function generateTTSForQuestion(
 
   const isTrueFalse = row.type === 1;
 
-  for (let i = 0; i < opts.length; i++) {
-    const optText = buildOptionText(labels[i], opts[i]);
-    if (isTrueFalse) {
-      // True/false options ("A，正确。" / "B，错误。") are shared globally
+  if (!isTrueFalse && opts.length > 0) {
+    const allOptsText = opts.map((opt, i) => buildOptionText(labels[i], opt)).join(" ");
+    promises.push(generateSegment(questionId, "options", allOptsText, "朗读选项内容，其中A、B、C、D是选项编号，请读作英文字母。", ttsSpeed, force, ttsVoice));
+  } else {
+    for (let i = 0; i < opts.length; i++) {
+      const optText = buildOptionText(labels[i], opts[i]);
       promises.push(generateSegment(0, `tf_opt_${i}`, optText, "朗读选项内容，其中A、B、C、D是选项编号，请读作英文字母。", ttsSpeed, false, ttsVoice));
-    } else {
-      promises.push(generateSegment(questionId, `opt_${i}`, optText, "朗读选项内容，其中A、B、C、D是选项编号，请读作英文字母。", ttsSpeed, force, ttsVoice));
     }
   }
 
@@ -238,10 +238,42 @@ export async function generateTTSForQuestion(
   const questionResult = results[idx++];
   const answerResult = results[idx++];
   const optionDurations: number[] = [];
-  for (let i = 0; i < opts.length; i++) {
-    const optResult = results[idx++];
-    optionDurations.push(optResult.duration);
-    if (isTrueFalse) {
+
+  if (!isTrueFalse && opts.length > 0) {
+    const optionsResult = results[idx++];
+    // Split combined audio into per-option files by proportion
+    const optTexts = opts.map((opt, i) => buildOptionText(labels[i], opt));
+    const totalChars = optTexts.reduce((s, t) => s + t.length, 0);
+    const totalDuration = optionsResult.duration;
+    const srcPath = path.join(AUDIO_DIR, path.basename(optionsResult.filePath));
+    const buf = fs.readFileSync(srcPath);
+    const bitsPerSample = buf.readUInt16LE(34);
+    const channels = buf.readUInt16LE(22);
+    const bytesPerSample = (bitsPerSample / 8) * channels;
+    const dataStart = 44;
+    const totalSamples = (buf.length - dataStart) / bytesPerSample;
+
+    let sampleOffset = 0;
+    for (let i = 0; i < opts.length; i++) {
+      const ratio = optTexts[i].length / totalChars;
+      const dur = totalDuration * ratio;
+      optionDurations.push(dur);
+      const samples = Math.round(totalSamples * ratio);
+      const headerSize = 44;
+      const dataSize = samples * bytesPerSample;
+      const optBuf = Buffer.alloc(headerSize + dataSize);
+      buf.copy(optBuf, 0, 0, headerSize);
+      optBuf.writeUInt32LE(dataSize, 40);
+      optBuf.writeUInt32LE(headerSize + dataSize - 8, 4);
+      buf.copy(optBuf, headerSize, dataStart + sampleOffset * bytesPerSample, dataStart + (sampleOffset + samples) * bytesPerSample);
+      const destFile = path.join(AUDIO_DIR, `q${questionId}_opt_${i}.wav`);
+      fs.writeFileSync(destFile, optBuf);
+      sampleOffset += samples;
+    }
+  } else {
+    for (let i = 0; i < opts.length; i++) {
+      const optResult = results[idx++];
+      optionDurations.push(optResult.duration);
       // Copy shared tf option audio to per-question filename for Remotion
       const srcFile = path.join(AUDIO_DIR, path.basename(optResult.filePath));
       const destFile = path.join(AUDIO_DIR, `q${questionId}_opt_${i}.wav`);

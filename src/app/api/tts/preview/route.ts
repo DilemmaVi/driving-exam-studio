@@ -10,9 +10,9 @@ export async function GET(request: NextRequest) {
     "SELECT segment, file_path, duration_sec FROM tts_cache WHERE question_id = ? ORDER BY rowid"
   ).all(Number(questionId)) as { segment: string; file_path: string; duration_sec: number }[];
 
-  const segmentOrder = ["question", "answer", "explanation", "teacher_explanation", "tip"];
+  const segmentOrder = ["question", "options", "answer", "explanation", "teacher_explanation", "tip"];
   const segmentLabels: Record<string, string> = {
-    question: "题目", answer: "答案", explanation: "解析",
+    question: "题目", options: "选项", answer: "答案", explanation: "解析",
     teacher_explanation: "讲师解析", tip: "技巧", transition: "过渡",
   };
 
