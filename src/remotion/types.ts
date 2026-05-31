@@ -27,6 +27,11 @@ export interface AudioDurations {
   bridgeReveal?: number;
   bridgeExplain?: number;
   bridgeTip?: number;
+  questionClauseDurations?: number[];
+  optionClauseDurations?: number[][];
+  explanationClauseDurations?: number[];
+  tipClauseDurations?: number[];
+  teacherExplanationClauseDurations?: number[];
 }
 
 export interface QuestionEntry {

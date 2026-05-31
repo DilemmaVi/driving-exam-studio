@@ -20,6 +20,7 @@ function getClient() {
 interface TTSResult {
   filePath: string;
   duration: number;
+  clauseDurations: number[];
 }
 
 export const MIMO_VOICES = [
@@ -63,10 +64,11 @@ async function generateSegment(questionId: number, segment: string, text: string
   const db = getDb();
 
   if (!force) {
-    const cached = db.prepare("SELECT file_path, duration_sec FROM tts_cache WHERE question_id = ? AND segment = ?").get(questionId, cacheSegment) as { file_path: string; duration_sec: number } | undefined;
+    const cached = db.prepare("SELECT file_path, duration_sec, clause_durations FROM tts_cache WHERE question_id = ? AND segment = ?").get(questionId, cacheSegment) as { file_path: string; duration_sec: number; clause_durations: string | null } | undefined;
 
     if (cached && fs.existsSync(path.join(AUDIO_DIR, path.basename(cached.file_path)))) {
-      return { filePath: cached.file_path, duration: cached.duration_sec };
+      const cd = cached.clause_durations ? JSON.parse(cached.clause_durations) as number[] : [];
+      return { filePath: cached.file_path, duration: cached.duration_sec, clauseDurations: cd };
     }
   }
 
@@ -96,10 +98,11 @@ async function generateSegment(questionId: number, segment: string, text: string
   fs.writeFileSync(fullPath, audioBytes);
 
   const duration = getWavDuration(fullPath);
+  const clauseDurations = detectClauseBoundaries(fullPath, text);
 
-  db.prepare("INSERT OR REPLACE INTO tts_cache (question_id, segment, file_path, duration_sec) VALUES (?, ?, ?, ?)").run(questionId, cacheSegment, filePath, duration);
+  db.prepare("INSERT OR REPLACE INTO tts_cache (question_id, segment, file_path, duration_sec, clause_durations) VALUES (?, ?, ?, ?, ?)").run(questionId, cacheSegment, filePath, duration, clauseDurations.length > 0 ? JSON.stringify(clauseDurations) : null);
 
-  return { filePath, duration };
+  return { filePath, duration, clauseDurations };
 }
 
 function getWavDuration(filePath: string): number {
@@ -116,6 +119,106 @@ function getWavDuration(filePath: string): number {
   if (dataSize <= 0) return 0;
   return dataSize / (channels * sampleRate * (bitsPerSample / 8));
 }
+
+function detectClauseBoundaries(wavPath: string, text: string): number[] {
+  const clauses = text.split(/(?<=[。，！？、；,])/);
+  if (clauses.length <= 1) return [];
+
+  const buf = fs.readFileSync(wavPath);
+  if (buf.length < 44) return [];
+  const sampleRate = buf.readUInt32LE(24);
+  const bitsPerSample = buf.readUInt16LE(34);
+  const channels = buf.readUInt16LE(22);
+  const bytesPerSample = (bitsPerSample / 8) * channels;
+  const dataIdx = buf.indexOf(Buffer.from("data"));
+  if (dataIdx < 0) return [];
+  const dataStart = dataIdx + 8;
+  const totalSamples = Math.floor((buf.length - dataStart) / bytesPerSample);
+  const totalDuration = totalSamples / sampleRate;
+
+  const windowSize = Math.round(sampleRate * 0.02);
+  const minSilenceSamples = Math.round(sampleRate * 0.06);
+  const threshold = 0.015;
+
+  const rms: number[] = [];
+  for (let i = 0; i < totalSamples; i += windowSize) {
+    let sum = 0;
+    const end = Math.min(i + windowSize, totalSamples);
+    for (let j = i; j < end; j++) {
+      const offset = dataStart + j * bytesPerSample;
+      if (offset + 1 >= buf.length) break;
+      const sample = buf.readInt16LE(offset) / 32768;
+      sum += sample * sample;
+    }
+    rms.push(Math.sqrt(sum / (end - i)));
+  }
+
+  // Find silence regions
+  interface SilenceRegion { start: number; end: number; }
+  const silences: SilenceRegion[] = [];
+  let silStart = -1;
+  for (let i = 0; i < rms.length; i++) {
+    if (rms[i] < threshold) {
+      if (silStart < 0) silStart = i;
+    } else {
+      if (silStart >= 0) {
+        const startSample = silStart * windowSize;
+        const endSample = i * windowSize;
+        if (endSample - startSample >= minSilenceSamples) {
+          silences.push({ start: startSample, end: endSample });
+        }
+        silStart = -1;
+      }
+    }
+  }
+  if (silStart >= 0) {
+    const startSample = silStart * windowSize;
+    if (totalSamples - startSample >= minSilenceSamples) {
+      silences.push({ start: startSample, end: totalSamples });
+    }
+  }
+
+  const numBoundaries = clauses.length - 1;
+  const totalChars = clauses.reduce((s, c) => s + c.length, 0);
+  const boundaryTimes: number[] = [];
+  const usedSilences = new Set<number>();
+  let charAcc = 0;
+
+  for (let i = 0; i < numBoundaries; i++) {
+    charAcc += clauses[i].length;
+    const estimatedTime = (charAcc / totalChars) * totalDuration;
+    // Find closest unused silence within 1s of the estimated position
+    let bestIdx = -1;
+    let bestDist = 1.0;
+    for (let si = 0; si < silences.length; si++) {
+      if (usedSilences.has(si)) continue;
+      const mid = ((silences[si].start + silences[si].end) / 2) / sampleRate;
+      const dist = Math.abs(mid - estimatedTime);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestIdx = si;
+      }
+    }
+    if (bestIdx >= 0) {
+      usedSilences.add(bestIdx);
+      boundaryTimes.push(((silences[bestIdx].start + silences[bestIdx].end) / 2) / sampleRate);
+    } else {
+      boundaryTimes.push(estimatedTime);
+    }
+  }
+  boundaryTimes.sort((a, b) => a - b);
+
+  // Convert boundary times to clause durations
+  const durations: number[] = [];
+  let prev = 0;
+  for (const t of boundaryTimes) {
+    durations.push(Math.max(0.01, t - prev));
+    prev = t;
+  }
+  durations.push(Math.max(0.01, totalDuration - prev));
+  return durations;
+}
+
 
 export interface QuestionRow {
   id: number;
@@ -241,31 +344,62 @@ export async function generateTTSForQuestion(
 
   if (!isTrueFalse && opts.length > 0) {
     const optionsResult = results[idx++];
-    // Split combined audio into per-option files by proportion
     const optTexts = opts.map((opt, i) => buildOptionText(labels[i], opt));
-    const totalChars = optTexts.reduce((s, t) => s + t.length, 0);
     const totalDuration = optionsResult.duration;
     const srcPath = path.join(AUDIO_DIR, path.basename(optionsResult.filePath));
     const buf = fs.readFileSync(srcPath);
     const bitsPerSample = buf.readUInt16LE(34);
     const channels = buf.readUInt16LE(22);
     const bytesPerSample = (bitsPerSample / 8) * channels;
+    const sampleRate = buf.readUInt32LE(24);
     const dataStart = 44;
-    const totalSamples = (buf.length - dataStart) / bytesPerSample;
+
+    // Use silence detection to find per-option durations
+    // Each option text ends with "。", clauses split at punctuation
+    const allOptsText = optTexts.join(" ");
+    const clauseDurs = detectClauseBoundaries(srcPath, allOptsText);
+    const textClauses = allOptsText.split(/(?<=[。，！？、；,])/);
+
+    if (clauseDurs.length > 0 && clauseDurs.length === textClauses.length) {
+      // Assign clauses to options by accumulating character lengths
+      let clauseIdx = 0;
+      let charAcc = 0;
+      for (let i = 0; i < opts.length; i++) {
+        // The target char position where this option ends (including space separator)
+        const optEndChar = optTexts.slice(0, i + 1).join(" ").length;
+        let optDur = 0;
+        while (clauseIdx < textClauses.length && charAcc + textClauses[clauseIdx].length <= optEndChar) {
+          optDur += clauseDurs[clauseIdx];
+          charAcc += textClauses[clauseIdx].length;
+          clauseIdx++;
+        }
+        optionDurations.push(optDur > 0 ? optDur : totalDuration / opts.length);
+      }
+      // Assign any remaining clauses to the last option
+      while (clauseIdx < clauseDurs.length) {
+        optionDurations[optionDurations.length - 1] += clauseDurs[clauseIdx];
+        clauseIdx++;
+      }
+    } else {
+      // Fallback to char ratio
+      const totalChars = optTexts.reduce((s, t) => s + t.length, 0);
+      for (const optText of optTexts) {
+        optionDurations.push(totalDuration * optText.length / totalChars);
+      }
+    }
 
     let sampleOffset = 0;
     for (let i = 0; i < opts.length; i++) {
-      const ratio = optTexts[i].length / totalChars;
-      const dur = totalDuration * ratio;
-      optionDurations.push(dur);
-      const samples = Math.round(totalSamples * ratio);
+      const samples = Math.round(optionDurations[i] * sampleRate);
       const headerSize = 44;
-      const dataSize = samples * bytesPerSample;
-      const optBuf = Buffer.alloc(headerSize + dataSize);
+      const dataSize = Math.min(samples * bytesPerSample, buf.length - dataStart - sampleOffset * bytesPerSample);
+      const optBuf = Buffer.alloc(headerSize + Math.max(0, dataSize));
       buf.copy(optBuf, 0, 0, headerSize);
-      optBuf.writeUInt32LE(dataSize, 40);
-      optBuf.writeUInt32LE(headerSize + dataSize - 8, 4);
-      buf.copy(optBuf, headerSize, dataStart + sampleOffset * bytesPerSample, dataStart + (sampleOffset + samples) * bytesPerSample);
+      optBuf.writeUInt32LE(Math.max(0, dataSize), 40);
+      optBuf.writeUInt32LE(headerSize + Math.max(0, dataSize) - 8, 4);
+      if (dataSize > 0) {
+        buf.copy(optBuf, headerSize, dataStart + sampleOffset * bytesPerSample, dataStart + sampleOffset * bytesPerSample + dataSize);
+      }
       const destFile = path.join(AUDIO_DIR, `q${questionId}_opt_${i}.wav`);
       fs.writeFileSync(destFile, optBuf);
       sampleOffset += samples;
@@ -282,9 +416,9 @@ export async function generateTTSForQuestion(
       }
     }
   }
-  const explanationResult = showExplanation ? results[idx++] : { duration: 0 };
-  const tipResult = showTip ? results[idx++] : { duration: 0 };
-  const teacherResult = teacherText ? results[idx++] : { duration: 0 };
+  const explanationResult = showExplanation ? results[idx++] : { duration: 0, clauseDurations: [] };
+  const tipResult = showTip ? results[idx++] : { duration: 0, clauseDurations: [] };
+  const teacherResult = teacherText ? results[idx++] : { duration: 0, clauseDurations: [] };
 
   // transition audio
   const typeLabel = row.type === 1 ? "判断题" : isMulti ? "多选题" : "单选题";
@@ -292,14 +426,56 @@ export async function generateTTSForQuestion(
     await generateSegment(questionId, "transition", `下一题，${typeLabel}。`, "用清晰、有节奏感的播报语气报出题号和类型。", ttsSpeed, false, ttsVoice);
   }
 
+  // Build per-option clause durations
+  const optionClauseDurations: number[][] = [];
+  if (!isTrueFalse && opts.length > 0) {
+    const optionsResult = results[2];
+    if (optionsResult.clauseDurations.length > 0) {
+      let clauseIdx = 0;
+      for (let i = 0; i < opts.length; i++) {
+        const optText = buildOptionText(labels[i], opts[i]);
+        const optClauses = optText.split(/(?<=[。，！？、；,])/);
+        const numClauses = optClauses.length;
+        const raw = optionsResult.clauseDurations.slice(clauseIdx, clauseIdx + numClauses);
+        clauseIdx += numClauses;
+        // TTS text has prefix "X, " and suffix "。" not shown in rendered text.
+        // Merge prefix clause (e.g. "A,") duration into the next clause,
+        // and merge trailing "。" clause into the previous one, so durations
+        // align with the displayed text which has no label prefix or period.
+        if (raw.length >= 2) {
+          raw[1] += raw[0];
+          raw.shift();
+        }
+        // The displayed text won't end with "。" so the last clause's duration
+        // already covers that trailing period — no adjustment needed.
+        optionClauseDurations.push(raw);
+      }
+    }
+  } else {
+    for (let oi = 0; oi < opts.length; oi++) {
+      const optResult = results[2 + oi];
+      const raw = [...optResult.clauseDurations];
+      if (raw.length >= 2) {
+        raw[1] += raw[0];
+        raw.shift();
+      }
+      optionClauseDurations.push(raw);
+    }
+  }
+
   return {
     durations: {
       question: questionResult.duration,
       answer: answerResult.duration,
-      explanation: explanationResult.duration,
-      tip: tipResult.duration,
-      teacherExplanation: teacherResult.duration || undefined,
+      explanation: (explanationResult as TTSResult).duration,
+      tip: (tipResult as TTSResult).duration,
+      teacherExplanation: (teacherResult as TTSResult).duration || undefined,
       optionDurations,
+      questionClauseDurations: questionResult.clauseDurations.length > 0 ? questionResult.clauseDurations : undefined,
+      optionClauseDurations: optionClauseDurations.some(a => a.length > 0) ? optionClauseDurations : undefined,
+      explanationClauseDurations: (explanationResult as TTSResult).clauseDurations?.length > 0 ? (explanationResult as TTSResult).clauseDurations : undefined,
+      tipClauseDurations: (tipResult as TTSResult).clauseDurations?.length > 0 ? (tipResult as TTSResult).clauseDurations : undefined,
+      teacherExplanationClauseDurations: (teacherResult as TTSResult).clauseDurations?.length > 0 ? (teacherResult as TTSResult).clauseDurations : undefined,
     },
   };
 }

@@ -307,6 +307,12 @@ function initTables(db: Database.Database) {
     }
   }
 
+  // migrate: add clause_durations to tts_cache
+  const ttsCols = db.prepare("PRAGMA table_info(tts_cache)").all() as { name: string }[];
+  if (!ttsCols.some((c) => c.name === "clause_durations")) {
+    db.exec(`ALTER TABLE tts_cache ADD COLUMN clause_durations TEXT DEFAULT NULL`);
+  }
+
   // TTS dictionary table
   db.exec(`
     CREATE TABLE IF NOT EXISTS tts_dictionary (

@@ -19,6 +19,7 @@ interface Props {
   fontSizeOverride?: number;
   underlineEnabled?: boolean;
   underlineColor?: string;
+  readingClauseDurations?: number[];
 }
 
 const parseSegments = (text: string): { text: string; highlight: boolean; blue?: boolean }[] => {
@@ -45,7 +46,7 @@ const parseSegments = (text: string): { text: string; highlight: boolean; blue?:
 
 export const OptionItem: React.FC<Props> = ({
   label, text, index, startFrame, revealFrame, isCorrect,
-  circleFrame, tipFrame, readStartFrame, readingDurationFrames, fontScale = 1, optionGap, fontSizeOverride, underlineEnabled, underlineColor,
+  circleFrame, tipFrame, readStartFrame, readingDurationFrames, fontScale = 1, optionGap, fontSizeOverride, underlineEnabled, underlineColor, readingClauseDurations,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -116,11 +117,29 @@ export const OptionItem: React.FC<Props> = ({
 
   const readActive = readStartFrame !== undefined && frame >= readStartFrame && !revealed;
   const readLocalFrame = readStartFrame !== undefined ? frame - readStartFrame : 0;
-  const sweepFrames = readingDurationFrames || (totalChars / 5) * 30;
-  const readProgress = readActive && sweepFrames > 0
-    ? Math.min(1, readLocalFrame / sweepFrames)
-    : readActive ? 1 : -1;
-  const readChars = readProgress > 0 ? Math.floor(readProgress * totalChars) : -1;
+  let readChars = -1;
+  if (readActive) {
+    if (readingClauseDurations && readingClauseDurations.length > 0) {
+      const textClauses = plainText.split(/(?<=[。，！？、；,])/);
+      let accFrames = 0;
+      let accChars = 0;
+      for (let i = 0; i < readingClauseDurations.length; i++) {
+        const cf = readingClauseDurations[i] * fps;
+        const cc = textClauses[i]?.length || 0;
+        if (readLocalFrame <= accFrames + cf) {
+          readChars = accChars + Math.floor(cf > 0 ? ((readLocalFrame - accFrames) / cf) * cc : cc);
+          break;
+        }
+        accFrames += cf;
+        accChars += cc;
+      }
+      if (readChars < 0) readChars = totalChars;
+    } else {
+      const sweepFrames = readingDurationFrames || (totalChars / 5) * 30;
+      const readProgress = sweepFrames > 0 ? Math.min(1, readLocalFrame / sweepFrames) : 1;
+      readChars = Math.floor(readProgress * totalChars);
+    }
+  }
 
   let globalCharIdx = 0;
 
@@ -195,6 +214,8 @@ export const OptionItem: React.FC<Props> = ({
       </div>
       <div
         style={{
+          flex: 1,
+          minWidth: 0,
           fontSize: fontSizeOverride || Math.round(FONT.size.option * fontScale),
           color: textColor,
           fontFamily: FONT.main,

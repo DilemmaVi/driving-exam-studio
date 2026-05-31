@@ -23,6 +23,7 @@ interface Props {
   tipStartFrame?: number;
   readingPrefixDelay?: number;
   readingSpeedRatio?: number;
+  readingClauseDurations?: number[];
 }
 
 const parseSegments = (text: string): { text: string; highlight: boolean; blue?: boolean }[] => {
@@ -50,7 +51,7 @@ const parseSegments = (text: string): { text: string; highlight: boolean; blue?:
 export const QuestionHeader: React.FC<Props> = ({
   text, startFrame, readingStartFrame, highlightPhaseFrame, circleFrame, tipFrame,
   readingDurationFrames, questionType, subjectLabel, fontScale = 1, fontSizeOverride, underlineEnabled, underlineColor,
-  stemKeywords, stemKeywordPhases, explanationStartFrame, tipStartFrame, readingPrefixDelay, readingSpeedRatio,
+  stemKeywords, stemKeywordPhases, explanationStartFrame, tipStartFrame, readingPrefixDelay, readingSpeedRatio, readingClauseDurations,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -117,22 +118,42 @@ export const QuestionHeader: React.FC<Props> = ({
 
   const totalChars = allChars.length;
   const rStart = readingStartFrame ?? startFrame;
-  // Before readingStart: all chars visible (static). After: typewriter reveal synced with audio.
   const visibleChars = frame >= rStart ? totalChars : Math.floor((frame - startFrame) * 2);
 
-  // Reading progress based on actual TTS audio duration
   const speedRatio = readingSpeedRatio ?? 1;
   const rawDuration = readingDurationFrames != null ? readingDurationFrames : (totalChars / 5) * 30;
-  // TTS audio includes spoken type prefix ("多选题。"=4 chars) not shown in displayed text
-  // Estimate prefix duration by char ratio: prefixChars / (prefixChars + displayedChars) * totalDuration
   const typePrefixChars = 4;
   const autoPrefixDelay = Math.round(typePrefixChars / (typePrefixChars + totalChars) * rawDuration);
   const prefixDelay = readingPrefixDelay ?? autoPrefixDelay;
-  const sweepDurationFrames = rawDuration > 0 ? Math.max(1, (rawDuration - prefixDelay) / speedRatio) : 0;
-  const readingProgress = sweepDurationFrames > 0
-    ? Math.min(1, Math.max(0, (frame - rStart - prefixDelay) / sweepDurationFrames))
-    : -1;
-  const readChars = readingProgress >= 0 ? Math.floor(readingProgress * totalChars) : -1;
+
+  let readChars = -1;
+  const elapsed = frame - rStart;
+  if (elapsed >= prefixDelay && rawDuration > 0) {
+    const postPrefixElapsed = (elapsed - prefixDelay) / speedRatio;
+    if (readingClauseDurations && readingClauseDurations.length > 1) {
+      // Skip first clause (spoken type prefix not displayed)
+      const displayClauses = readingClauseDurations.slice(1);
+      const displayText = cleanDisplayText;
+      const textClauses = displayText.split(/(?<=[。，！？、；,])/);
+      let accFrames = 0;
+      let accChars = 0;
+      for (let i = 0; i < displayClauses.length; i++) {
+        const cf = displayClauses[i] * fps;
+        const cc = textClauses[i]?.length || 0;
+        if (postPrefixElapsed <= accFrames + cf) {
+          readChars = accChars + Math.floor(cf > 0 ? ((postPrefixElapsed - accFrames) / cf) * cc : cc);
+          break;
+        }
+        accFrames += cf;
+        accChars += cc;
+      }
+      if (readChars < 0) readChars = totalChars;
+    } else {
+      const sweepDurationFrames = Math.max(1, (rawDuration - prefixDelay) / speedRatio);
+      const readingProgress = Math.min(1, Math.max(0, postPrefixElapsed / sweepDurationFrames));
+      readChars = Math.floor(readingProgress * totalChars);
+    }
+  }
 
   const HIGHLIGHT_INTERVAL = 9;
 

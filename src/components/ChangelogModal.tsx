@@ -20,6 +20,9 @@ export function ChangelogModal({ open, onClose, currentOnly }: Props) {
     ? changelog
     : changelog.filter((v) => v.version === currentVersion);
 
+  const currentEntry = changelog.find((v) => v.version === currentVersion);
+  const tipText = currentEntry?.tip;
+
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={onClose}>
       <div className="bg-white rounded-xl shadow-xl w-[560px] max-h-[70vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
@@ -27,6 +30,12 @@ export function ChangelogModal({ open, onClose, currentOnly }: Props) {
           <h2 className="text-lg font-bold text-gray-900">更新日志</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
         </div>
+        {tipText && (
+          <div className="mx-6 mt-4 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200 flex items-start gap-2.5">
+            <span className="text-amber-500 text-lg leading-none mt-0.5">💡</span>
+            <p className="text-sm text-amber-800 leading-relaxed">{tipText}</p>
+          </div>
+        )}
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
           {displayVersions.length === 0 && (
             <p className="text-sm text-gray-400 text-center py-8">暂无更新记录</p>

@@ -30,6 +30,7 @@ interface Props {
   readingPrefixDelay?: number;
   readingSpeedRatio?: number;
   panelSuffix?: string;
+  readingClauseDurations?: number[];
 }
 
 interface Segment {
@@ -82,7 +83,7 @@ export const BottomPanel: React.FC<Props> = ({
   readingDurationFrames, keywords, blueKeywords, panelHeight: panelHeightProp,
   underlineEnabled = false, phase, originalQuestion, originalOptions,
   originalKeywords, correctOptionIndices, keywordFlashEnabled, fontSizeOverride, underlineColor,
-  readingPrefixDelay, readingSpeedRatio, panelSuffix,
+  readingPrefixDelay, readingSpeedRatio, panelSuffix, readingClauseDurations,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -186,11 +187,35 @@ export const BottomPanel: React.FC<Props> = ({
   const prefixDelay = readingPrefixDelay ?? 0;
   const speedRatio = readingSpeedRatio ?? 1;
   const effectiveDuration = readingDurationFrames ? readingDurationFrames / speedRatio : 0;
-  const readProgress = effectiveDuration > 0
-    ? Math.min(1, Math.max(0, (localFrame - prefixDelay) / effectiveDuration))
-    : -1;
-
   const totalContentLen = sentences.reduce((s, t) => s + t.length, 0);
+
+  let readCharsCount = -1;
+  if (effectiveDuration > 0) {
+    const postPrefixElapsed = (localFrame - prefixDelay) / speedRatio;
+    if (postPrefixElapsed >= 0) {
+      if (readingClauseDurations && readingClauseDurations.length > 0) {
+        const plainText = sentences.join("");
+        const textClauses = plainText.split(/(?<=[。，！？、；,])/);
+        let accFrames = 0;
+        let accChars = 0;
+        for (let i = 0; i < readingClauseDurations.length; i++) {
+          const cf = readingClauseDurations[i] * fps;
+          const cc = textClauses[i]?.length || 0;
+          if (postPrefixElapsed <= accFrames + cf) {
+            readCharsCount = accChars + Math.floor(cf > 0 ? ((postPrefixElapsed - accFrames) / cf) * cc : cc);
+            break;
+          }
+          accFrames += cf;
+          accChars += cc;
+        }
+        if (readCharsCount < 0) readCharsCount = totalContentLen;
+      } else {
+        const readProgress = Math.min(1, Math.max(0, postPrefixElapsed / (effectiveDuration / speedRatio)));
+        readCharsCount = Math.floor(readProgress * totalContentLen);
+      }
+    }
+  }
+
   let charCounter = 0;
   const kws = keywords || [];
   const bkws = blueKeywords || [];
@@ -272,12 +297,11 @@ export const BottomPanel: React.FC<Props> = ({
               const rendered = segments.map((seg, si) => {
                 const segGlobalStart = sentenceCharStart + seg.startIdx;
                 const segReadRatio = totalContentLen > 0 ? segGlobalStart / totalContentLen : 0;
-                const isSegReached = readProgress >= 0 && readProgress > segReadRatio;
+                const isSegReached = readCharsCount >= 0 && segGlobalStart < readCharsCount;
 
                 const chars = seg.text.split("").map((ch, ci) => {
                   const globalIdx = segGlobalStart + ci;
-                  const readRatio = readProgress >= 0 ? globalIdx / totalContentLen : -1;
-                  const isRead = readRatio >= 0 && readRatio < readProgress;
+                  const isRead = readCharsCount >= 0 && globalIdx < readCharsCount;
 
                   let color = COLORS.text;
                   if (seg.isKeyword && isRead) {

@@ -281,6 +281,7 @@ export const ScrollableQuestion: React.FC<{
           tipStartFrame={T.tipStart > 0 ? T.tipStart : undefined}
           readingPrefixDelay={readingPrefixDelay}
           readingSpeedRatio={readingSpeedRatio}
+          readingClauseDurations={audioDurations.questionClauseDurations}
         />
 
         <div style={{ marginTop: 10 }}>
@@ -293,6 +294,7 @@ export const ScrollableQuestion: React.FC<{
               tipFrame={T.tipStart > 0 ? T.tipStart : undefined}
               readStartFrame={readOptions ? optReadStarts[i] : undefined}
               readingDurationFrames={readOptions ? optFramesArr[i] : undefined}
+              readingClauseDurations={readOptions ? audioDurations.optionClauseDurations?.[i] : undefined}
               optionGap={optionGap}
               fontScale={fontScale}
               fontSizeOverride={fontSizeOption}
@@ -308,10 +310,10 @@ export const ScrollableQuestion: React.FC<{
       )}
 
       {showOfficialExplanation !== false && T.explanationEnd > T.explanationStart && (
-        <BottomPanel title="答题解析" titleColor={COLORS.correct} accentColor={COLORS.correct} borderColor={COLORS.correctBorder} content={explanationText} startFrame={T.explanationStart} endFrame={T.explanationEnd} readingDurationFrames={expFrames} keywords={expKeywords} blueKeywords={expBlueKeywords} underlineEnabled={underlineExplanation} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} phase="explanation" originalQuestion={question.questionContent} originalOptions={question.options} originalKeywords={keywords} correctOptionIndices={correctIndices} fontSizeOverride={fontSizeExplanation} panelSuffix={panelSuffix} />
+        <BottomPanel title="答题解析" titleColor={COLORS.correct} accentColor={COLORS.correct} borderColor={COLORS.correctBorder} content={explanationText} startFrame={T.explanationStart} endFrame={T.explanationEnd} readingDurationFrames={expFrames} keywords={expKeywords} blueKeywords={expBlueKeywords} underlineEnabled={underlineExplanation} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} phase="explanation" originalQuestion={question.questionContent} originalOptions={question.options} originalKeywords={keywords} correctOptionIndices={correctIndices} fontSizeOverride={fontSizeExplanation} panelSuffix={panelSuffix} readingClauseDurations={audioDurations.explanationClauseDurations} />
       )}
       {showTip !== false && T.tipEnd > T.tipStart && (
-        <BottomPanel title="答题技巧" titleColor={COLORS.highlight} accentColor={COLORS.highlight} borderColor="rgba(252, 211, 77, 0.4)" content={question.tip} startFrame={T.tipStart} endFrame={T.tipEnd} readingDurationFrames={tFrames} keywords={tipKeywords} blueKeywords={tipBlueKeywords} underlineEnabled={underlineTip} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} panelSuffix={panelSuffix} />
+        <BottomPanel title="答题技巧" titleColor={COLORS.highlight} accentColor={COLORS.highlight} borderColor="rgba(252, 211, 77, 0.4)" content={question.tip} startFrame={T.tipStart} endFrame={T.tipEnd} readingDurationFrames={tFrames} keywords={tipKeywords} blueKeywords={tipBlueKeywords} underlineEnabled={underlineTip} underlineColor={underlineColor} keywordFlashEnabled={keywordFlashEnabled} panelSuffix={panelSuffix} readingClauseDurations={audioDurations.tipClauseDurations} />
       )}
 
       {!tipOnly && <Sequence from={T.audioStart}><Audio src={`${audioServerUrl}/audio/q${question.id}_question.wav`} /></Sequence>}

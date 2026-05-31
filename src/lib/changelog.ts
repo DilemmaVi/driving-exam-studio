@@ -1,4 +1,19 @@
-export const changelog = [
+export const changelog: {
+  version: string;
+  date: string;
+  changes: string[];
+  tip?: string;
+}[] = [
+  {
+    version: "0.3.29",
+    date: "2026-05-31",
+    tip: "本版本优化了语音与文字变色的同步精度。建议对已有系列重新生成语音，即可获得更精准的变色效果。",
+    changes: [
+      "语音变色同步精度大幅提升：基于 WAV 静音检测的子句级对齐算法",
+      "修复选项高亮速度与语音不同步的问题",
+      "修复选项文字在底部面板弹出时溢出的问题",
+    ],
+  },
   {
     version: "0.3.28",
     date: "2026-05-31",
