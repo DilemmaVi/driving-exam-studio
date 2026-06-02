@@ -1,0 +1,31 @@
+package.json
+  a0016bb7d214ca0a 3
+src/remotion/BottomPanel.tsx
+  a0016bb7d214ca0a 334
+src/lib/changelog.ts
+  a0016bb7d214ca0a 8-13
+src/remotion/RedCircle.tsx
+  a0016bb7d214ca0a 27
+CHANGELOG.md
+  a0016bb7d214ca0a 1-3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.16",
+  "base_commit_sha": "144c2d2ebfbb37ca1ac6bddb672f7e53013de8e3",
+  "prompts": {
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 14,
+      "total_deletions": 4,
+      "accepted_lines": 2267,
+      "overriden_lines": 0
+    }
+  }
+}
