@@ -130,11 +130,9 @@ export const QuestionHeader: React.FC<Props> = ({
   const elapsed = frame - rStart;
   if (elapsed >= prefixDelay && rawDuration > 0) {
     const postPrefixElapsed = (elapsed - prefixDelay) / speedRatio;
-    if (readingClauseDurations && readingClauseDurations.length > 1) {
-      // Skip first clause (spoken type prefix not displayed)
-      const displayClauses = readingClauseDurations.slice(1);
-      const displayText = cleanDisplayText;
-      const textClauses = displayText.split(/(?<=[。，！？、；,])/);
+    const displayClauses = readingClauseDurations && readingClauseDurations.length > 1 ? readingClauseDurations.slice(1) : null;
+    const textClauses = cleanDisplayText.split(/(?<=[。，！？、；,])/);
+    if (displayClauses && displayClauses.length === textClauses.length) {
       let accFrames = 0;
       let accChars = 0;
       for (let i = 0; i < displayClauses.length; i++) {

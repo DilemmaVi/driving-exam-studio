@@ -193,9 +193,10 @@ export const BottomPanel: React.FC<Props> = ({
   if (effectiveDuration > 0) {
     const postPrefixElapsed = (localFrame - prefixDelay) / speedRatio;
     if (postPrefixElapsed >= 0) {
-      if (readingClauseDurations && readingClauseDurations.length > 0) {
-        const plainText = sentences.join("");
-        const textClauses = plainText.split(/(?<=[。，！？、；,])/);
+      const plainText = sentences.join("");
+      const textClauses = plainText.split(/(?<=[。，！？、；,])/);
+      const clauseMatch = readingClauseDurations && readingClauseDurations.length === textClauses.length;
+      if (readingClauseDurations && readingClauseDurations.length > 0 && clauseMatch) {
         let accFrames = 0;
         let accChars = 0;
         for (let i = 0; i < readingClauseDurations.length; i++) {
@@ -210,7 +211,7 @@ export const BottomPanel: React.FC<Props> = ({
         }
         if (readCharsCount < 0) readCharsCount = totalContentLen;
       } else {
-        const readProgress = Math.min(1, Math.max(0, postPrefixElapsed / (effectiveDuration / speedRatio)));
+        const readProgress = Math.min(1, Math.max(0, postPrefixElapsed / effectiveDuration));
         readCharsCount = Math.floor(readProgress * totalContentLen);
       }
     }

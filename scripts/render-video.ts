@@ -93,7 +93,7 @@ async function runBatch(input: { items: Array<{ props: Record<string, unknown>; 
   const entryPoint = path.join(__dirname, "..", "src", "remotion", "index.ts");
   const bundleLocation = await bundle({
     entryPoint,
-    enableCaching: true,
+    enableCaching: false,
     onProgress: (progress: number) => {
       console.log(JSON.stringify({ type: "progress", phase: "bundling", progress: Math.min(100, Math.round(progress)) }));
     },
@@ -187,7 +187,7 @@ async function runSingle(inputProps: Record<string, unknown>, AUDIO_SERVER_URL: 
 
   const bundleLocation = await bundle({
     entryPoint,
-    enableCaching: true,
+    enableCaching: false,
     onProgress: (progress: number) => {
       console.log(JSON.stringify({ type: "progress", phase: "bundling", progress: Math.min(100, Math.round(progress)) }));
     },

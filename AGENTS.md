@@ -6,8 +6,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-05-26
-**Commit:** a6db005
+**Generated:** 2026-05-31
+**Commit:** d5c7803
 **Branch:** main
 
 ## OVERVIEW
@@ -105,3 +105,7 @@ npm run electron:build   # Full Windows build (next build + electron-builder)
 - `src/app/editor/page.tsx` is orphaned legacy code (not linked from nav)
 - TTS depends on external `api.xiaomimimo.com` — cached in SQLite `tts_cache` table
 - Electron bundles its own `node.exe` (v20.18.3 portable) for standalone server
+- Dual distribution: GitHub Releases + Aliyun OSS (`https://file.yxjky.com/studio-releases/`)
+- No error boundaries: No `error.tsx`, `loading.tsx`, `not-found.tsx` in app tree
+- No middleware: Zero request-level interception (no auth, no redirects, no rate limiting)
+- No tests: Zero test infrastructure (no vitest, jest, or playwright configured)

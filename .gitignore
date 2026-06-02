@@ -50,3 +50,6 @@ next-env.d.ts
 /dist-electron/
 /resources/
 node_modules.zip
+
+# InsForge link & local CLI shim (auto-managed by `nexus link`)
+.insforge-nexus/bin/

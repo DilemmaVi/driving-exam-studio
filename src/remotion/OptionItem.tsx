@@ -119,8 +119,9 @@ export const OptionItem: React.FC<Props> = ({
   const readLocalFrame = readStartFrame !== undefined ? frame - readStartFrame : 0;
   let readChars = -1;
   if (readActive) {
-    if (readingClauseDurations && readingClauseDurations.length > 0) {
-      const textClauses = plainText.split(/(?<=[。，！？、；,])/);
+    const textClauses = plainText.split(/(?<=[。，！？、；,])/);
+    const clauseMatch = readingClauseDurations && readingClauseDurations.length === textClauses.length;
+    if (readingClauseDurations && readingClauseDurations.length > 0 && clauseMatch) {
       let accFrames = 0;
       let accChars = 0;
       for (let i = 0; i < readingClauseDurations.length; i++) {
