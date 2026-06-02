@@ -331,7 +331,7 @@ export const BottomPanel: React.FC<Props> = ({
                     </RedCircle>
                   );
                 }
-                return <span key={`seg-${si}`}>{chars}</span>;
+                return <span key={`seg-${si}`} style={seg.isKeyword ? { whiteSpace: "nowrap", display: "inline-block" } : undefined}>{chars}</span>;
               });
 
               charCounter += sentence.length;

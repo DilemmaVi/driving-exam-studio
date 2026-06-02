@@ -5,6 +5,13 @@ export const changelog: {
   tip?: string;
 }[] = [
   {
+    version: "0.3.31",
+    date: "2026-06-02",
+    changes: [
+      "修复关键字跨行时红圈被拉伸成竖矩形的问题（关键字整体 nowrap）",
+    ],
+  },
+  {
     version: "0.3.30",
     date: "2026-06-02",
     changes: [

@@ -24,7 +24,7 @@ export const RedCircle: React.FC<Props> = ({ children, appearFrame, flashEnabled
   }
 
   return (
-    <span style={{ position: "relative", display: "inline", filter: filterVal }}>
+    <span style={{ position: "relative", display: "inline-block", whiteSpace: "nowrap", filter: filterVal }}>
       <svg
         viewBox="0 0 200 80"
         preserveAspectRatio="none"
