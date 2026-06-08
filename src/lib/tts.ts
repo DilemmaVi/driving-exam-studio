@@ -311,6 +311,7 @@ export async function generateTTSForQuestion(
   const labels = ["A", "B", "C", "D"];
   const opts = [row.option1, row.option2, row.option3, row.option4].filter(Boolean) as string[];
 
+  const optionDurations: number[] = [];
   const promises: Promise<TTSResult>[] = [
     generateSegment(questionId, "question", questionText, "用清晰的教学语气朗读题目。", ttsSpeed, force, ttsVoice),
     generateSegment(questionId, "answer", answerText, "用肯定、清晰的语气播报正确答案，其中A、B、C、D是选项编号，请读作英文字母。", ttsSpeed, force, ttsVoice),
@@ -332,9 +333,27 @@ export async function generateTTSForQuestion(
       : "朗读选项内容，其中A、B、C、D是选项编号，请读作英文字母。";
     promises.push(generateSegment(questionId, "options", allOptsText, optStyle, ttsSpeed, force, ttsVoice));
   } else {
+    const db = getDb();
     for (let i = 0; i < opts.length; i++) {
-      const optText = buildOptionText(labels[i], opts[i]);
-      promises.push(generateSegment(0, `tf_opt_${i}`, optText, "朗读选项内容，其中A、B、C、D是选项编号，请读作英文字母。", ttsSpeed, false, ttsVoice));
+      const cached = db.prepare("SELECT file_path, duration_sec FROM tts_cache WHERE question_id = 0 AND segment = ?").get(`tf_opt_${i}`) as { file_path: string; duration_sec: number } | undefined;
+      if (cached) {
+        const srcPath = path.join(AUDIO_DIR, path.basename(cached.file_path));
+        const destPath = path.join(AUDIO_DIR, `q${questionId}_opt_${i}.wav`);
+        if (fs.existsSync(srcPath)) {
+          if (srcPath !== destPath) fs.copyFileSync(srcPath, destPath);
+          optionDurations.push(cached.duration_sec);
+          continue;
+        }
+      }
+      // fallback: 设置里未生成，走正常流程
+      const optText = `${labels[i]}，${opts[i]}。`;
+      const result = await generateSegment(0, `tf_opt_${i}`, optText, "朗读选项内容，其中A、B、C、D是选项编号，请读作英文字母。", ttsSpeed, false, ttsVoice);
+      optionDurations.push(result.duration);
+      const srcFile = path.join(AUDIO_DIR, path.basename(result.filePath));
+      const destFile = path.join(AUDIO_DIR, `q${questionId}_opt_${i}.wav`);
+      if (fs.existsSync(srcFile) && srcFile !== destFile) {
+        fs.copyFileSync(srcFile, destFile);
+      }
     }
   }
 
@@ -354,7 +373,6 @@ export async function generateTTSForQuestion(
   let idx = 0;
   const questionResult = results[idx++];
   const answerResult = results[idx++];
-  const optionDurations: number[] = [];
 
   if (!isTrueFalse && opts.length > 0) {
     const optionsResult = results[idx++];
@@ -417,17 +435,6 @@ export async function generateTTSForQuestion(
       const destFile = path.join(AUDIO_DIR, `q${questionId}_opt_${i}.wav`);
       fs.writeFileSync(destFile, optBuf);
       sampleOffset += samples;
-    }
-  } else {
-    for (let i = 0; i < opts.length; i++) {
-      const optResult = results[idx++];
-      optionDurations.push(optResult.duration);
-      // Copy shared tf option audio to per-question filename for Remotion
-      const srcFile = path.join(AUDIO_DIR, path.basename(optResult.filePath));
-      const destFile = path.join(AUDIO_DIR, `q${questionId}_opt_${i}.wav`);
-      if (fs.existsSync(srcFile) && srcFile !== destFile) {
-        fs.copyFileSync(srcFile, destFile);
-      }
     }
   }
   const explanationResult = showExplanation ? results[idx++] : { duration: 0, clauseDurations: [] };

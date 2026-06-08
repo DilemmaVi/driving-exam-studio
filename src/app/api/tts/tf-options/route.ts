@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     const speedPrefix = ttsSpeed === "slow" ? "语速稍慢，节奏从容。"
       : ttsSpeed === "fast" ? "语速比正常稍快。"
       : "语速适中自然。";
-    const style = speedPrefix + "用清晰的教学语气朗读选项。";
+    const style = speedPrefix + "朗读选项内容，其中A、B、C、D是选项编号，请读作英文字母。";
 
     const optTexts = ["A，正确。", "B，错误。"];
     const results: { duration: number }[] = [];
@@ -87,6 +87,8 @@ export async function POST(request: NextRequest) {
 
       const duration = getWavDuration(fullPath);
       db.prepare("INSERT OR REPLACE INTO tts_cache (question_id, segment, file_path, duration_sec) VALUES (?, ?, ?, ?)").run(0, cacheSegment, `audio/${fileName}`, duration);
+      // 同时用固定 segment 名注册，供题目生成时直接复用
+      db.prepare("INSERT OR REPLACE INTO tts_cache (question_id, segment, file_path, duration_sec) VALUES (?, ?, ?, ?)").run(0, `tf_opt_${i}`, `audio/${fileName}`, duration);
       results.push({ duration });
     }
 
