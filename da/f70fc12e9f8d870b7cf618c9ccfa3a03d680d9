@@ -1,0 +1,42 @@
+CHANGELOG.md
+  947baa095c733774 3-4
+src/lib/tts.ts
+  947baa095c733774 314,336,338-356
+src/lib/changelog.ts
+  947baa095c733774 12-13
+src/app/api/tts/tf-options/route.ts
+  947baa095c733774 43,90-91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "daf70fc12e9f8d870b7cf618c9ccfa3a03d680d9",
+  "prompts": {
+    "947baa095c733774": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ec099e56-8890-4624-828b-369365d8b1e0",
+        "model": "mimo-v2.5-pro"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 30,
+      "total_deletions": 17,
+      "accepted_lines": 32,
+      "overriden_lines": 0
+    },
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 2253,
+      "overriden_lines": 0
+    }
+  }
+}
