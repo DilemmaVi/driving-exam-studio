@@ -102,6 +102,7 @@ interface SeriesData {
   pause_start?: number;
   pause_end?: number;
   tts_speed?: string;
+  tts_voice?: string;
   underline_question?: number;
   underline_option?: number;
   underline_explanation?: number;
@@ -648,7 +649,7 @@ export default function SeriesEditorPage() {
       bridgeExplain: "bridge_explain", bridgeTip: "bridge_tip",
       showTransition: "show_transition", pauseStart: "pause_start",
       pauseEnd: "pause_end", pauseBeforeTip: "pause_before_tip",
-      ttsSpeed: "tts_speed", keywordFlashEnabled: "keyword_flash_enabled",
+      ttsSpeed: "tts_speed", ttsVoice: "tts_voice", keywordFlashEnabled: "keyword_flash_enabled",
       underlineProgressEnabled: "underline_progress_enabled", avatarEnabled: "avatar_enabled",
       underlineQuestion: "underline_question", underlineOption: "underline_option",
       underlineExplanation: "underline_explanation", underlineTip: "underline_tip",
@@ -685,6 +686,8 @@ export default function SeriesEditorPage() {
             showOfficialExplanation: item.showOfficialExplanation,
             showTip: item.showTip,
             voiceStyle: item.voiceStyle,
+            ttsSpeed: series?.tts_speed,
+            ttsVoice: series?.tts_voice,
             force,
           }),
         });

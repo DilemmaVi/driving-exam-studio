@@ -268,7 +268,11 @@ function buildAnswerText(row: QuestionRow, readContent = true): string {
   const letters = correct.split("").filter((c) => labelMap[c] !== undefined);
   if (letters.length === 1 && readContent) {
     const idx = labelMap[letters[0]];
-    return `正确答案是${letters[0]}，${(opts[idx] || "").replace(/【/g, "").replace(/】/g, "")}。`;
+    const content = (opts[idx] || "").replace(/【/g, "").replace(/】/g, "");
+    const isEnglish = /^[A-Z]{2,}$/.test(content.trim());
+    return isEnglish
+      ? `正确答案是${letters[0]}。${content}。`
+      : `正确答案是${letters[0]}，${content}。`;
   }
   return `正确答案是${letters.join("")}。`;
 }
@@ -315,8 +319,18 @@ export async function generateTTSForQuestion(
   const isTrueFalse = row.type === 1;
 
   if (!isTrueFalse && opts.length > 0) {
-    const allOptsText = opts.map((opt, i) => buildOptionText(labels[i], opt)).join(" ");
-    promises.push(generateSegment(questionId, "options", allOptsText, "朗读选项内容，其中A、B、C、D是选项编号，请读作英文字母。", ttsSpeed, force, ttsVoice));
+    const hasEnglishOpts = opts.some(opt => /^[A-Z]{2,}$/.test(opt.replace(/【|】/g, "").trim()));
+    const optTexts = opts.map((opt, i) => {
+      const clean = opt.replace(/【/g, "").replace(/】/g, "");
+      return hasEnglishOpts
+        ? `${labels[i]}，${clean}`
+        : buildOptionText(labels[i], opt);
+    });
+    const allOptsText = optTexts.join("！") + "。";
+    const optStyle = hasEnglishOpts
+      ? "朗读选项内容，其中A、B、C、D是选项编号，请读作英文字母。读完编号后稍作停顿，再快速连读后面的英文字母缩写，字母之间不要停顿。每个选项之间要有明显的停顿。"
+      : "朗读选项内容，其中A、B、C、D是选项编号，请读作英文字母。";
+    promises.push(generateSegment(questionId, "options", allOptsText, optStyle, ttsSpeed, force, ttsVoice));
   } else {
     for (let i = 0; i < opts.length; i++) {
       const optText = buildOptionText(labels[i], opts[i]);
