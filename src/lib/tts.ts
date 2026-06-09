@@ -312,6 +312,14 @@ export async function generateTTSForQuestion(
   const opts = [row.option1, row.option2, row.option3, row.option4].filter(Boolean) as string[];
 
   const optionDurations: number[] = [];
+  const hasEnglishOpts = opts.some(opt => /^[A-Z]{2,}$/.test(opt.replace(/【|】/g, "").trim()));
+  const optTexts = opts.map((opt, i) => {
+    const clean = opt.replace(/【/g, "").replace(/】/g, "");
+    return hasEnglishOpts
+      ? `${labels[i]}，${clean}`
+      : buildOptionText(labels[i], opt);
+  });
+  const allOptsText = optTexts.join("！") + "。";
   const promises: Promise<TTSResult>[] = [
     generateSegment(questionId, "question", questionText, "用清晰的教学语气朗读题目。", ttsSpeed, force, ttsVoice),
     generateSegment(questionId, "answer", answerText, "用肯定、清晰的语气播报正确答案，其中A、B、C、D是选项编号，请读作英文字母。", ttsSpeed, force, ttsVoice),
@@ -320,14 +328,6 @@ export async function generateTTSForQuestion(
   const isTrueFalse = row.type === 1;
 
   if (!isTrueFalse && opts.length > 0) {
-    const hasEnglishOpts = opts.some(opt => /^[A-Z]{2,}$/.test(opt.replace(/【|】/g, "").trim()));
-    const optTexts = opts.map((opt, i) => {
-      const clean = opt.replace(/【/g, "").replace(/】/g, "");
-      return hasEnglishOpts
-        ? `${labels[i]}，${clean}`
-        : buildOptionText(labels[i], opt);
-    });
-    const allOptsText = optTexts.join("！") + "。";
     const optStyle = hasEnglishOpts
       ? "朗读选项内容，其中A、B、C、D是选项编号，请读作英文字母。读完编号后稍作停顿，再快速连读后面的英文字母缩写，字母之间不要停顿。每个选项之间要有明显的停顿。"
       : "朗读选项内容，其中A、B、C、D是选项编号，请读作英文字母。";
@@ -376,7 +376,6 @@ export async function generateTTSForQuestion(
 
   if (!isTrueFalse && opts.length > 0) {
     const optionsResult = results[idx++];
-    const optTexts = opts.map((opt, i) => buildOptionText(labels[i], opt));
     const totalDuration = optionsResult.duration;
     const srcPath = path.join(AUDIO_DIR, path.basename(optionsResult.filePath));
     const buf = fs.readFileSync(srcPath);
@@ -387,8 +386,7 @@ export async function generateTTSForQuestion(
     const dataStart = 44;
 
     // Use silence detection to find per-option durations
-    // Each option text ends with "。", clauses split at punctuation
-    const allOptsText = optTexts.join(" ");
+    // allOptsText uses "！" as separator between options, matching the TTS input
     const clauseDurs = detectClauseBoundaries(srcPath, allOptsText);
     const textClauses = allOptsText.split(/(?<=[。，！？、；,])/);
 
@@ -397,8 +395,8 @@ export async function generateTTSForQuestion(
       let clauseIdx = 0;
       let charAcc = 0;
       for (let i = 0; i < opts.length; i++) {
-        // The target char position where this option ends (including space separator)
-        const optEndChar = optTexts.slice(0, i + 1).join(" ").length;
+        // The target char position where this option ends (including "！" separator)
+        const optEndChar = optTexts.slice(0, i + 1).join("！").length;
         let optDur = 0;
         while (clauseIdx < textClauses.length && charAcc + textClauses[clauseIdx].length <= optEndChar) {
           optDur += clauseDurs[clauseIdx];
@@ -452,24 +450,25 @@ export async function generateTTSForQuestion(
   if (!isTrueFalse && opts.length > 0) {
     const optionsResult = results[2];
     if (optionsResult.clauseDurations.length > 0) {
+      const textClauses = allOptsText.split(/(?<=[。，！？、；,])/);
       let clauseIdx = 0;
+      let charAcc = 0;
       for (let i = 0; i < opts.length; i++) {
-        const optText = buildOptionText(labels[i], opts[i]);
-        const optClauses = optText.split(/(?<=[。，！？、；,])/);
-        const numClauses = optClauses.length;
-        const raw = optionsResult.clauseDurations.slice(clauseIdx, clauseIdx + numClauses);
-        clauseIdx += numClauses;
-        // TTS text has prefix "X, " and suffix "。" not shown in rendered text.
-        // Merge prefix clause (e.g. "A,") duration into the next clause,
-        // and merge trailing "。" clause into the previous one, so durations
-        // align with the displayed text which has no label prefix or period.
-        if (raw.length >= 2) {
-          raw[1] += raw[0];
-          raw.shift();
+        const optEndChar = optTexts.slice(0, i + 1).join("！").length;
+        const raw: number[] = [];
+        while (clauseIdx < textClauses.length && charAcc + textClauses[clauseIdx].length <= optEndChar) {
+          raw.push(optionsResult.clauseDurations[clauseIdx]);
+          charAcc += textClauses[clauseIdx].length;
+          clauseIdx++;
         }
-        // The displayed text won't end with "。" so the last clause's duration
-        // already covers that trailing period — no adjustment needed.
-        optionClauseDurations.push(raw);
+        optionClauseDurations.push(raw.length > 0 ? raw : [0]);
+      }
+      if (clauseIdx < optionsResult.clauseDurations.length) {
+        const last = optionClauseDurations[optionClauseDurations.length - 1];
+        while (clauseIdx < optionsResult.clauseDurations.length) {
+          last[last.length - 1] += optionsResult.clauseDurations[clauseIdx];
+          clauseIdx++;
+        }
       }
     }
   } else {

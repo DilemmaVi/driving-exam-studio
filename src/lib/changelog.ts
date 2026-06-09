@@ -5,6 +5,13 @@ export const changelog: {
   tip?: string;
 }[] = [
   {
+    version: "0.3.34",
+    date: "2026-06-09",
+    changes: [
+      "修复选择题长选项变色动画过快的问题（统一 TTS 文本与拆分文本格式，子句级时长分配恢复准确）",
+    ],
+  },
+  {
     version: "0.3.33",
     date: "2026-06-08",
     changes: [
