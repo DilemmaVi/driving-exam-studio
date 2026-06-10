@@ -5,6 +5,13 @@ export const changelog: {
   tip?: string;
 }[] = [
   {
+    version: "0.3.36",
+    date: "2026-06-10",
+    changes: [
+      "修复选项中含括号的内容 TTS 不朗读的问题（如「雨(雪)天」中的「雪」被跳过），括号字符移除但保留内容",
+    ],
+  },
+  {
     version: "0.3.35",
     date: "2026-06-10",
     changes: [

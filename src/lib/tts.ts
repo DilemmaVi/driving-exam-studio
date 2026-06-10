@@ -247,7 +247,7 @@ function buildQuestionStemText(row: QuestionRow): string {
   content = content.replace(/【/g, "").replace(/】/g, "");
   // Strip option part: A:xxx, B:xxx etc.
   content = content.replace(/[,，]?\s*A[.:：][\s\S]*$/, "");
-  content = content.replace(/[（(]\s*[）)]/g, "");
+  // Remove parentheses characters but keep content inside
   content = content.replace(/[（(]/g, "").replace(/[）)]/g, "");
   content = content.replace(/[。，！？]+$/, "。");
   if (!/[。！？]$/.test(content.trim())) {
@@ -257,7 +257,7 @@ function buildQuestionStemText(row: QuestionRow): string {
 }
 
 function buildOptionText(label: string, optionText: string): string {
-  const clean = optionText.replace(/【/g, "").replace(/】/g, "");
+  const clean = optionText.replace(/【/g, "").replace(/】/g, "").replace(/[（(]/g, "").replace(/[）)]/g, "");
   return `${label}, ${clean}。`;
 }
 
@@ -268,7 +268,7 @@ function buildAnswerText(row: QuestionRow, readContent = true): string {
   const letters = correct.split("").filter((c) => labelMap[c] !== undefined);
   if (letters.length === 1 && readContent) {
     const idx = labelMap[letters[0]];
-    const content = (opts[idx] || "").replace(/【/g, "").replace(/】/g, "");
+    const content = (opts[idx] || "").replace(/【/g, "").replace(/】/g, "").replace(/[（(]/g, "").replace(/[）)]/g, "");
     const isEnglish = /^[A-Z]{2,}$/.test(content.trim());
     return isEnglish
       ? `正确答案是${letters[0]}。${content}。`
@@ -315,7 +315,7 @@ export async function generateTTSForQuestion(
   const tfOptionResults: TTSResult[] = [];
   const hasEnglishOpts = opts.some(opt => /^[A-Z]{2,}$/.test(opt.replace(/【|】/g, "").trim()));
   const optTexts = opts.map((opt, i) => {
-    const clean = opt.replace(/【/g, "").replace(/】/g, "");
+    const clean = opt.replace(/【/g, "").replace(/】/g, "").replace(/[（(]/g, "").replace(/[）)]/g, "");
     return hasEnglishOpts
       ? `${labels[i]}，${clean}`
       : buildOptionText(labels[i], opt);
@@ -349,7 +349,7 @@ export async function generateTTSForQuestion(
         }
       }
       // fallback: 设置里未生成，走正常流程
-      const optText = `${labels[i]}，${opts[i]}。`;
+      const optText = `${labels[i]}，${opts[i].replace(/[（(]/g, "").replace(/[）)]/g, "")}。`;
       const result = await generateSegment(0, `tf_opt_${i}`, optText, "朗读选项内容，其中A、B、C、D是选项编号，请读作英文字母。", ttsSpeed, false, ttsVoice);
       optionDurations.push(result.duration);
       tfOptionResults.push(result);
@@ -368,7 +368,7 @@ export async function generateTTSForQuestion(
     promises.push(generateSegment(questionId, "tip", row.tip_text || "无技巧。", "用轻快、提示性的语气分享答题技巧。", ttsSpeed, force, ttsVoice));
   }
   if (teacherText) {
-    const cleanText = teacherText.replace(/【/g, "").replace(/】/g, "");
+    const cleanText = teacherText.replace(/【/g, "").replace(/】/g, "").replace(/[（(]/g, "").replace(/[）)]/g, "");
     promises.push(generateSegment(questionId, "teacher_explanation", cleanText, "用沉稳清晰的教学语气进行讲解，关键词处稍加重音。", ttsSpeed, force, ttsVoice));
   }
 
