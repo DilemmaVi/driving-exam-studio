@@ -40,7 +40,16 @@ export async function POST(request: NextRequest) {
       durations[seg] = r.duration_sec;
     }
 
-    const optDurs = rows.filter((r) => r.segment.startsWith("opt_")).sort((a, b) => a.segment.localeCompare(b.segment)).map((r) => r.duration_sec);
+    // Multiple choice: per-question opt_ segments
+    let optDurs = rows.filter((r) => r.segment.startsWith("opt_")).sort((a, b) => a.segment.localeCompare(b.segment)).map((r) => r.duration_sec);
+
+    // True/false: shared tf_opt_ segments (question_id = 0)
+    if (optDurs.length === 0) {
+      const tfRows = db.prepare(
+        "SELECT segment, duration_sec FROM tts_cache WHERE question_id = 0 AND segment IN ('tf_opt_0','tf_opt_1') ORDER BY segment"
+      ).all() as { segment: string; duration_sec: number }[];
+      optDurs = tfRows.map((r) => r.duration_sec);
+    }
 
     result[qId] = {
       ready: true,

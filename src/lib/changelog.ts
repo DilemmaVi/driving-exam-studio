@@ -5,6 +5,13 @@ export const changelog: {
   tip?: string;
 }[] = [
   {
+    version: "0.3.35",
+    date: "2026-06-10",
+    changes: [
+      "修复判断题选项变色顺序错误的问题（预览时 optionDurations 未返回、渲染时 clauseDurations 误读其他段落数据）",
+    ],
+  },
+  {
     version: "0.3.34",
     date: "2026-06-09",
     changes: [

@@ -312,6 +312,7 @@ export async function generateTTSForQuestion(
   const opts = [row.option1, row.option2, row.option3, row.option4].filter(Boolean) as string[];
 
   const optionDurations: number[] = [];
+  const tfOptionResults: TTSResult[] = [];
   const hasEnglishOpts = opts.some(opt => /^[A-Z]{2,}$/.test(opt.replace(/【|】/g, "").trim()));
   const optTexts = opts.map((opt, i) => {
     const clean = opt.replace(/【/g, "").replace(/】/g, "");
@@ -335,13 +336,15 @@ export async function generateTTSForQuestion(
   } else {
     const db = getDb();
     for (let i = 0; i < opts.length; i++) {
-      const cached = db.prepare("SELECT file_path, duration_sec FROM tts_cache WHERE question_id = 0 AND segment = ?").get(`tf_opt_${i}`) as { file_path: string; duration_sec: number } | undefined;
+      const cached = db.prepare("SELECT file_path, duration_sec, clause_durations FROM tts_cache WHERE question_id = 0 AND segment = ?").get(`tf_opt_${i}`) as { file_path: string; duration_sec: number; clause_durations: string | null } | undefined;
       if (cached) {
         const srcPath = path.join(AUDIO_DIR, path.basename(cached.file_path));
         const destPath = path.join(AUDIO_DIR, `q${questionId}_opt_${i}.wav`);
         if (fs.existsSync(srcPath)) {
           if (srcPath !== destPath) fs.copyFileSync(srcPath, destPath);
           optionDurations.push(cached.duration_sec);
+          const clauseDurs = cached.clause_durations ? JSON.parse(cached.clause_durations) as number[] : [];
+          tfOptionResults.push({ duration: cached.duration_sec, filePath: destPath, clauseDurations: clauseDurs });
           continue;
         }
       }
@@ -349,6 +352,7 @@ export async function generateTTSForQuestion(
       const optText = `${labels[i]}，${opts[i]}。`;
       const result = await generateSegment(0, `tf_opt_${i}`, optText, "朗读选项内容，其中A、B、C、D是选项编号，请读作英文字母。", ttsSpeed, false, ttsVoice);
       optionDurations.push(result.duration);
+      tfOptionResults.push(result);
       const srcFile = path.join(AUDIO_DIR, path.basename(result.filePath));
       const destFile = path.join(AUDIO_DIR, `q${questionId}_opt_${i}.wav`);
       if (fs.existsSync(srcFile) && srcFile !== destFile) {
@@ -472,9 +476,9 @@ export async function generateTTSForQuestion(
       }
     }
   } else {
-    for (let oi = 0; oi < opts.length; oi++) {
-      const optResult = results[2 + oi];
-      const raw = [...optResult.clauseDurations];
+    for (let oi = 0; oi < tfOptionResults.length; oi++) {
+      const optResult = tfOptionResults[oi];
+      const raw = [...(optResult.clauseDurations || [])];
       if (raw.length >= 2) {
         raw[1] += raw[0];
         raw.shift();
