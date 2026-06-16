@@ -1,0 +1,48 @@
+src/lib/changelog.ts
+  947baa095c733774 8-14
+src/remotion/MultipleChoice.tsx
+  947baa095c733774 178
+src/remotion/ScrollableQuestion.tsx
+  947baa095c733774 6,28,38,53,159,207,221,228,291-292
+src/remotion/QuestionImage.tsx
+  947baa095c733774 56-57,66-67
+CHANGELOG.md
+  947baa095c733774 1-4
+package.json
+  947baa095c733774 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.3",
+  "base_commit_sha": "4850b3ee641a18331d04c5694b5a0dd49cfe0984",
+  "prompts": {
+    "947baa095c733774": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ec099e56-8890-4624-828b-369365d8b1e0",
+        "model": "mimo-v2.5-pro"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 43,
+      "total_deletions": 19,
+      "accepted_lines": 43,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/4d03bf566e5cda5736d8a27c3de61e895f5f7905b8455f3a2d30a560f8752aa9"
+    },
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 2248,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/bb45b43b9703c52dcd0721811e3dbfb8a7b664f7e56f4104eb4dad12c1acc5c5"
+    }
+  }
+}
