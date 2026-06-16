@@ -5,6 +5,14 @@ export const changelog: {
   tip?: string;
 }[] = [
   {
+    version: "0.3.37",
+    date: "2026-06-10",
+    changes: [
+      "修复长题目（ScrollableQuestion）不显示看图答题图片的问题",
+      "题目图片显示尺寸增大（850×500 → 950×600），更充分利用画面空间",
+    ],
+  },
+  {
     version: "0.3.36",
     date: "2026-06-10",
     changes: [

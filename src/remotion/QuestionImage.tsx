@@ -53,8 +53,8 @@ export const QuestionImage: React.FC<Props> = ({ src, startFrame, circleFrame })
           <Img
             src={src}
             style={{
-              maxWidth: 850,
-              maxHeight: 500,
+              maxWidth: 950,
+              maxHeight: 600,
               objectFit: "contain",
               borderRadius: RADIUS.lg,
             }}
@@ -63,8 +63,8 @@ export const QuestionImage: React.FC<Props> = ({ src, startFrame, circleFrame })
           <img
             src={src}
             style={{
-              maxWidth: 850,
-              maxHeight: 500,
+              maxWidth: 950,
+              maxHeight: 600,
               objectFit: "contain",
               borderRadius: RADIUS.lg,
             }}

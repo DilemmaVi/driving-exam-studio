@@ -3,6 +3,7 @@ import { useCurrentFrame, useVideoConfig, spring, interpolate, AbsoluteFill, Aud
 import { Background } from "./Background";
 import { ProgressBar } from "./ProgressBar";
 import { QuestionHeader } from "./QuestionHeader";
+import { QuestionImage } from "./QuestionImage";
 import { OptionItem } from "./OptionItem";
 import { BottomPanel } from "./BottomPanel";
 import { TeacherAvatar } from "./TeacherAvatar";
@@ -24,7 +25,7 @@ function estimateLines(text: string, fontSize: number, maxWidth: number): number
   return Math.max(1, Math.ceil(clean.length / charsPerLine));
 }
 
-function calcFontScale(questionText: string, options: string[]): number {
+function calcFontScale(questionText: string, options: string[], hasImage: boolean): number {
   const baseFontQ = FONT.size.question; // 62
   const baseFontOpt = FONT.size.option; // 52
   const lineHeightQ = 1.7;
@@ -34,6 +35,7 @@ function calcFontScale(questionText: string, options: string[]): number {
   const optGap = 12; // margin between options
   const answerRevealHeight = 130;
   const bottomMargin = 100;
+  const imgHeight = hasImage ? 450 : 0;
 
   for (let scale = 1.0; scale >= 0.55; scale -= 0.05) {
     const fq = Math.round(baseFontQ * scale);
@@ -48,7 +50,7 @@ function calcFontScale(questionText: string, options: string[]): number {
       optHeight += lines * (fo * lineHeightOpt) + optPadding + optGap;
     }
 
-    const totalHeight = PADDING_TOP + qHeight + 20 + optHeight + answerRevealHeight + bottomMargin;
+    const totalHeight = PADDING_TOP + qHeight + imgHeight + 20 + optHeight + answerRevealHeight + bottomMargin;
     if (totalHeight <= SCREEN_H) return scale;
   }
   return 0.55;
@@ -154,6 +156,7 @@ export const ScrollableQuestion: React.FC<{
 
   const T = {
     questionStart: 0,
+    imageStart: Math.round(1 * FPS),
     optionsStart: Math.round(2 * FPS),
     audioStart: Math.round(2 * FPS) + startDelay,
     highlightPhaseFrame: 0,
@@ -201,7 +204,7 @@ export const ScrollableQuestion: React.FC<{
     optCursor += optFramesArr[i] || 0;
   }
 
-  const fontScale = calcFontScale(question.questionContent, question.options);
+  const fontScale = calcFontScale(question.questionContent, question.options, !!question.coverImage);
 
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -215,13 +218,14 @@ export const ScrollableQuestion: React.FC<{
   const qText = question.questionContent.replace(/【[^】]*】/g, (m) => m.slice(1, -1)).replace(/[{｛][^}｝]*[}｝]/g, (m) => m.slice(1, -1)).replace(/A[.:：][\s\S]*$/, "");
   const qLines = Math.max(1, Math.ceil(qText.length / charsPerLineQ));
   const qHeight = 80 + qLines * fq * 1.7 + 30;
+  const imgHeight = question.coverImage ? 450 : 0;
   const charsPerLineO = Math.max(6, Math.floor((CONTENT_W - 100) / (fo * 0.55)));
   const optHeight = question.options.reduce((sum, opt) => {
     const text = opt.replace(/【[^】]*】/g, (m) => m.slice(1, -1));
     const lines = Math.max(1, Math.ceil(text.length / charsPerLineO));
     return sum + lines * fo * 1.5 + 64 + gap;
   }, 0);
-  const contentBottom = PADDING_TOP + qHeight + 10 + optHeight + 250;
+  const contentBottom = PADDING_TOP + qHeight + imgHeight + 10 + optHeight + 250;
   const overflow = Math.max(0, contentBottom - panelTop + 40);
 
   const panelProgress = panelVisibleFrame > 0 && frame >= panelVisibleFrame
@@ -283,6 +287,8 @@ export const ScrollableQuestion: React.FC<{
           readingSpeedRatio={readingSpeedRatio}
           readingClauseDurations={audioDurations.questionClauseDurations}
         />
+
+        {question.coverImage && <QuestionImage src={question.coverImage} startFrame={T.imageStart} circleFrame={T.explanationStart > 0 ? T.explanationStart : T.tipStart > 0 ? T.tipStart : undefined} />}
 
         <div style={{ marginTop: 10 }}>
           {question.options.map((opt, i) => (
