@@ -37,7 +37,7 @@ export const MIMO_VOICES = [
 function applyDictionary(text: string): string {
   try {
     const db = getDb();
-    const entries = db.prepare("SELECT original, replacement FROM tts_dictionary WHERE enabled = 1").all() as { original: string; replacement: string }[];
+    const entries = db.prepare("SELECT original, replacement FROM tts_dictionary WHERE enabled = 1 ORDER BY LENGTH(original) DESC").all() as { original: string; replacement: string }[];
     let result = text;
     for (const { original, replacement } of entries) {
       result = result.split(original).join(replacement);
@@ -56,10 +56,8 @@ async function generateSegment(questionId: number, segment: string, text: string
   const fullStyle = speedPrefix + style;
   let cacheSegment = speed === "medium" ? segment : `${segment}_${speed}`;
   if (voice !== "冰糖") cacheSegment = `${cacheSegment}_v${voice}`;
-  if (questionId === 0) {
-    const hash = Array.from(text).reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0).toString(36);
-    cacheSegment = `${cacheSegment}_${hash}`;
-  }
+  const hash = Array.from(text).reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0).toString(36);
+  cacheSegment = `${cacheSegment}_${hash}`;
 
   const db = getDb();
 
