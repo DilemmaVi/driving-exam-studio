@@ -318,14 +318,15 @@ function initTables(db: Database.Database) {
 
   // migrate: clean up v0.3.38 broken cache entries (hash was embedded in segment name)
   // and force all old entries to regenerate (text_hash was not stored before)
-  const brokenCount = (db.prepare("SELECT COUNT(*) as c FROM tts_cache WHERE text_hash IS NULL").get() as { c: number }).c;
+  // preserve question_id=0 entries (settings-generated tf option audio)
+  const brokenCount = (db.prepare("SELECT COUNT(*) as c FROM tts_cache WHERE text_hash IS NULL AND question_id != 0").get() as { c: number }).c;
   if (brokenCount > 0) {
-    const brokenRows = db.prepare("SELECT file_path FROM tts_cache WHERE text_hash IS NULL").all() as { file_path: string }[];
+    const brokenRows = db.prepare("SELECT file_path FROM tts_cache WHERE text_hash IS NULL AND question_id != 0").all() as { file_path: string }[];
     const audioDir = process.env.AUDIO_DIR || path.join(process.cwd(), "public", "audio");
     for (const r of brokenRows) {
       try { fs.unlinkSync(path.join(audioDir, path.basename(r.file_path))); } catch {}
     }
-    db.exec("DELETE FROM tts_cache WHERE text_hash IS NULL");
+    db.exec("DELETE FROM tts_cache WHERE text_hash IS NULL AND question_id != 0");
   }
 
   // TTS dictionary table

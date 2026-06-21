@@ -41,7 +41,7 @@ interface Segment {
 }
 
 function splitByKeywords(text: string, keywords: string[], blueKeywords: string[] = []): Segment[] {
-  const allKws = [...keywords, ...blueKeywords];
+  const allKws = [...keywords, ...blueKeywords].sort((a, b) => b.length - a.length);
   if (!allKws.length) return [{ text, isKeyword: false, startIdx: 0 }];
   const escaped = allKws.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
   const regex = new RegExp(`(${escaped.join("|")})`, "g");
