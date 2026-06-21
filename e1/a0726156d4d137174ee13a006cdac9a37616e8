@@ -1,0 +1,46 @@
+package.json
+  947baa095c733774 3
+CHANGELOG.md
+  947baa095c733774 1-4
+src/lib/changelog.ts
+  947baa095c733774 8-14
+src/lib/db.ts
+  947baa095c733774 321-322,324,329
+src/remotion/BottomPanel.tsx
+  947baa095c733774 44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.3",
+  "base_commit_sha": "e1a0726156d4d137174ee13a006cdac9a37616e8",
+  "prompts": {
+    "947baa095c733774": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ec099e56-8890-4624-828b-369365d8b1e0",
+        "model": "mimo-v2.5-pro"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 19,
+      "total_deletions": 6,
+      "accepted_lines": 34,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/39c58cf614bcb53919691656ea23a7935adb9298bd5e599623eecf8139f34658"
+    },
+    "a0016bb7d214ca0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1bc78389-3517-467c-98e5-b0809f4a85a2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "DilemmaVi <349371218@qq.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 2247,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/bb45b43b9703c52dcd0721811e3dbfb8a7b664f7e56f4104eb4dad12c1acc5c5"
+    }
+  }
+}
