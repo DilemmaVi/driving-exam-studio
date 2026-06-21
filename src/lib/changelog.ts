@@ -5,6 +5,15 @@ export const changelog: {
   tip?: string;
 }[] = [
   {
+    version: "0.3.39",
+    date: "2026-06-10",
+    changes: [
+      "修复 v0.3.38 导致的题目不读题的问题（缓存 key 中的 hash 破坏了音频文件名）",
+      "新增 text_hash 列用于词典变更后自动失效旧缓存，文件名保持不变",
+      "升级后自动清理 v0.3.38 的错误缓存，用户无需手动操作",
+    ],
+  },
+  {
     version: "0.3.38",
     date: "2026-06-10",
     changes: [

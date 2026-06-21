@@ -56,13 +56,12 @@ async function generateSegment(questionId: number, segment: string, text: string
   const fullStyle = speedPrefix + style;
   let cacheSegment = speed === "medium" ? segment : `${segment}_${speed}`;
   if (voice !== "冰糖") cacheSegment = `${cacheSegment}_v${voice}`;
-  const hash = Array.from(text).reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0).toString(36);
-  cacheSegment = `${cacheSegment}_${hash}`;
+  const textHash = Array.from(text).reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0).toString(36);
 
   const db = getDb();
 
   if (!force) {
-    const cached = db.prepare("SELECT file_path, duration_sec, clause_durations FROM tts_cache WHERE question_id = ? AND segment = ?").get(questionId, cacheSegment) as { file_path: string; duration_sec: number; clause_durations: string | null } | undefined;
+    const cached = db.prepare("SELECT file_path, duration_sec, clause_durations FROM tts_cache WHERE question_id = ? AND segment = ? AND text_hash = ?").get(questionId, cacheSegment, textHash) as { file_path: string; duration_sec: number; clause_durations: string | null } | undefined;
 
     if (cached && fs.existsSync(path.join(AUDIO_DIR, path.basename(cached.file_path)))) {
       const cd = cached.clause_durations ? JSON.parse(cached.clause_durations) as number[] : [];
@@ -98,7 +97,7 @@ async function generateSegment(questionId: number, segment: string, text: string
   const duration = getWavDuration(fullPath);
   const clauseDurations = detectClauseBoundaries(fullPath, text);
 
-  db.prepare("INSERT OR REPLACE INTO tts_cache (question_id, segment, file_path, duration_sec, clause_durations) VALUES (?, ?, ?, ?, ?)").run(questionId, cacheSegment, filePath, duration, clauseDurations.length > 0 ? JSON.stringify(clauseDurations) : null);
+  db.prepare("INSERT OR REPLACE INTO tts_cache (question_id, segment, file_path, duration_sec, clause_durations, text_hash) VALUES (?, ?, ?, ?, ?, ?)").run(questionId, cacheSegment, filePath, duration, clauseDurations.length > 0 ? JSON.stringify(clauseDurations) : null, textHash);
 
   return { filePath, duration, clauseDurations };
 }

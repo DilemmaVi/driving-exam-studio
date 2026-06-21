@@ -86,9 +86,9 @@ export async function POST(request: NextRequest) {
       fs.writeFileSync(fullPath, Buffer.from(audioData, "base64"));
 
       const duration = getWavDuration(fullPath);
-      db.prepare("INSERT OR REPLACE INTO tts_cache (question_id, segment, file_path, duration_sec) VALUES (?, ?, ?, ?)").run(0, cacheSegment, `audio/${fileName}`, duration);
+      db.prepare("INSERT OR REPLACE INTO tts_cache (question_id, segment, file_path, duration_sec, text_hash) VALUES (?, ?, ?, ?, ?)").run(0, cacheSegment, `audio/${fileName}`, duration, hash);
       // 同时用固定 segment 名注册，供题目生成时直接复用
-      db.prepare("INSERT OR REPLACE INTO tts_cache (question_id, segment, file_path, duration_sec) VALUES (?, ?, ?, ?)").run(0, `tf_opt_${i}`, `audio/${fileName}`, duration);
+      db.prepare("INSERT OR REPLACE INTO tts_cache (question_id, segment, file_path, duration_sec, text_hash) VALUES (?, ?, ?, ?, ?)").run(0, `tf_opt_${i}`, `audio/${fileName}`, duration, hash);
       results.push({ duration });
     }
 
